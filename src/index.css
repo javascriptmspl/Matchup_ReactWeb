@@ -101,6 +101,7 @@ body{
   transform: rotate(var(--num-degree-pos));
 /*   background-color: blue; */
 }
+
 .wall-clock-nums [num]::before {
   content: attr(num);
   line-height: calc(0.1 * var(--clock-size));
@@ -124,6 +125,7 @@ body{
   width: calc(0.001 * var(--clock-size));
   height: calc(0.025 * var(--clock-size));
 }
+
 .wall-clock-nums [num="12.5"] {--num-degree-pos: 15deg;}
 .wall-clock-nums [num="1"] {--num-degree-pos: 30deg;}
 .wall-clock-nums [num="1.5"] {--num-degree-pos: 45deg;}
