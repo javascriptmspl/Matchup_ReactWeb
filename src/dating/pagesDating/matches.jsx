@@ -2,15 +2,15 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import FooterFour from "../component/layout/footerFour";
 import SelectProduct from "../component/select/selectproduct";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 import loveRed from "../assets/images/icons/love_red.png";
 import loveBlack from "../assets/images/icons/love_black.png";
 import HeaderFour from "../../component/layout/HeaderFour";
 import { useDispatch, useSelector } from "react-redux";
 import { UserData } from "../../assets/DummyData/userData";
-import { fetchUsersByGender } from "../../service/common-service/getuserbyGender";
-import { use } from "react";
+import { createActivity, fetchUsersByGender, getActivitiesBySenderUserId } from "../../service/common-service/getuserbyGender";
+import { BASE_URL } from "../../base";
 
 const MatchPage = () => {
   const [favoriteContentList, setFavoriteContentList] = useState([]);
@@ -19,56 +19,57 @@ const MatchPage = () => {
   const [favrorite, setFavorite] = useState(UserData.slice(0, 7));
   const [matches, setMatches] = useState(UserData.slice(8, 15));
   const [user , setuser]=useState([])
+  const [likedUser, setLikedUser] = useState([]);
   const User = JSON.parse(localStorage.getItem("userData"))
-  const userId = User?.data?.mode;
+  const userId = User?.data?._id;
   const findUser = User?.data?.looking;
-  console.log("findUser=>", findUser);
-  const navigate = useNavigate()
-  const isAuthenction = useSelector((state) => state.userCreate.isAuth);
+  const modeId = User?.data?.mode;
+  
   const dispatch = useDispatch()
-  const handleClick = (id, userName, user) => {
-    setLoveImageStatus((prevLoveImageStatus) => {
-      const isLiked = prevLoveImageStatus[id] === loveRed;
+  // const handleClick = (id, userName, user) => {
+  //   setLoveImageStatus((prevLoveImageStatus) => {
+  //     const isLiked = prevLoveImageStatus[id] === loveRed;
 
-      // Move the user from Matches to Favorites
-      if (isLiked) {
-        const updatedMatchesList = matches.filter((val) => val.id !== id);
-        setMatches(updatedMatchesList);
+  //     // Move the user from Matches to Favorites
+  //     if (isLiked) {
+  //       const updatedMatchesList = matches.filter((val) => val.id !== id);
+  //       setMatches(updatedMatchesList);
 
-        const updatedFavoritesList = [
-          ...favrorite,
-          { id: id, name: userName, ...user },
-        ];
-        setFavorite(updatedFavoritesList);
+  //       const updatedFavoritesList = [
+  //         ...favrorite,
+  //         { id: id, name: userName, ...user },
+  //       ];
+  //       setFavorite(updatedFavoritesList);
 
-        toast.success(`You've added ${userName} to favorites! 💖`);
-      } else {
-        // Move the user from Favorites to Matches
-        const updatedFavoritesList = favrorite.filter((val) => val.id !== id);
-        setFavorite(updatedFavoritesList);
+  //       toast.success(`You've added ${userName} to favorites! 💖`);
+  //     } else {
+  //       // Move the user from Favorites to Matches
+  //       const updatedFavoritesList = favrorite.filter((val) => val.id !== id);
+  //       setFavorite(updatedFavoritesList);
 
-        const updatedMatchesList = [
-          ...matches,
-          { id: id, name: userName, ...user },
-        ];
-        setMatches(updatedMatchesList);
+  //       const updatedMatchesList = [
+  //         ...matches,
+  //         { id: id, name: userName, ...user },
+  //       ];
+  //       setMatches(updatedMatchesList);
 
-        toast.success(
-          `You've removed ${userName} from favorites and added to matches. 😢`
-        );
-      }
+  //       toast.success(
+  //         `You've removed ${userName} from favorites and added to matches. 😢`
+  //       );
+  //     }
 
-      return {
-        ...prevLoveImageStatus,
-        [id]: isLiked ? loveBlack : loveRed,
-      };
-    });
-  };
+  //     return {
+  //       ...prevLoveImageStatus,
+  //       [id]: isLiked ? loveBlack : loveRed,
+  //     };
+  //   });
+  // };
 
   const getLoveImage = (userId) => {
     const isMatches = favoriteContentList.some((val) => val.id === userId);
     return isMatches ? loveRed : loveBlack;
   };
+
   const getBlackImage = (userId) => {
     const isFavrites = favoriteContentList.some((val) => val.id === userId);
     return isFavrites ? loveBlack : loveRed;
@@ -79,7 +80,7 @@ const MatchPage = () => {
       try {
         const res = await dispatch(fetchUsersByGender({
           gender: findUser,
-          userId: userId
+          userId: modeId
         })).unwrap();
         setuser(res.data)
       } catch (error) {
@@ -89,8 +90,62 @@ const MatchPage = () => {
     Mydata()
   }, [])
 
-  console.log("=====",user);
+  useEffect(() => {
+    const Mydata = async () => {
+      try {
+        const res = await dispatch(getActivitiesBySenderUserId({
+          senderUserId: userId,
+          modeId: modeId,
+          page_number: 1,
+          page_size: 10
+        })).unwrap();
+        setLikedUser(res?.data)
+      } catch (error) {
+        toast.error("Failed to fetch activities: " + error.message);
+      }
+    }
+    Mydata()
+  }, [])
+
+
+
+  // console.log("user=====>>",user);
+
+  const buttonEvent = async (id, reaction) => {
+    try {
+      await dispatch(
+        createActivity({
+          senderUserId: userId,
+          receiverUserId: id,
+          action_logs: `User ${userId} ${reaction} User ${id}`,
+          description: `${reaction} Action`,
+          note: "",
+          mode: modeId,
+          activityType: reaction,
+          page_number: 1,  
+          page_size: 10,
+        })
+      ).unwrap();
   
+      dispatch(
+        getActivitiesBySenderUserId({
+          senderUserId: userId,
+          modeId: modeId,
+          page_number: 1,
+          page_size: 10,
+        })
+      );
+  
+      toast.success(`${reaction} action performed successfully`);
+    } catch (err) {
+      console.error("Activity error:", err);
+      toast.error("Failed to perform action");
+    }
+  };
+  
+
+  
+console.log("likedUser=====>>",likedUser);
 
   return (
     <>
@@ -141,7 +196,7 @@ const MatchPage = () => {
             </div>
 
             <div className="row g-0 justify-content-center mx-12-none  ">
-              {favrorite.map((val, i) => (
+              {likedUser.map((val, i) => (
                 <div className="member__item " key={i}>
                   <div className="member__inner member__inner-sized-hover react-main">
                     <div className="react">
@@ -149,19 +204,20 @@ const MatchPage = () => {
                         src={getBlackImage(val.id)}
                         width="25"
                         alt=""
-                        onClick={() => handleClick(val.id, val.name, val)}
+                        // onClick={() => handleClick(val.id, val.name, val)}
                       />
                     </div>
                     <div className="member__thumb">
-                      <img src={val.avatar} alt={`${val.imgAlt}`} />
+                      <img src={`${BASE_URL}/assets/images/${val.receiverUserId.avatars[0]}`} alt={`${val.receiverUserId.name}`}
+                      style={{width:"100%",height:"100%"}} />
                       <span className={val.className}></span>
                     </div>
                     <div className="member__content">
-                      <Link to={`/dating/user-profile/${val.id}`}>
-                        <h5>{val.name}</h5>
+                      <Link to={`/dating/user-profile/${val.receiverUserId._id}`}>
+                        <h5>{val.receiverUserId.name}</h5>
                       </Link>
                       <p>
-                        <span>{val.profession}</span> || <span>{val.age}</span>
+                        <span>{val.receiverUserId.education || "Not Added"}</span> || <span>{val.receiverUserId.age || "Not Added"}</span>
                       </p>
                       <p>{val.activity}</p>
                     </div>
@@ -170,12 +226,12 @@ const MatchPage = () => {
                       <div className="col ">
                         <Link
                           className="fs-3 ms-4"
-                          to={`/dating/user-profile/${val.id}`}
+                          to={`/dating/user-profile/${val?.receiverUserId?._id}`}
                         >
                           <i
                             class="fa fa-user"
                             aria-hidden="true"
-                            title="Profile"
+                            title="Profile"x
                           ></i>
                         </Link>
                       </div>
@@ -211,11 +267,11 @@ const MatchPage = () => {
                         src={getLoveImage(val.id)}
                         width="25"
                         alt=""
-                        onClick={() => handleClick(val.id, val.name, val)}
+                        onClick={() => buttonEvent(val._id, "like")}
                       />
                     </div>
                     <div className="member__thumb">
-                      <img style={{width:"100%",height:"100%"}} src={`https://datingapi.meander.software/assets/images/${val.avatars[0]}`} alt={`${val.imgAlt}`} />
+                      <img style={{width:"100%",height:"100%"}} src={`${BASE_URL}/assets/images/${val.avatars[0]}`} alt={`${val.imgAlt}`} />
                       <span className={val.className}></span>
                     </div>
                     <div className="member__content">
@@ -224,8 +280,8 @@ const MatchPage = () => {
                       </Link>
                       <div>
                         <p>
-                          <span>{val.profession}</span> ||{" "}
-                          <span>{val.age ?? 29}</span>
+                          <span>{val.education || "Not Found"}</span> ||{" "}
+                          <span>{val.age || "Not Found"}</span>
                         </p>
                         <div>
                           <p>
@@ -234,7 +290,7 @@ const MatchPage = () => {
                               style={{ color: "#f24570" }}
                               aria-hidden="true"
                             ></i>{" "}
-                            {val.address}
+                            {val.address || "Not Found"}
                           </p>
                         </div>
                       </div>

@@ -1,24 +1,24 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import Hammer from "hammerjs";
 import "./findPartner2/swiper.css";
 import HeaderFour from "../../component/layout/HeaderFour";
 import FooterFour from "../../component/layout/footerFour";
-import { LOCAL_USER_GENDER, modeId } from "../../utils";
+import { LOCAL_USER_GENDER } from "../../utils";
 import { BASE_URL } from "../../base";
-import axios from "axios";
-import SelectProduct from "../component/select/selectproduct";
+// import axios from "axios";
+// import SelectProduct from "../component/select/selectproduct";
 import { useNavigate } from "react-router-dom";
 import SearchFilterModal from "../component/popUps/searchModal";
 import { useDispatch } from "react-redux";
-import { fetchUsersByGender } from "../../service/common-service/getuserbyGender";
-import { getFindPartnerAPI } from "../../service/MANAGE_API/find-user-API";
+import { createActivity, fetchUsersByGender, getFilteredUsers } from "../../service/common-service/getuserbyGender";
+// import { getFindPartnerAPI } from "../../service/MANAGE_API/find-user-API";
 import { metriGetAllUsersAsync } from "../../service/MANAGE_SLICE/find-user-SLICE";
 
 function FindFriendPageNew() {
   const [members, setMembers] = useState([]);
   const userByMode = LOCAL_USER_GENDER();
-  const [sessionInteractedUsers, setSessionInteractedUsers] = useState([]);
-  const [membersbygennder, setMembersbygender] = useState([]);
+  // const [sessionInteractedUsers, setSessionInteractedUsers] = useState([]);
+  // const [membersbygennder, setMembersbygender] = useState([]);
   const [photoStyle, setPhotoStyle] = useState({
     transform: "",
     transitionDuration: "",
@@ -26,45 +26,44 @@ function FindFriendPageNew() {
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [filterModal, setFilterModal] = useState(false);
-  const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
   const dispatch = useDispatch()
   const User = JSON.parse(localStorage.getItem("userData"))
-  const userId = User?.data?.mode;
+  const modeId = User?.data?.mode;
+  const userId = User?.data?._id;
   const findUser = User?.data?.looking;
-  
   // filter members - with null check
   const showUserByGender = members?.length ? members.filter(
     (member) => member.iAm !== userByMode
   ) : [];
 
- 
-  useEffect(()=>{
-    const myfun=async()=>{
-    if (User && User?.data) {
-      const response = await dispatch(fetchUsersByGender({
-        gender: findUser,
-        userId: userId
-      })).unwrap();
-      setMembers(response?.data);
-    } else {
-      const res = await dispatch(metriGetAllUsersAsync()).unwrap();
-      setMembers(res);
-    }
-  }
-  myfun()
-  },[])
-  
-
 
   useEffect(() => {
-    setMembersbygender(
-      showUserByGender.filter(
-        (member) => !sessionInteractedUsers.includes(member._id)
-      )
-    );
-  }, [sessionInteractedUsers]);
+    const myfun = async () => {
+      if (User && User?.data) {
+        const response = await dispatch(fetchUsersByGender({
+          gender: findUser,
+          userId: modeId
+        })).unwrap();
+        setMembers(response?.data);
+      } else {
+        const res = await dispatch(metriGetAllUsersAsync()).unwrap();
+        setMembers(res);
+      }
+    }
+    myfun()
+  }, [])
+
+
+
+  // useEffect(() => {
+  //   setMembersbygender(
+  //     showUserByGender.filter(
+  //       (member) => !sessionInteractedUsers.includes(member._id)
+  //     )
+  //   );
+  // }, [sessionInteractedUsers]);
 
 
 
@@ -179,10 +178,23 @@ function FindFriendPageNew() {
       }, 400);
     }
   };
-  const user = showUserByGender[currentIndex];
 
-  // console.log("showUserByGender", showUserByGender)
-  // console.log(" showUserByGender[currentIndex]?.interest", showUserByGender[currentIndex]?.interest)
+
+  // const buttonEvent = (reaction) => {
+  //   // Dispatch from component
+  //   dispatch(createActivity({
+  //     senderUserId: userId,
+  //     receiverUserId: showUserByGender[currentIndex]?._id,
+  //     action_logs: `User ${user?._id} ${reaction} User ${showUserByGender[currentIndex]?._id}`,
+  //     description: `${reaction} Action`,
+  //     note: "",
+  //     mode: modeId,
+  //     activityType: reaction
+  //   }));
+
+  // };
+
+  const user = showUserByGender[currentIndex];
 
   const languages = [
     { id: 1, name: "English" },
@@ -207,237 +219,281 @@ function FindFriendPageNew() {
       ? showUserByGender[currentIndex]?.interest
       : dummyInterests;
 
+      const handleFilterSearch = async (filters) => {
+        try {
+          const response = await dispatch(
+            getFilteredUsers({ ...filters, modeId })
+          ).unwrap();
+    
+          if (response?.data && response.data.length > 0) {
+            setMembers(response.data);
+          } else {
+            // fallback normal flow
+            const res = await dispatch(
+              fetchUsersByGender({
+                gender: findUser,
+                userId: modeId,
+              })
+            ).unwrap();
+            setMembers(res?.data);
+          }
+        } catch (err) {
+          console.error("Filter API Error:", err);
+        }
+      };
+
+
+
+
 
   return (
     <>
       <HeaderFour />
-      <div className="container-fluid" style={{
-        background: "#fff"
-      }} >
-        <div className="container" >
-          <div className="row">
-            {/* <div className="col-lg-2 col-xl-2"></div> */}
+      {members?.length === 0 ? (
+        // No users found design
+        <div
+          className="no-users-found d-flex flex-column align-items-center justify-content-center"
+          style={{
+            minHeight: "60vh",
+            textAlign: "center",
+            color: "#f24570",
+          }}
+        >
+          <i
+            className="fa fa-user-times"
+            style={{ fontSize: "5rem", marginBottom: "20px" }}
+          ></i>
+          <h2>No Users Found</h2>
+          <p>Try adjusting your search filters or check back later.</p>
+        </div>
+      ) : (
+        <div className="container-fluid" style={{
+          background: "#fff"
+        }} >
+          <div className="container" >
+            <div className="row">
+              {/* <div className="col-lg-2 col-xl-2"></div> */}
 
 
-            <div className="col-sm-12 col-md-5 col-lg-5 col-xl-5">
-              {/* {
+              <div className="col-sm-12 col-md-5 col-lg-5 col-xl-5">
+                {/* {
               members.map((val, i) => { */}
-              <div className="smartphone-swiper my-lg-3 my-lx-3 my-md-3">
-                <div className="screen-swiper">
-                  <div className="topbar-swiper">
-                    <div className="topbar-left-swiper">
-                      <div className="clock-swiper">00:00</div>
-                      <i className="fa fa-youtube-play"></i>
+                <div className="smartphone-swiper my-lg-3 my-lx-3 my-md-3">
+                  <div className="screen-swiper">
+                    <div className="topbar-swiper">
+                      <div className="topbar-left-swiper">
+                        <div className="clock-swiper">00:00</div>
+                        <i className="fa fa-youtube-play"></i>
+                      </div>
+                      <div className="topbar-middle-swiper">
+                        <div className="camera-swiper"></div>
+                        <div className="camera-lens-swiper"></div>
+                        <div className="inner-lens-swiper"></div>
+                      </div>
+                      <div className="topbar-right-swiper">
+                        <i className="fa fa-signal"></i>73%
+                        <i className="fa fa-battery-three-quarters"></i>
+                      </div>
                     </div>
-                    <div className="topbar-middle-swiper">
-                      <div className="camera-swiper"></div>
-                      <div className="camera-lens-swiper"></div>
-                      <div className="inner-lens-swiper"></div>
-                    </div>
-                    <div className="topbar-right-swiper">
-                      <i className="fa fa-signal"></i>73%
-                      <i className="fa fa-battery-three-quarters"></i>
-                    </div>
-                  </div>
-                  <nav className="navbar-swiper">
-                    <i className="fa-solid fa-circle-user"></i>
-                    <i className="fa-solid fa-fire-flame-curved"></i>
-                    <i className="fa-solid fa-comment-dots"></i>
-                  </nav>
-                  <div className="person-swiper">
-                    <figure
-                      className="photo-swiper"
-                      style={{
-                        ...photoStyle,
-                        background: `url(https://datingapi.meander.software/assets/images/${showUserByGender[currentIndex]?.avatars[0]})`,
-                        backgroundSize: "cover",
-                        backgroundRepeat: "no-repeat",
-                      }}
-                    >
-                      <div className="personal-swiper">
-                        <div className="name-age-swiper">
-                          <h2 className="name-swiper text-light"
-                            onClick={() => navigate(`/dating/user-profile/${showUserByGender[currentIndex]?._id}`)}>{showUserByGender[currentIndex]?.name}</h2>
-                          <h2 className="age-swiper text-light"> {calculateAge(showUserByGender[currentIndex]?.dob)}</h2>
-                        </div>
-                        <div className="data-swiper">
-                          <div className="about-swiper">
-                            <div className="about-icon-swiper">
-                              <i className="fa-solid fa-location-dot"></i>
-                            </div>
-                            <div className="about-text-swiper">
-                              <p>4 miles away</p>
+                    <nav className="navbar-swiper">
+                      <i className="fa-solid fa-circle-user"></i>
+                      <i className="fa-solid fa-fire-flame-curved"></i>
+                      <i className="fa-solid fa-comment-dots"></i>
+                    </nav>
+                    <div className="person-swiper">
+                      <figure
+                        className="photo-swiper"
+                        style={{
+                          ...photoStyle,
+                          background: `url(${BASE_URL}/assets/images/${showUserByGender[currentIndex]?.avatars[0]})`,
+                          backgroundSize: "cover",
+                          backgroundRepeat: "no-repeat",
+                        }}
+                      >
+                        <div className="personal-swiper">
+                          <div className="name-age-swiper">
+                            <h2 className="name-swiper text-light"
+                              onClick={() => navigate(`/dating/user-profile/${showUserByGender[currentIndex]?._id}`)}>{showUserByGender[currentIndex]?.name}</h2>
+                            <h2 className="age-swiper text-light"> {calculateAge(showUserByGender[currentIndex]?.dob)}</h2>
+                          </div>
+                          <div className="data-swiper">
+                            <div className="about-swiper">
+                              <div className="about-icon-swiper">
+                                <i className="fa-solid fa-location-dot"></i>
+                              </div>
+                              <div className="about-text-swiper">
+                                <p>4 miles away</p>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    </figure>
-                  </div>
-                  <div className="commands-swiper">
-                    <div
-                      className="command-swiper"
-                      onClick={() => buttonEvent("dislike")}
-                    >
-                      <i className="fa-solid fa-close" style={{
-                        color: '#41444B'
-                      }}></i>
+                      </figure>
                     </div>
-                    <div
-                      className="command-swiper"
-                      onClick={() => buttonEvent("super_like")}
-                    >
-                      <i className="fa-solid fa-star"
-                        style={{
-                          color: '#387ADF'
-                        }}></i>
-                    </div>
-                    <div
-                      className="command-swiper"
-                      onClick={() => buttonEvent("like")}
-                    >
-                      <i className="fa-solid fa-heart" style={{
-                        color: '#EF4B4B'
-                      }}></i>
-                    </div>
-                  </div>
-                  <footer className="footer-swiper">
-                    <i className="fa fa-reorder"></i>
-                    <i className="fa fa-square-o"></i>
-                    <i className="fa fa-chevron-left"></i>
-                  </footer>
-                </div>
-              </div>
-              {/* })
-            }  */}
-            </div>
-
-            <div className="col-sm-12 col-md-7 col-lg-7 col-xl-7">
-              <div className="content-swiper my-3 pe-lg-3 pe-xl-3">
-
-                <div className="member__info--left group__bottom--head "
-                >
-                  <SearchFilterModal
-                    showModal={filterModal}
-                    hideModal={() => {
-                      setFilterModal(false);
-                    }}
-                  />
-                  <div className="member__info--filter">
-                    <div className="default-btn">
-                      <span onClick={() => setFilterModal(true)}>
-                        Filter Your Search <i className="fa-solid fa-sliders"></i>
-                      </span>
-                    </div>
-                  </div>
-                  <div className="">
-                    <div className="left">
-                      <form
-                        action="#"
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                        }}
+                    <div className="commands-swiper">
+                      <div
+                        className="command-swiper"
+                        onClick={() => buttonEvent("dislike")}
                       >
-                        <input
-                          className="bg-white"
-                          type="text"
-                          name="search"
-                          placeholder="search"
-                          autocomplete="off"
-                        // value={searchInputQuery}
-                        // onChange={(e) => setSearchInputQuery(e.target.value)}
-                        // style={{float:"left"}}
-                        />
-                        {/* Corrected button type */}
-                        <button type="submit">
-                          <i className="fa-solid fa-magnifying-glass"></i>
-                        </button>
-                      </form>
-                    </div>
-                  </div>
-                </div>
-
-
-
-                <h3 className="mt-5">Interests</h3>
-                <div className="d-flex flex-wrap">
-                  {showUserByGender[currentIndex]?.interest &&
-                    Array.isArray(showUserByGender[currentIndex]?.interest) &&
-                    showUserByGender[currentIndex]?.interest.length > 0 ? (
-                    userInterests.map((val, index) => (
-                      <div className="col-auto" key={index}>
-                        <p
-                          style={{
-                            margin: "10px 10px 10px 10px",
-                            padding: "5px 12px",
-                            borderRadius: "25px",
-                            cursor: "pointer",
-                            background: "#f24570",
-                            color: "white",
-                          }}
-                          className={`interest-item flex-nowrap `}
-                        >
-                          {val?.name}
-                        </p>
+                        <i className="fa-solid fa-close" style={{
+                          color: '#41444B'
+                        }}></i>
                       </div>
-                    ))
-                  ) : (
-                    <p>No interests available</p>
-                  )}
+                      <div
+                        className="command-swiper"
+                        onClick={() => buttonEvent("superlike")}
+                      >
+                        <i className="fa-solid fa-star"
+                          style={{
+                            color: '#387ADF'
+                          }}></i>
+                      </div>
+                      <div
+                        className="command-swiper"
+                        onClick={() => buttonEvent("like")}
+                      >
+                        <i className="fa-solid fa-heart" style={{
+                          color: '#EF4B4B'
+                        }}></i>
+                      </div>
+                    </div>
+                    <footer className="footer-swiper">
+                      <i className="fa fa-reorder"></i>
+                      <i className="fa fa-square-o"></i>
+                      <i className="fa fa-chevron-left"></i>
+                    </footer>
+                  </div>
                 </div>
+                {/* })
+            }  */}
+              </div>
 
+              <div className="col-sm-12 col-md-7 col-lg-7 col-xl-7">
+                <div className="content-swiper my-3 pe-lg-3 pe-xl-3">
 
-                <h3 className="mt-5">Other details</h3>
-                <div className="d-flex flex-wrap mt-3">
-                  <div className="px-3 col-6">
-                    <p className=""><b style={{ color: "#213366" }}><i class="fa fa-graduation-cap" aria-hidden="true"></i> Education :</b>  {user?.education}</p>
-                  </div>
-                  <div className="px-3 col-6">
-                    <p className=""><b style={{ color: "#213366" }}><i class="fa fa-home" aria-hidden="true"></i> Hometown :</b>  {user?.address}</p>
-                  </div>
-                  <div className="px-3 col-6">
-                    <p className=""><b style={{ color: "#213366" }}><i class="me-1 fa fa-language" aria-hidden="true"></i>
-                      Language I know :</b></p>
-                    <div className="d-flex flex-wrap">
-                      {
-                        languages ? (
-                          languages.map((val, index) => (
-                            <div className="col-auto" key={index}>
-                              <p
-                                style={{
-                                  margin: "5px 5px",
-                                  padding: "3px 5px",
-                                  borderRadius: "25px",
-                                  cursor: "pointer",
-                                  background: "",
-                                  border: "1px solid #f24570",
-                                  fontSize: "0.8rem",
-                                  color: ""
-                                }}
-                                className={`interest-item flex-nowrap text-muted`}
-                              ><b>
-                                  {val?.name}
-                                </b>
-                              </p>
-                            </div>
-                          ))
-                        ) : (
-                          <p>No Language available</p>
-                        )}
+                  <div className="member__info--left group__bottom--head "
+                  >
+                    <SearchFilterModal
+                      showModal={filterModal}
+                      hideModal={() => {setFilterModal(false);}}
+                      onSubmit={handleFilterSearch}
+                    />
+                    <div className="member__info--filter">
+                      <div className="default-btn">
+                        <span onClick={() => setFilterModal(true)}>
+                          Filter Your Search <i className="fa-solid fa-sliders"></i>
+                        </span>
+                      </div>
+                    </div>
+                    <div className="">
+                      <div className="left">
+                        <form
+                          action="#"
+                          onSubmit={(e) => {
+                            e.preventDefault();
+                          }}
+                        >
+                          <input
+                            className="bg-white"
+                            type="text"
+                            name="search"
+                            placeholder="search"
+                            autocomplete="off"
+                          // value={searchInputQuery}
+                          // onChange={(e) => setSearchInputQuery(e.target.value)}
+                          // style={{float:"left"}}
+                          />
+                          {/* Corrected button type */}
+                          <button type="submit">
+                            <i className="fa-solid fa-magnifying-glass"></i>
+                          </button>
+                        </form>
+                      </div>
                     </div>
                   </div>
+
+
+
+                  <h3 className="mt-5">Interests</h3>
+                  <div className="d-flex flex-wrap">
+                    {showUserByGender[currentIndex]?.interest &&
+                      Array.isArray(showUserByGender[currentIndex]?.interest) &&
+                      showUserByGender[currentIndex]?.interest.length > 0 ? (
+                      userInterests.map((val, index) => (
+                        <div className="col-auto" key={index}>
+                          <p
+                            style={{
+                              margin: "10px 10px 10px 10px",
+                              padding: "5px 12px",
+                              borderRadius: "25px",
+                              cursor: "pointer",
+                              background: "#f24570",
+                              color: "white",
+                            }}
+                            className={`interest-item flex-nowrap `}
+                          >
+                            {val?.name}
+                          </p>
+                        </div>
+                      ))
+                    ) : (
+                      <p>No interests available</p>
+                    )}
+                  </div>
+
+
+                  <h3 className="mt-5">Other details</h3>
+                  <div className="d-flex flex-wrap mt-3">
+                    <div className="px-3 col-6">
+                      <p className=""><b style={{ color: "#213366" }}><i class="fa fa-graduation-cap" aria-hidden="true"></i> Education :</b>  {user?.education}</p>
+                    </div>
+                    <div className="px-3 col-6">
+                      <p className=""><b style={{ color: "#213366" }}><i class="fa fa-home" aria-hidden="true"></i> Hometown :</b>  {user?.address}</p>
+                    </div>
+                    <div className="px-3 col-6">
+                      <p className=""><b style={{ color: "#213366" }}><i class="me-1 fa fa-language" aria-hidden="true"></i>
+                        Language I know :</b></p>
+                      <div className="d-flex flex-wrap">
+                        {
+                          languages ? (
+                            languages.map((val, index) => (
+                              <div className="col-auto" key={index}>
+                                <p
+                                  style={{
+                                    margin: "5px 5px",
+                                    padding: "3px 5px",
+                                    borderRadius: "25px",
+                                    cursor: "pointer",
+                                    background: "",
+                                    border: "1px solid #f24570",
+                                    fontSize: "0.8rem",
+                                    color: ""
+                                  }}
+                                  className={`interest-item flex-nowrap text-muted`}
+                                ><b>
+                                    {val?.name}
+                                  </b>
+                                </p>
+                              </div>
+                            ))
+                          ) : (
+                            <p>No Language available</p>
+                          )}
+                      </div>
+                    </div>
+                  </div>
+
+
+
+
                 </div>
-
-
-
-
               </div>
+
+              {/* <div className="col-lg-2 col-xl-2"></div> */}
+
             </div>
-
-            {/* <div className="col-lg-2 col-xl-2"></div> */}
-
           </div>
         </div>
-      </div>
+      )}
       <FooterFour />
     </>
   );

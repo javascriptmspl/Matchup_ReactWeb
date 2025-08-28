@@ -12,6 +12,7 @@ import userMale from "../../dating/assets/images/myCollection/user-male.jpg";
 import { logout } from "../../dating/store/slice/AuthSlice";
 import { MODE_DATING, MODE_METRI } from "../../utils";
 import { log } from "handlebars/runtime";
+import { BASE_URL } from "../../base";
 
 // const dfimg = "../../assets/images/avtar.jpg";
 let HeaderInfoList = [
@@ -259,9 +260,9 @@ const HeaderFour = () => {
                     <img
                       src={
                         User?.mainAvatar
-                          ? `https://datingapi.meander.software/assets/images/${User?.mainAvatar}?v=${avatarVersion}`
+                          ? `${BASE_URL}/assets/images/${User?.mainAvatar}?v=${avatarVersion}`
                           : User?.avatars?.[0]
-                          ? `https://datingapi.meander.software/assets/images/${User?.avatars?.[0]}?v=${avatarVersion}`
+                          ? `${BASE_URL}/assets/images/${User?.avatars?.[0]}?v=${avatarVersion}`
                           : userMale
                       }
                       // ||

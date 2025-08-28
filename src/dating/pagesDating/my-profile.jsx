@@ -40,6 +40,7 @@ import moment from "moment";
 import ShowPhotoViewerModal from "../component/popUps/photoAlbum";
 import { getByIdUsersAsync } from "../store/slice/AuthSlice";
 import { USER_ID_LOGGEDIN } from "../../utils";
+import { BASE_URL } from "../../base";
 const activety = "Online";
 
 let MideaAll = [
@@ -679,9 +680,9 @@ const MyProfile = () => {
                           <img
                             src={
                               User?.mainAvatar
-                                ? `https://datingapi.meander.software/assets/images/${User?.mainAvatar}`
+                                ? `${BASE_URL}/assets/images/${User?.mainAvatar}`
                                 : User?.avatars?.[0]
-                                ? `https://datingapi.meander.software/assets/images/${User?.avatars?.[0]}`
+                                ? `${BASE_URL}/assets/images/${User?.avatars?.[0]}`
                                 : userMale
                             }
                             style={{

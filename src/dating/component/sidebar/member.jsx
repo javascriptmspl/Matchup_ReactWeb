@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { metriGetAllUsersAsync } from "../../../service/MANAGE_SLICE/find-user-SLICE";
 import { LOCAL_USER_GENDER } from "../../../utils";
+import { BASE_URL } from "../../../base";
 
 const title = "Members";
 
@@ -11,18 +12,15 @@ const title = "Members";
 
 const ActiveMember = () => {
   const ALL_USER_METRIMONIAL = useSelector((state) => state.getAllUser.users);
-  console.log("ALL_USER_METRIMONIAL", ALL_USER_METRIMONIAL)
 
   const dispatch = useDispatch();
 
   const userByMode = LOCAL_USER_GENDER();
-  console.log("userByMode", userByMode)
   const showuserByGender = ALL_USER_METRIMONIAL.filter((member) => member.iAm !== userByMode);
   useEffect(() => {
     dispatch(metriGetAllUsersAsync());
   }, [dispatch]);
 
-  console.log("showuserByGender>>>>", showuserByGender);
   
   
   return (
@@ -49,7 +47,7 @@ const ActiveMember = () => {
                         <div className="member__thumb">
                           <img
                             src={
-                             `https://datingapi.meander.software/assets/images/${val?.avatars[0]}`
+                             `${BASE_URL}/assets/images/${val?.avatars[0]}`
                             }
                             style={{
                               height: "51px",

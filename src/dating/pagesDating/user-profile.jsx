@@ -14,6 +14,7 @@ import { UserData } from "../..//assets/DummyData/userData";
 import { useDispatch, useSelector } from "react-redux";
 import userMale from "../../dating//assets/images/myCollection/user-male.jpg";
 import { getByIdUsersAsync } from "../store/slice/AuthSlice";
+import { BASE_URL } from "../../base";
 
 
 const name = "William Smith";
@@ -896,7 +897,7 @@ const [mildStone, setMildStone] = useState(false);
                             <img
                               src={
                                 USER_PROFILE?.avatars
-                                  ? `https://datingapi.meander.software//assets/images/${USER_PROFILE?.avatars[0]}`
+                                  ? `${BASE_URL}/assets/images/${USER_PROFILE?.avatars[0]}`
                                   : userMale
                               }
                               alt="matrimonial thumb"
