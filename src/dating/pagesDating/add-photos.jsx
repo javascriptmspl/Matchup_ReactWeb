@@ -3,6 +3,7 @@ import { useDispatch } from "react-redux";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import user from "../../assets/avatar/add-photos.png";
+import { BASE_URL } from "../../base";
 import {
   getUserProfileAsync,
   uploadProfilePictureAsync,
@@ -11,10 +12,10 @@ import {
 const AddPhotos = () => {
   const dispatch = useDispatch();
   const [selectedImages, setSelectedImages] = useState([
-    user,
-    user,
-    user,
-    user,
+    { url: user, file: null },
+    { url: user, file: null },
+    { url: user, file: null },
+    { url: user, file: null },
   ]);
 
   useEffect(() => {
@@ -33,31 +34,60 @@ const AddPhotos = () => {
       const file = event.target.files[0];
       if (file) {
         const newImages = [...selectedImages];
-        newImages[index] = URL.createObjectURL(file);
+        newImages[index] = { url: URL.createObjectURL(file) };
         setSelectedImages(newImages);
-
-        // Dispatch the thunk to upload the profile picture
-        try {
-          await dispatch(uploadProfilePictureAsync(file));
-          console.log("Profile picture uploaded successfully");
-        } catch (error) {
-          console.error("Error uploading profile picture:", error);
-        }
       }
     });
 
     fileInput.click();
   };
 
-  const submitImages = () => {
-    console.log("check1");
-    if (selectedImages.length >= 2) {
-      toast.success("Images uploaded successfully!");
-      navigate("/");
-    } else {
-      toast.error("Please select at least 2 images first.");
+  const submitImages = async () => {
+    const userData = JSON.parse(localStorage.getItem("userData"));
+    const userId = userData?.data?._id;
+
+    if (!userId) {
+      toast.error("User ID not found!");
+      return;
     }
-    console.log("check3");
+
+    // Filter out only the actual files (not default avatars)
+    const filesToUpload = selectedImages
+      .map((img) => img.file)
+      .filter((file) => file);
+
+    if (filesToUpload.length < 1) {
+      toast.error("Please select at least 1 image.");
+      return;
+    }
+
+    const formData = new FormData();
+    filesToUpload.forEach((file) => {
+      formData.append("image", file); // Use 'image' as the field name
+    });
+    formData.append("userId", userId); // Also append userId as in the API usage
+
+    try {
+      // Log the URL for debugging
+      console.log(`Uploading to: ${BASE_URL}/User/uploadProfile/${userId}`);
+      const response = await fetch(`${BASE_URL}/User/uploadProfile/${userId}`, {
+        method: "PUT", // Changed back to PUT
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Upload failed: ${errorText}`);
+      }
+
+      const data = await response.json();
+      toast.success("Images uploaded successfully!");
+      console.log("data: ", data);
+      navigate("/");
+    } catch (error) {
+      toast.error("Image upload failed!");
+      console.error("Upload error:", error);
+    }
   };
 
   const title = "Add Images";
@@ -87,9 +117,9 @@ const AddPhotos = () => {
                     className="member__inner"
                     onClick={() => handleImageClick(index)}
                     style={{ width: "260px", height: "300px" }}
-                  >
+                  > 
                     <img
-                      src={image}
+                      src={image.url}
                       style={{
                         width: "100%",
                         height: "100%",

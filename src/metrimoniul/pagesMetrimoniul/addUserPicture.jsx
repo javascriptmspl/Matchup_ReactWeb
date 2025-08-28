@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import user from "../../assets/avatar/add-photos.png";
-
+import { BASE_URL } from "../../base";
 
 const AddPhotos = () => {
   const [selectedImages, setSelectedImages] = useState([
@@ -35,6 +35,9 @@ const AddPhotos = () => {
       }, 2000);
     });
   };
+
+
+
 
   const submitImages = async () => {
     try {

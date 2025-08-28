@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import SelectProduct from "../component/select/selectproduct";
 import { LOCAL_USER_GENDER_METRI, MODE_METRI } from "../../utils";
 import { useEffect, useState } from "react";
@@ -24,9 +24,12 @@ import { BASE_URL } from "../../base";
 const MembersPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const Store = useSelector((state) => state);
 
-  const [members, setMembers] = useState([]);
+  // If navigated with filtered data, use it; otherwise, use default
+  const filteredMembers = location.state?.data;
+  const [members, setMembers] = useState(filteredMembers || []);
   const [filterModal, setFilterModal] = useState(false);
   const [filter, setFilter] = useState("");
   const [loading, setLoading] = useState(true);
@@ -163,8 +166,13 @@ const MembersPage = () => {
   };
 
   useEffect(() => {
-    loadMembers();
-  }, []);
+    if (filteredMembers) {
+      setMembers(filteredMembers);
+      setLoading(false);
+    } else {
+      loadMembers();
+    }
+  }, [filteredMembers]);
 
   return (
     <>
@@ -183,11 +191,11 @@ const MembersPage = () => {
                     style={{ backgroundColor: "#f24570" }}
                   >
                     <span onClick={() => setFilterModal(true)}>
-                      Filter Your Search <i className="fa-solid fa-sliders"></i>
+                      Filter Your Searchhh <i className="fa-solid fa-sliders"></i>
                     </span>
                   </div>
                 </div>
-                <div className="group__bottom--head">
+                <div className="grp__bottom--head">
                   <div className="left">
                     <form onSubmit={(e) => e.preventDefault()}>
                       <input

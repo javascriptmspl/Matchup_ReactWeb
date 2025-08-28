@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { Form, Modal } from "react-bootstrap";
 import SelectGender from "../select/selectgender";
 import { useDispatch } from "react-redux";
-
+import { BASE_URL } from "../../../base";
+import { useNavigate } from "react-router-dom";
 const title = "Find your true love";
 const desc = "Serious dating with your perfect match is just a click away.";
 
@@ -13,6 +14,7 @@ const labelchangefour = "Cities";
 const btnText = "Find Your Partner";
 
 const MetriSearchFilterModal = ({ showModal, hideModal }) => {
+  const navigate = useNavigate();
   const [selectedDistance, setSelectedDistance] = useState(10);
   const dispatch = useDispatch();
 
@@ -22,7 +24,7 @@ const MetriSearchFilterModal = ({ showModal, hideModal }) => {
     minAge: "20",
     maxAge: "25",
   });
-  const [selectedCountry, setSelectedCountry] = useState("Bangladesh");
+  const [selectedCountry, setSelectedCountry] = useState("");
 
   const handleChangeData = (e) => {
     setSelectAge({ ...selectAge, [e.target.name]: e.target.value });
@@ -57,20 +59,55 @@ const MetriSearchFilterModal = ({ showModal, hideModal }) => {
     return ageOptions1;
   };
 
-  const handleFilterSubmit = (e) => {
+  const handleFilterSubmit = async (e) => {
     e.preventDefault();
-    let queryParams = `/metrimonial/members`;
 
-    if (selectAge.minAge && selectAge.maxAge) {
-      queryParams += `?minAge=${selectAge.minAge}&maxAge=${selectAge.maxAge}`;
+    try {
+      // Build query string dynamically
+      let queryParams = new URLSearchParams();
+
+      if (selectedLookingFor) {
+        queryParams.append("gender", selectedLookingFor);
+      }
+      if (selectedCountry) {
+        queryParams.append("address", selectedCountry);
+      }
+      if (selectAge.minAge) {
+        queryParams.append("minAge", selectAge.minAge);
+      }
+      if (selectAge.maxAge) {
+        queryParams.append("maxAge", selectAge.maxAge);
+      }
+
+      // This modeId looks static in your example, add accordingly
+      queryParams.append("modeId", "65943637acc570d6b14edf38");
+
+      // Final API URL
+      const url = `${BASE_URL}/User/filter?${queryParams.toString()}&t=${Date.now()}`;
+      console.log("API URL:", url);
+
+      // API call (GET)
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+      });
+
+      if (!response.ok) {
+        throw new Error("API request failed");
+      }
+
+      const data = await response.json();
+      console.log("API Response:", data);
+
+      // ✅ Now you can update state or pass data to UI
+      hideModal();
+      navigate("/metrimonial/members", { state: { data: data.data } });
+    } catch (error) {
+      console.error("Error fetching data:", error);
     }
-    const filter = {
-      gender: selectedLookingFor,
-      minAge: selectAge.minAge,
-      maxAge: selectAge.maxAge,
-      address: selectedCountry,
-    };
-    hideModal();
   };
   const usaCities = [
     "New York",
@@ -119,7 +156,9 @@ const MetriSearchFilterModal = ({ showModal, hideModal }) => {
     "Minneapolis",
     "Tulsa",
     "Cleveland",
-    "Wichita",
+    "New Delhi",
+    "Chandigarh",
+    "USA",
   ];
 
   const minimumAge = ["18", "19", "20"];
@@ -149,7 +188,7 @@ const MetriSearchFilterModal = ({ showModal, hideModal }) => {
         <div className="modal-content border-0 mb-4">
           <div className="modal-header">
             <h5 className="modal-title" id="exampleModalLabel1">
-              Filter your search
+              Filter your searchh
             </h5>
           </div>
           <div className="modal-body">
@@ -171,9 +210,18 @@ const MetriSearchFilterModal = ({ showModal, hideModal }) => {
                     </div>
                   </div>
                   <div className="col">
-                    <label>Marital status</label>
+                    <label>Location</label>
                     <div className="banner__inputlist">
-                      <select id="country" name="country">
+                      <select
+                        id="country"
+                        name="country"
+                        value={selectedCountry}
+                        onChange={handleCountryChange}
+                        required
+                      >
+                        <option value="" disabled>
+                          Select a city
+                        </option>
                         {usaCities.map((country, index) => (
                           <option key={index} value={country}>
                             {country}
@@ -183,33 +231,14 @@ const MetriSearchFilterModal = ({ showModal, hideModal }) => {
                     </div>
                   </div>
                   <div className="col">
-                    <label>Religion</label>
+                    <label>City</label>
                     <div className="banner__inputlist">
-                      <select id="country" name="country">
-                        {usaCities.map((country, index) => (
-                          <option key={index} value={country}>
-                            {country}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                  <div className="col">
-                    <label>Religion</label>
-                    <div className="banner__inputlist">
-                      <select id="country" name="country">
-                        {usaCities.map((country, index) => (
-                          <option key={index} value={country}>
-                            {country}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                  <div className="col">
-                    <label>Mother Tongue</label>
-                    <div className="banner__inputlist">
-                      <select id="country" name="country">
+                      <select
+                        id="country"
+                        name="country"
+                        value={selectedCountry}
+                        onChange={handleCountryChange}
+                      >
                         {usaCities.map((country, index) => (
                           <option key={index} value={country}>
                             {country}
@@ -246,18 +275,6 @@ const MetriSearchFilterModal = ({ showModal, hideModal }) => {
                     </div>
                   </div>
 
-                  <div className="col">
-                    <label>{labelchangefour}</label>
-                    <div className="banner__inputlist">
-                      <select id="country" name="country">
-                        {usaCities.map((country, index) => (
-                          <option key={index} value={country}>
-                            {country}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
                   <div className="col">
                     <button type="submit" className="default-btn d-block w-100">
                       <span>Find Your Partner</span>

@@ -1,100 +1,108 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import toast from 'react-hot-toast';
-import { useDispatch, useSelector } from "react-redux";
-import { getAllInterest } from "../../service/MANAGE_SLICE/interest-SLICE";
-import { MODE_METRI, Mode, USER_ID_LOGGEDIN } from "../../utils";
-import { updateUserById } from "../../dating/store/slice/AuthSlice";
-import Lodder from "../component/layout/Lodder";
+import toast, { Toaster } from "react-hot-toast";
+import { useDispatch } from "react-redux";
+import { updateInterestsAsync } from "../../dating/store/slice/profileSlice"; // ✅ same as dating
+import { fetchInterests } from "../../service/common-service/getuserbyGender"; // ✅ same as dating
 
 const SelectInterest = () => {
   const [selectedInterests, setSelectedInterests] = useState([]);
-  const [loading, setLoading] = useState(true)
-  const navigate = useNavigate();
+  const [interests, setInterests] = useState([]);
   const dispatch = useDispatch();
-  const interests = useSelector((state) => state?.intersetSlice?.interset?.data);
-  const interestsLoading = useSelector((state) => state?.intersetSlice?.loading);
+  const navigate = useNavigate();
 
-  const userId = USER_ID_LOGGEDIN;
-
-  const userData = {
-    _id: userId,
-    interest: selectedInterests,
-  };
+  // ✅ localStorage se userId lena (same as dating)
+  const user = localStorage.getItem("userData");
+  const userObj = user ? JSON.parse(user) : null;
+  const userId = userObj?.data?._id;
 
   useEffect(() => {
-    dispatch(getAllInterest(MODE_METRI));
-      setLoading(false)
-  }, [dispatch, loading]);
+    const loadInterests = async () => {
+      try {
+        const res = await dispatch(
+          fetchInterests({
+            token: "68ad621a1130f0d24d4aff06", // same token
+            page_no: 1,
+            page_size: 1000,
+          })
+        );
+        const data = res.payload.data;
+        setInterests(data);
+      } catch (err) {
+        toast.error("Failed to load interests");
+      }
+    };
+    loadInterests();
+  }, [dispatch]);
 
+  // ✅ object based selection (same as dating)
   const handleInterestToggle = (interest) => {
-    const updatedInterests = selectedInterests.includes(interest?._id)
-      ? selectedInterests.filter((item) => item !== interest?._id)
-      : [...selectedInterests, interest?._id];
-
-    setSelectedInterests(updatedInterests);
+    if (selectedInterests.includes(interest)) {
+      setSelectedInterests((prev) => prev.filter((item) => item !== interest));
+    } else {
+      setSelectedInterests((prev) => [...prev, interest]);
+    }
   };
 
+  // ✅ submit function (same as dating)
   const handleNavigateHome = async () => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 100));
       await toast.promise(
-        dispatch(updateUserById(userData)),
+        dispatch(updateInterestsAsync({ userId, interests: selectedInterests })),
         {
-          loading: 'Updating your interests 😍...',
-          success: <b>Interests updated! Redirecting...</b>,
-          error: <b>Could not update interests. Please try again.</b>,
+          loading: "Saving your interests 😍...",
+          success: <b>Settings saved! Redirecting...</b>,
+          error: <b>Could not save. Please try again.</b>,
         }
       );
-      if (interestsLoading !== true) {
-        navigate('/metrimonial/add-photos');
-      }
-    }
-    catch (error) {
-      toast.error("Error updating interests. Please try again.");
+      navigate("/metrimonial/add-photos"); // ✅ matrimonial route
+    } catch (error) {
+      toast.error("Error submitting interests. Please try again.");
     }
   };
 
   return (
-    <> {loading ? (
-      <Lodder />
-    ) : (
-      <div className="container padding-top padding-bottom">
-        <div className="row text-center">
-          <h2 className="mb-4">Select Your Interests</h2>
-          <div className="col">
-            {interests && interests.map((interest, index) => (
-              <Link
-                key={index}
-                style={{
-                  border: `1px solid ${selectedInterests.includes(interest._id) ? "#d63384" : "lightgray"}`,
-                  margin: "10px 10px 10px 10px",
-                  padding: "5px 12px",
-                  borderRadius: "25px",
-                  cursor: "pointer",
-                }}
-                className={`interest-item flex-nowrap ${selectedInterests.includes(interest._id) ? "selected" : ""}`}
-                onClick={() => handleInterestToggle(interest)}
-              >
-                {interest?.name}
-              </Link>
-            ))}
-          </div>
-        </div>
-        <div className="col-4 mt-4">
-          {selectedInterests.length > 0 ? (
-            <button className="default-btn reverse" onClick={handleNavigateHome}>
-              <span>Submit your interests</span>
-            </button>
-          ) : (
-            <button className="default-btn reverse" onClick={() => navigate('/metrimonial')}>
-              <span>Skip</span>
-            </button>
-          )}
+    <div className="container padding-top padding-bottom">
+      <div className="row text-center">
+        <h2 className="mb-4">Select Your Interests</h2>
+        <div className="col">
+          {interests.map((interest, index) => (
+            <Link
+              key={index}
+              style={{
+                border: `1px solid ${
+                  selectedInterests.includes(interest) ? "#d63384" : "lightgray"
+                }`,
+                margin: "10px 10px 10px 10px",
+                padding: "5px 12px",
+                borderRadius: "25px",
+                cursor: "pointer",
+              }}
+              className={`interest-item flex-nowrap ${
+                selectedInterests.includes(interest) ? "selected" : ""
+              }`}
+              onClick={() => handleInterestToggle(interest)}
+            >
+              {interest.name}
+            </Link>
+          ))}
         </div>
       </div>
-    )}
-    </>
+      <div className="col-4 mt-4">
+        {selectedInterests.length > 0 ? (
+          <button className="default-btn reverse" onClick={handleNavigateHome}>
+            <span>Submit your interests</span>
+          </button>
+        ) : (
+          <button
+            className="default-btn reverse"
+            onClick={() => navigate("/metrimonial/add-photos")}
+          >
+            <span>Skip</span>
+          </button>
+        )}
+      </div>
+    </div>
   );
 };
 
