@@ -1,78 +1,93 @@
-import { useContext,useEffect} from "react";
+import { useContext, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Modal } from "react-bootstrap";
-import {Link} from "react-router-dom";
+import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import userMale from "../../../../dating/assets/images/myCollection/user-male.jpg";
 import { MODE_METRI } from "../../../../utils";
 import { getBySenderUserIds } from "../../../../dating/store/slice/ActivitiesSlice";
+import { BASE_URL } from "../../../../base";
 
-
-     
- const EventNotificationSchedule = ({ showModal,editIndex,ViewUser,setEditIndex, hideModal,calenderScheduleDAte, selectedUser ,selectUseriNFO,scheduledData}) => {
+const EventNotificationSchedule = ({
+  showModal,
+  editIndex,
+  ViewUser,
+  setEditIndex,
+  hideModal,
+  calenderScheduleDAte,
+  selectedUser,
+  selectedMemberForEvent, // <-- add this prop
+  userInfoDate,
+  scheduledData,
+}) => {
   // const {eventDatahandle}=useContext(eventnotifyData)
-  const dispatch=useDispatch()
+  const dispatch = useDispatch();
   const profileData = useSelector((state) => state.profile.userData);
   const User = profileData[0];
 
   const datingId = localStorage.getItem("userData");
-  const user_Data =JSON.parse(datingId)
+  const user_Data = JSON.parse(datingId);
   const Store = useSelector((state) => state);
-  let matchUserList =  useSelector((state) =>Store?.activies?.Activity?.data  || [])
+  let matchUserList = useSelector(
+    (state) => Store?.activies?.Activity?.data || []
+  );
 
   useEffect(() => {
-    dispatch(getBySenderUserIds(
-      {modeid:MODE_METRI,
-        id:user_Data.data._id
-      }
-      ));
+    dispatch(
+      getBySenderUserIds({ modeid: MODE_METRI, id: user_Data.data._id })
+    );
   }, [user_Data.data._id]);
 
-  const eventnotifyData={
-    user:User,
-    selectUser:editIndex !== null  ? ViewUser?.selectUser :selectedUser?.receiverUserId,
-    scheduledData:scheduledData,
-  }
+  const eventnotifyData = {
+    user: User,
+    selectUser:
+      editIndex !== null
+        ? ViewUser?.selectUser
+        : selectedMemberForEvent || selectedUser?.receiverUserId, // <-- use selectedMemberForEvent if available
+    scheduledData: scheduledData,
+  };
 
-
-
-
-  const handleSubmitnotification =  (e) => { 
-    
+  const handleSubmitnotification = (e) => {
     e.preventDefault();
-    if(editIndex ===null){
+    if (editIndex === null) {
       const datanotifyEvent = localStorage.getItem("dataEvent") || "[]";
-      localStorage.setItem("dataEvent", JSON.stringify([...JSON.parse(datanotifyEvent), eventnotifyData]))
-      
-    }
-    else{
+      localStorage.setItem(
+        "dataEvent",
+        JSON.stringify([...JSON.parse(datanotifyEvent), eventnotifyData])
+      );
+    } else {
       const datanotifyEvent = localStorage.getItem("dataEvent") || "[]";
-      const updateArray = [...JSON.parse(datanotifyEvent)]
-      updateArray[editIndex] = {...ViewUser, scheduledData:scheduledData}
-      localStorage.setItem("dataEvent", JSON.stringify(updateArray))
-      setEditIndex(null)
-
+      const updateArray = [...JSON.parse(datanotifyEvent)];
+      updateArray[editIndex] = { ...ViewUser, scheduledData: scheduledData };
+      localStorage.setItem("dataEvent", JSON.stringify(updateArray));
+      setEditIndex(null);
     }
 
-      try {
-        toast.success("schedule date successfully updated");
-        hideModal(hideModal)
-        
-      } catch (error) {
-        console.error("Error updating Contact profile:", error);
-        toast.error("Failed to update Contact info");
-      }
-    };
- 
+    try {
+      toast.success("schedule date successfully updated");
+      hideModal(hideModal);
+    } catch (error) {
+      console.error("Error updating Contact profile:", error);
+      toast.error("Failed to update Contact info");
+    }
+  };
+
   return (
-    <Modal show={showModal} onHide={hideModal} centered >
-      
-        
-        <div className="main" style={{position:"relative"}}>
-        <span onClick={hideModal} style={{position:"absolute", right:"20px", top:"8px", color: "#213366", cursor: "pointer"}}>
+    <Modal show={showModal} onHide={hideModal} centered>
+      <div className="main" style={{ position: "relative" }}>
+        <span
+          onClick={hideModal}
+          style={{
+            position: "absolute",
+            right: "20px",
+            top: "8px",
+            color: "#213366",
+            cursor: "pointer",
+          }}
+        >
           <i className="fa fa-times fs-3 modal-cls" aria-hidden="true"></i>
         </span>
-        <div className="svg-top " >
+        <div className="svg-top ">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="330"
@@ -86,7 +101,13 @@ import { getBySenderUserIds } from "../../../../dating/store/slice/ActivitiesSli
               fill="#D6B6F9"
             />
             <defs>
-              <linearGradient id="gradient-col" x1="0%" y1="0%" x2="100%" y2="0%">
+              <linearGradient
+                id="gradient-col"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="0%"
+              >
                 <stop offset="0%" style={{ stopColor: "#F093FB" }} />
                 <stop offset="100%" style={{ stopColor: "#f24570" }} />
               </linearGradient>
@@ -98,8 +119,14 @@ import { getBySenderUserIds } from "../../../../dating/store/slice/ActivitiesSli
             <p>You and Desirae have both liked each other</p>
             <div className="coll row">
               <div className="col-md-8 mod-person-lft col-8">
-                <p className="fs-4 text-muted fw-600 per-txt"> {User?.name || ""}</p>
-                <p className="fs-4 text-muted fw-600 per-dest"> {User?.occupation || ""}</p>
+                <p className="fs-4 text-muted fw-600 per-txt">
+                  {" "}
+                  {User?.name || ""}
+                </p>
+                <p className="fs-4 text-muted fw-600 per-dest">
+                  {" "}
+                  {User?.occupation || ""}
+                </p>
                 <p className="fs-4 text-muted fw-600 location ">
                   <span>
                     <svg
@@ -120,51 +147,55 @@ import { getBySenderUserIds } from "../../../../dating/store/slice/ActivitiesSli
               </div>
               <div className="col-md-4 col-4 modal-imgg-wrap">
                 <div className="girl ">
-                <img
-                            src={
-                              User?.mainAvatar
-                                ? `https://datingapi.meander.software/assets/images/${User?.mainAvatar}`
-                                : userMale
-                            }
-                            alt="dating thumb"
-                          />
+                  <img
+                    src={
+                      User?.mainAvatar
+                        ? `${BASE_URL}/assets/images/${User?.mainAvatar}`
+                        : User?.avatars?.[0]
+                        ? `${BASE_URL}/assets/images/${User?.avatars[0]}`
+                        : userMale
+                    }
+                    alt="dating thumb"
+                  />
                 </div>
               </div>
             </div>
 
-           <div className=" col6 heart-svg">
-
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="23"
-                  viewBox="0 0 24 23"
-                  fill="none"
-                >
-                  <path
-                    d="M21.3406 2.97626C18.7864 0.422095 14.7424 0.178778 11.9449 2.30744C9.11644 0.208838 5.10345 0.422095 2.51825 2.97626C-0.278217 5.77375 -0.278217 10.3644 2.51825 13.1619L11.1239 21.7666L11.9139 22.5576L21.3406 13.1319C24.1681 10.3644 24.1681 5.80378 21.3406 2.97626ZM19.7897 11.611L14.1947 17.2059C13.9514 15.8072 13.2826 14.4395 12.6438 13.1319C11.154 10.061 9.87738 7.41575 12.7349 4.55723L12.9172 4.37501C14.8636 2.61082 17.9043 2.67188 19.7897 4.55723C21.7351 6.50263 21.7351 9.66556 19.7897 11.611Z"
-                    fill="white"
-                  />
-                </svg>
-              
-              </div>
-              <div className="row rt2">
+            <div className=" col6 heart-svg">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="23"
+                viewBox="0 0 24 23"
+                fill="none"
+              >
+                <path
+                  d="M21.3406 2.97626C18.7864 0.422095 14.7424 0.178778 11.9449 2.30744C9.11644 0.208838 5.10345 0.422095 2.51825 2.97626C-0.278217 5.77375 -0.278217 10.3644 2.51825 13.1619L11.1239 21.7666L11.9139 22.5576L21.3406 13.1319C24.1681 10.3644 24.1681 5.80378 21.3406 2.97626ZM19.7897 11.611L14.1947 17.2059C13.9514 15.8072 13.2826 14.4395 12.6438 13.1319C11.154 10.061 9.87738 7.41575 12.7349 4.55723L12.9172 4.37501C14.8636 2.61082 17.9043 2.67188 19.7897 4.55723C21.7351 6.50263 21.7351 9.66556 19.7897 11.611Z"
+                  fill="white"
+                />
+              </svg>
+            </div>
+            <div className="row rt2">
               <div className="col-md-4 col-4 modal-imgg-wrap">
                 <img
                   className="img2 rounded-50"
-
                   src={
                     eventnotifyData?.selectUser?.mainAvatar
-                      ? `https://datingapi.meander.software/assets/images/${eventnotifyData?.selectUser?.mainAvatar}`
+                      ? `${BASE_URL}/assets/images/${eventnotifyData?.selectUser?.mainAvatar}`
+                      : eventnotifyData?.selectUser?.avatars?.[0]
+                      ? `${BASE_URL}/assets/images/${eventnotifyData?.selectUser?.avatars[0]}`
                       : userMale
                   }
-             
                   alt=""
                 />
               </div>
               <div className="col-md-8 mod-person-rt col-8">
-                <p className="fs-4 text-muted fw-600 per-txt">{eventnotifyData?.selectUser?.name||""}</p>
-                <p className="fs-4 text-muted fw-600 per-dest">{eventnotifyData?.selectUser?.occupation||""}</p>
+                <p className="fs-4 text-muted fw-600 per-txt">
+                  {eventnotifyData?.selectUser?.name || ""}
+                </p>
+                <p className="fs-4 text-muted fw-600 per-dest">
+                  {eventnotifyData?.selectUser?.occupation || ""}
+                </p>
                 <p className="fs-4 text-muted fw-600 location">
                   <span className="location2">
                     <svg
@@ -180,7 +211,7 @@ import { getBySenderUserIds } from "../../../../dating/store/slice/ActivitiesSli
                       />
                     </svg>
                   </span>
-                  {eventnotifyData?.selectUser?.address||""}
+                  {eventnotifyData?.selectUser?.address || ""}
                 </p>
               </div>
             </div>
@@ -188,31 +219,33 @@ import { getBySenderUserIds } from "../../../../dating/store/slice/ActivitiesSli
           <div className="date-time-wrap">
             <p className="date-modal">
               <i class="fas fa-calendar-alt"></i>
-              {scheduledData?.date||""}
+              {scheduledData?.date || ""}
             </p>
             <p className="time-modal">
               <i class="fas fa-clock"></i>
-              {scheduledData?.time||""}
+              {scheduledData?.time || ""}
             </p>
             <p className="loc-modal">
               <i class="fas fa-map-marker-alt"></i>
-              {scheduledData?.venue||""}
+              {scheduledData?.venue || ""}
             </p>
-
           </div>
 
           <div className="main-bottom">
-           <Link onClick={hideModal}> 
-           <button className="send-msg-btn">
-              <p className="content">Send a Message</p>
-            </button></Link>
-            
-           <Link >
-             <button onClick={handleSubmitnotification} className="schedule-date" >
-              <p className="celender schedulename">
-                Submit
-              </p>
-            </button></Link>
+            <Link onClick={hideModal}>
+              <button className="send-msg-btn">
+                <p className="content">Send a Message</p>
+              </button>
+            </Link>
+
+            <Link>
+              <button
+                onClick={handleSubmitnotification}
+                className="schedule-date"
+              >
+                <p className="celender schedulename">Submit</p>
+              </button>
+            </Link>
           </div>
         </div>
       </div>

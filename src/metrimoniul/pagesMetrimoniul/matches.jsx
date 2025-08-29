@@ -11,6 +11,7 @@ import HeaderFour from "../component/layout/HeaderFour";
 import { useDispatch, useSelector } from "react-redux";
 import Lodder from "../component/layout/Lodder";
 import { metriGetAllUsersAsync } from "../../service/MANAGE_SLICE/find-user-SLICE";
+import { BASE_URL } from "../../base";
 import {
   deleteActivitySlice,
   getAllActivies,
@@ -179,10 +180,12 @@ const MatchPage = () => {
                             <img
                               src={
                                 val?.receiverUserId?.mainAvatar
-                                  ? `https://datingapi.meander.software/assets/images/${val?.receiverUserId?.mainAvatar}`
+                                  ? `${BASE_URL}/assets/images/${val?.receiverUserId?.mainAvatar}`
+                                  : val?.receiverUserId?.avatars?.[0]
+                                  ? `${BASE_URL}/assets/images/${val?.receiverUserId?.avatars[0]}`
                                   : userMale
                               }
-                              alt={`${val?.receiverUserId?.imgAlt}`}
+                              alt="dating thumb"
                             />
                             <span
                               className={val?.receiverUserId?.className}
@@ -294,10 +297,12 @@ const MatchPage = () => {
                             <img
                               src={
                                 val?.receiverUserId?.mainAvatar
-                                  ? `https://datingapi.meander.software/assets/images/${val?.receiverUserId?.mainAvatar}`
+                                  ? `${BASE_URL}/assets/images/${val?.receiverUserId?.mainAvatar}`
+                                  : val?.receiverUserId?.avatars?.[0]
+                                  ? `${BASE_URL}/assets/images/${val?.receiverUserId?.avatars[0]}`
                                   : userMale
                               }
-                              alt={`${val?.receiverUserId?.imgAlt}`}
+                              alt={`${val?.receiverUserId?.imgAlt || "user"}`}
                             />
                             <span
                               className={val?.receiverUserId?.className}

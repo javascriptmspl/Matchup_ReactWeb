@@ -115,6 +115,15 @@ const MembersPage = () => {
     setMembers((prev) => prev.filter((m) => m._id !== _id));
   };
 
+  const getOppositeGender = (gender) => {
+    if (!gender) return null;
+    const g = gender.trim().toLowerCase();
+    if (g === "male") return "female";
+    if (g === "female") return "male";
+    // Add more options if your app supports more genders
+    return null;
+  };
+
   const loadMembers = async () => {
     try {
       setLoading(true);
@@ -129,12 +138,19 @@ const MembersPage = () => {
 
       let list = Store?.getAllUser?.users || [];
 
+      // Always determine the gender to look for
+      let lookingGender = user_Data?.data?.looking;
+      if (!lookingGender) {
+        // Fallback: infer from iAm
+        lookingGender = getOppositeGender(user_Data?.data?.iAm);
+      }
+
       if (!Array.isArray(list) || list.length === 0) {
-        if (user_Data?.data?.looking) {
+        if (lookingGender) {
           const resp = await dispatch(
             fetchUsersByGender({
-              gender: user_Data.data.looking,
-              userId: user_Data.data.mode ?? MODE_METRI,
+              gender: lookingGender,
+              userId: user_Data.data._id,
             })
           ).unwrap();
           list = resp?.data || [];
@@ -147,15 +163,8 @@ const MembersPage = () => {
       // Apply approval filter
       const approvedList = list.filter(isUserApproved);
 
-      // Apply gender filter
-      const showByGender = approvedList.filter((m) => m.iAm !== userByMode);
-
-      // Remove favourites
-      const favUserIds =
-        (Store?.activies?.Activity?.data || []).map(
-          (x) => x?.receiverUserId?._id
-        ) || [];
-      const finalList = showByGender.filter((m) => !favUserIds.includes(m._id));
+      // Show only opposite gender (men see women, women see men)
+      const finalList = approvedList.filter((m) => m.iAm === lookingGender);
 
       setMembers(finalList);
     } catch (err) {
@@ -191,11 +200,11 @@ const MembersPage = () => {
                     style={{ backgroundColor: "#f24570" }}
                   >
                     <span onClick={() => setFilterModal(true)}>
-                      Filter Your Searchhh <i className="fa-solid fa-sliders"></i>
+                      Filter Your Search <i className="fa-solid fa-sliders"></i>
                     </span>
                   </div>
                 </div>
-                <div className="grp__bottom--head">
+                <div className="group__bottom--head">
                   <div className="left">
                     <form onSubmit={(e) => e.preventDefault()}>
                       <input
@@ -235,16 +244,47 @@ const MembersPage = () => {
                   <div className="member__item" key={i}>
                     <div className="member__inner">
                       <div className="member__thumb member-atsro-main">
-                        <img
-                          src={
-                            val.mainAvatar
-                              ? `${BASE_URL}/assets/images/${val.mainAvatar}`
-                              : val.avatars?.[0]
-                              ? `${BASE_URL}/assets/images/${val.avatars[0]}`
-                              : userMale
-                          }
-                          alt="dating thumb"
-                        />
+                        {(() => {
+                          const mainShown = val.mainAvatar || val.avatars?.[0];
+                          const mainSrc = mainShown
+                            ? `${BASE_URL}/assets/images/${mainShown}`
+                            : userMale;
+                          const thumbnails = Array.isArray(val.avatars)
+                            ? val.avatars
+                                .filter((a) => a && a !== mainShown)
+                                .slice(0, 4 )
+                            : [];
+                          return (
+                            <>
+                              <img src={mainSrc} alt="dating thumb" />
+                              {thumbnails.length > 0 && (
+                                <div
+                                  className="member__thumb-grid"
+                                  style={{
+                                    display: "grid",
+                                    gridTemplateColumns: "repeat(4, 1fr)",
+                                    gap: 6,
+                                    marginTop: 8,
+                                  }}
+                                >
+                                  {thumbnails.map((a, idx) => (
+                                    <img
+                                      key={idx}
+                                      src={`${BASE_URL}/assets/images/${a}`}
+                                      alt="user gallery"
+                                      style={{
+                                        width: "100%",
+                                        height: 48,
+                                        objectFit: "cover",
+                                        borderRadius: 4,
+                                      }}
+                                    />
+                                  ))}
+                                </div>
+                              )}
+                            </>
+                          );
+                        })()}
                       </div>
                       <div
                         className="member-atsro"

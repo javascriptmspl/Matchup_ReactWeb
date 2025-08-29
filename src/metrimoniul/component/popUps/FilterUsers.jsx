@@ -80,7 +80,7 @@ const MetriSearchFilterModal = ({ showModal, hideModal }) => {
       }
 
       // This modeId looks static in your example, add accordingly
-      queryParams.append("modeId", "65943637acc570d6b14edf38");
+      queryParams.append("modeId", "68ad61f71130f0d24d4aff04");
 
       // Final API URL
       const url = `${BASE_URL}/User/filter?${queryParams.toString()}&t=${Date.now()}`;
@@ -139,7 +139,7 @@ const MetriSearchFilterModal = ({ showModal, hideModal }) => {
     "Oklahoma City",
     "Las Vegas",
     "Baltimore",
-    "Louisville",
+    "Pune",
     "Milwaukee",
     "Albuquerque",
     "Tucson",

@@ -15,6 +15,8 @@ import { getByIdviewUsersAsync } from "../../dating/store/slice/AuthSlice";
 import Lodder from "../component/layout/Lodder";
 import { filterPartnerByGenderAsync } from "../../dating/store/slice/find-partner-Slice";
 import { UserData } from "../../assets/DummyData/userData";
+import { BASE_URL } from "../../base";
+
 
 
 const activety = "Active 3 Days Ago";
@@ -1029,7 +1031,7 @@ const UserProfile = () => {
                             <img
                               src={
                                 USER_PROFILE?.avatars
-                                  ? `https://datingapi.meander.software/assets/images/${USER_PROFILE?.mainAvatar}`
+                                  ? `${BASE_URL}/assets/images/${USER_PROFILE?.mainAvatar}`
                                   : userMale
                               }
                               //       src={

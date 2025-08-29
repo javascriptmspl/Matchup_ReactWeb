@@ -26,6 +26,7 @@ import ShareMyProfile from "../component/layout/my-profile/ShareMyProfile";
 import HeaderFour from "../component/layout/HeaderFour";
 import Lodder from "../component/layout/Lodder";
 import { USER_ID_LOGGEDIN } from "../../utils";
+import { BASE_URL } from "../../base";
 const activety = "Online";
 
 let MideaAll = [
@@ -899,9 +900,9 @@ const MyProfile = () => {
                               <img
                                 src={
                                   User?.mainAvatar
-                                    ? `https://datingapi.meander.software/assets/images/${User?.mainAvatar}`
+                                    ? `${BASE_URL}/assets/images/${User?.mainAvatar}`
                                     : User?.avatars?.[0]
-                                    ? `https://datingapi.meander.software/assets/images/${User?.avatars?.[0]}`
+                                    ? `${BASE_URL}/assets/images/${User?.avatars?.[0]}`
                                     : userMale
                                 }
                                 style={{

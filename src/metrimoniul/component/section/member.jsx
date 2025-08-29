@@ -4,7 +4,7 @@ import userMale from "../../../dating/assets/images/myCollection/user-male.jpg";
 import { metriGetAllUsersAsync } from "../../../service/MANAGE_SLICE/find-user-SLICE";
 import { useDispatch, useSelector } from "react-redux";
 import { LOCAL_USER_GENDER } from "../../../utils";
-
+import { BASE_URL } from "../../.././base";
 const title = "Most Popular Members";
 const desc =
   "Learn from them and try to make it to this board. This will for sure boost you visibility and increase your chances to find you loved one.";
@@ -61,7 +61,9 @@ const MemberSection = () => {
                       <img
                         src={
                           val.mainAvatar
-                            ? `https://datingapi.meander.software/assets/images/${val.mainAvatar}`
+                            ? `${BASE_URL}/assets/images/${val.mainAvatar}`
+                            : val.avatars?.[0]
+                            ? `${BASE_URL}/assets/images/${val.avatars[0]}`
                             : userMale
                         }
                         alt="dating thumb"
@@ -79,7 +81,9 @@ const MemberSection = () => {
                             aria-hidden="true"
                           ></i>
                         </small>
-                        <small className="text-black">{val.occupation || ""}</small>
+                        <small className="text-black">
+                          {val.occupation || ""}
+                        </small>
                       </p>
                       <p>
                         {" "}
@@ -90,7 +94,9 @@ const MemberSection = () => {
                           ></i>
                         </small>
                         <small className="text-black">{val.dob || ""}</small> ||{" "}
-                        <small className="text-black">{`${val.Height}ft` || ""}</small>
+                        <small className="text-black">
+                          {`${val.Height}ft` || ""}
+                        </small>
                       </p>
                     </div>
                   </div>

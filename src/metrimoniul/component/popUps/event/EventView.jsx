@@ -4,6 +4,7 @@ import { Modal, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import userMale from "../../../../dating/assets/images/myCollection/user-male.jpg";
 import toast from "react-hot-toast";
+import { BASE_URL } from "../../../../base";
 
 const EventViewSchedule = ({
   showModal,
@@ -128,7 +129,9 @@ const EventViewSchedule = ({
                   <img
                     src={
                       User?.mainAvatar
-                        ? `https://datingapi.meander.software/assets/images/${User?.mainAvatar}`
+                        ? `${BASE_URL}/assets/images/${User?.mainAvatar}`
+                        : User?.avatars?.[0]
+                        ? `${BASE_URL}/assets/images/${User?.avatars[0]}`
                         : userMale
                     }
                     alt="dating thumb"
@@ -165,7 +168,9 @@ const EventViewSchedule = ({
                       className="img2 rounded-50"
                       src={
                         ViewUser?.selectUser?.mainAvatar
-                          ? `https://datingapi.meander.software/assets/images/${ViewUser?.selectUser?.mainAvatar}`
+                          ? `${BASE_URL}/assets/images/${ViewUser?.selectUser?.mainAvatar}`
+                          : ViewUser?.selectUser?.avatars?.[0]
+                          ? `${BASE_URL}/assets/images/${ViewUser?.selectUser?.avatars[0]}`
                           : userMale
                       }
                       alt={ViewUser?.selectUser?.name || "user"}

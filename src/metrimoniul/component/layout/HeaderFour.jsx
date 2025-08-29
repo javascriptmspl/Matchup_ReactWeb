@@ -9,6 +9,7 @@ import { logout } from "../../../dating/store/slice/AuthSlice";
 import { getUserProfileAsync } from "../../../dating/store/slice/profileSlice";
 import { getKey } from "../../../utils";
 import Search from "../../pagesMetrimoniul/search.jsx";
+import { BASE_URL } from "../../../base";
 
 // const dfimg = "../../assets/images/avtar.jpg";
 
@@ -214,9 +215,9 @@ const HeaderFour = ({ unreadCount }) => {
                     <img
                       src={
                         User?.mainAvatar
-                          ? `https://datingapi.meander.software/assets/images/${User?.mainAvatar}?v=${avatarVersion}`
+                          ? `${BASE_URL}/assets/images/${User?.mainAvatar}?v=${avatarVersion}`
                           : User?.avatars?.[0]
-                          ? `https://datingapi.meander.software/assets/images/${User?.avatars?.[0]}?v=${avatarVersion}`
+                          ? `${BASE_URL}/assets/images/${User?.avatars?.[0]}?v=${avatarVersion}`
                           : userMale
                       }
                       // ||
