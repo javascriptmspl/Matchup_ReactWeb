@@ -7,7 +7,7 @@ export const Local_User = JSON.parse(localStorage.getItem('userData'))
 export const UserID =Local_User?.data?._id
 
 
-const _id ="659436bcacc570d6b14edf41"
+const _id = Local_User?._id
 //login Api
 export const userLogin = async (credentials) => {
   try {
@@ -60,9 +60,7 @@ export const sentOtpApi = async (data) => {
 
 //user get by id
 export const getbyiduser = async (data) => {
-
   try {
-    
     const resoponse = await axios.get(`${BASE_URL}/User/getById/${data?data:_id}`);
     return resoponse.data;
   } catch (error) {

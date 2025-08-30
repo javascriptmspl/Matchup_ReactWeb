@@ -140,8 +140,6 @@ const MyProfile = () => {
     }
   };
 
-  console.log("User==111111==>>>>>", User);
-
   const interests = [
     "Traveling",
     "Reading",
