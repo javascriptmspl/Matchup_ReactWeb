@@ -75,15 +75,15 @@ export const getActivitiesBySenderUserId = createAsyncThunk(
   }
 );
 
-// ---------------------
+
 // New thunk for Interests
-// ---------------------
+
 export const fetchInterests = createAsyncThunk(
   "dating/fetchInterests",
   async ({ token, page_no = 1, page_size = 10 }, { rejectWithValue }) => {
     try {
       const response = await axios.get(
-        `http://173.249.48.121:4457/interest/getall/${token}?page_no=${page_no}&page_size=${page_size}`
+        `${BASE_URL}/interest/getall/${token}?page_no=${page_no}&page_size=${page_size}`
       );
 
       if (response.data && response.data.data) {
