@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import FooterFour from "../../component/layout/footerFour";
 import HeaderFour from "../../component/layout/HeaderFour";
-import { MODE_DATING } from "../../utils";
+import { MODE_METRI } from "../../utils";
+import { BASE_URL } from "../../base";
 // import PageHeader from "../component/layout/pageheader";
 
 // const modeId = Mode();
@@ -90,7 +91,7 @@ const FAQ = () => {
     const fetchData = async () => {
       try {
         const response = await axios.get(
-          `https://datingapi.meander.software/faq/getall/${MODE_DATING}`
+          `${BASE_URL}/faq/getall/${MODE_METRI}`
         );
         setFaqData(response?.data?.data);
       } catch (error) {

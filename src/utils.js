@@ -1,9 +1,10 @@
 export const getKey = () => {
   const datingId = localStorage.getItem("userData");
   const dattingObj = JSON.parse(datingId);
-  if (dattingObj?.data?.mode === "68ad61f71130f0d24d4aff04") {
+ 
+  if (dattingObj?.data?.mode=== "68ad61f71130f0d24d4aff04") {
     return "metrimonial";
-  } else if (dattingObj?.data?.mode === "68ad621a1130f0d24d4aff06") {
+  } else if (dattingObj?.data?.mode=== "68ad621a1130f0d24d4aff06") {
     return "dating";
   } else {
     return "dating";

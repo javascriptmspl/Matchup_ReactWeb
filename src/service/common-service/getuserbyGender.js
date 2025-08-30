@@ -12,6 +12,7 @@ export const fetchUsersByGender = createAsyncThunk(
       );
       if (response.data && response.data.data) {
         return response.data;
+        
       }
       return [];
     } catch (error) {

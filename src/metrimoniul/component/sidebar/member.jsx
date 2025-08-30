@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link, useParams } from "react-router-dom";
 import { metriGetAllUsersAsync } from "../../../service/MANAGE_SLICE/find-user-SLICE";
 import {  LOCAL_USER_GENDER_METRI } from "../../../utils";
+import { BASE_URL } from "../../../base";
 
 const title = "Members";
 
@@ -52,7 +53,7 @@ const ActiveMember = () => {
                                                     <img
                                                         src={
                                                             val.avatars
-                                                                ? `https://datingapi.meander.software/assets/images/${val.mainAvatar}`
+                                                                ? `${BASE_URL}/assets/images/${val.mainAvatar}`
                                                                 : null
                                                         }
                                                         // src={

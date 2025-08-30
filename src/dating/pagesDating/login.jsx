@@ -101,7 +101,7 @@ const LogIn = () => {
                       className="my-form-control"
                     />
                   </div>
-                  <div className="form-group"> 
+                  <div className="form-group">
                     <label>Password</label>
                     <input
                       type="password"

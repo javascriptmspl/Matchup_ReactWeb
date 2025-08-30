@@ -17,8 +17,6 @@ import { filterPartnerByGenderAsync } from "../../dating/store/slice/find-partne
 import { UserData } from "../../assets/DummyData/userData";
 import { BASE_URL } from "../../base";
 
-
-
 const activety = "Active 3 Days Ago";
 
 let MemberInfo = [
@@ -1030,8 +1028,15 @@ const UserProfile = () => {
                           <div className="story__thumb position-relative">
                             <img
                               src={
-                                USER_PROFILE?.avatars
-                                  ? `${BASE_URL}/assets/images/${USER_PROFILE?.mainAvatar}`
+                                USER_PROFILE?.avatars &&
+                                USER_PROFILE.avatars.length > 0
+                                  ? `${BASE_URL}/assets/images/${
+                                      USER_PROFILE.avatars[
+                                        USER_PROFILE.avatars.length - 1
+                                      ]
+                                    }`
+                                  : USER_PROFILE?.mainAvatar
+                                  ? `${BASE_URL}/assets/images/${USER_PROFILE.mainAvatar}`
                                   : userMale
                               }
                               //       src={
