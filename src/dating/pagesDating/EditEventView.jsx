@@ -6,6 +6,7 @@ import CalenderScheduleModal from "../component/popUps/calenderSchedule";
 import userMale from "../assets/images/myCollection/user-male.jpg";
 import toast from "react-hot-toast";
 import MyContext from "../store/context/UseContext";
+import { BASE_URL } from "../../base";
 
 let GroupPageContentList = [
   // {
@@ -181,7 +182,7 @@ const EditEventViewSchedule = ({
                   <img
                     src={
                       User?.avatars
-                        ? `https://datingapi.meander.software/assets/images/${User?.avatars[0]}`
+                        ? `${BASE_URL}/assets/images/${User?.avatars[0]}`
                         : userMale
                     }
                     alt="dating thumb"
@@ -211,7 +212,7 @@ const EditEventViewSchedule = ({
                     <img
                       className="img2 rounded-50"
                       // src={ViewUser?.selectUser?.avatar}
-                      src={`https://datingapi.meander.software/assets/images/${ViewUser?.receiverUserId?.avatars[0] }`}
+                      src={`${BASE_URL}/assets/images/${ViewUser?.receiverUserId?.avatars[0] }`}
                       alt={ViewUser?.selectUser?.avatar}
                     />
                   </div>

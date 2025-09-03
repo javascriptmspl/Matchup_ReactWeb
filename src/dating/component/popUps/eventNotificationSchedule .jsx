@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import MyContext from "../../store/context/UseContext";
 import { createEvent, getEvents } from "../../../service/common-service/eventSlice";
 import { unwrapResult } from "@reduxjs/toolkit";
+import { BASE_URL } from "../../../base";
 
 
 
@@ -25,8 +26,6 @@ const EventNotificationSchedule = ({ showModal, hideModal, calenderScheduleDAte,
   
 
   // const handleSubmitnotification = (e) => {
-  //   console.log("eventnotifyData===>",e);
-  //   console.log("eventnotifyData===>",eventnotifyData);
   //   eventDatahandle(eventnotifyData)
 
   //   const datanotifyEvent = localStorage.getItem("datanotifyEvent") || "[]";
@@ -53,12 +52,12 @@ const EventNotificationSchedule = ({ showModal, hideModal, calenderScheduleDAte,
       action_logs: "Scheduled via app",
       description: scheduledData?.description || "1st meet",
       note: scheduledData?.note || "User scheduled a date",
-      mode: scheduledData?.mode || "659436bcacc570d6b14edf41",
+      mode: scheduledData?.mode || "68ad621a1130f0d24d4aff06",
     };
     
   
     try {
-      debugger;
+     
       const resultAction = await dispatch(createEvent(payload));
       const res = unwrapResult(resultAction); 
       if(res.isSuccess === true){
@@ -133,8 +132,10 @@ const EventNotificationSchedule = ({ showModal, hideModal, calenderScheduleDAte,
                 <div className="girl ">
                   <img
                     src={
-                      User?.avatars
-                        ? `https://datingapi.meander.software/assets/images/${User?.avatars[0]}`
+                      User?.mainAvatar
+                        ? `${BASE_URL}/assets/images/${User?.mainAvatar}`
+                        : User?.avatars?.[0]
+                        ? `${BASE_URL}/assets/images/${User?.avatars[0]}`
                         : userMale
                     }
                     alt="dating thumbs"
@@ -166,8 +167,10 @@ const EventNotificationSchedule = ({ showModal, hideModal, calenderScheduleDAte,
                   // src={selectedUser?.avatar}
                   src={
                     selectedUser?.avatars
-                      ? `https://datingapi.meander.software/assets/images/${selectedUser?.avatars[0]}`
+                      ? `${BASE_URL}/assets/images/${selectedUser?.avatars[0]}`
                       : userMale
+                      ?`${BASE_URL}/assets/images/${selectedUser?.mainAvatar}`
+                      :userMale
                   }
                   alt=""
                 />

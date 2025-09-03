@@ -7,6 +7,11 @@ import userMale from "../../../../dating/assets/images/myCollection/user-male.jp
 import { MODE_METRI } from "../../../../utils";
 import { getBySenderUserIds } from "../../../../dating/store/slice/ActivitiesSlice";
 import { BASE_URL } from "../../../../base";
+import {
+  createEvent,
+  getEventsM,
+} from "../../../../service/common-service/eventSlice";
+import { unwrapResult } from "@reduxjs/toolkit";
 
 const EventNotificationSchedule = ({
   showModal,
@@ -42,33 +47,58 @@ const EventNotificationSchedule = ({
     user: User,
     selectUser:
       editIndex !== null
-        ? ViewUser?.selectUser
+        ? ViewUser?.receiverUserId
         : selectedMemberForEvent || selectedUser?.receiverUserId, // <-- use selectedMemberForEvent if available
     scheduledData: scheduledData,
   };
 
-  const handleSubmitnotification = (e) => {
+  const handleSubmitnotification = async (e) => {
+    // e.preventDefault();
+    // if (editIndex === null) {
+    //   const datanotifyEvent = localStorage.getItem("dataEvent") || "[]";
+    //   localStorage.setItem(
+    //     "dataEvent",
+    //     JSON.stringify([...JSON.parse(datanotifyEvent), eventnotifyData])
+    //   );
+    // } else {
+    //   const datanotifyEvent = localStorage.getItem("dataEvent") || "[]";
+    //   const updateArray = [...JSON.parse(datanotifyEvent)];
+    //   updateArray[editIndex] = { ...ViewUser, scheduledData: scheduledData };
+    //   localStorage.setItem("dataEvent", JSON.stringify(updateArray));
+    //   setEditIndex(null);
+    // }
+
+    // try {
+    //   toast.success("schedule date successfully updated");
+    //   hideModal(hideModal);
+    // } catch (error) {
+    //   console.error("Error updating Contact profile:", error);
+    //   toast.error("Failed to update Contact info");
+    // }
     e.preventDefault();
-    if (editIndex === null) {
-      const datanotifyEvent = localStorage.getItem("dataEvent") || "[]";
-      localStorage.setItem(
-        "dataEvent",
-        JSON.stringify([...JSON.parse(datanotifyEvent), eventnotifyData])
-      );
-    } else {
-      const datanotifyEvent = localStorage.getItem("dataEvent") || "[]";
-      const updateArray = [...JSON.parse(datanotifyEvent)];
-      updateArray[editIndex] = { ...ViewUser, scheduledData: scheduledData };
-      localStorage.setItem("dataEvent", JSON.stringify(updateArray));
-      setEditIndex(null);
-    }
+
+    const payload = {
+      senderUserId: User?._id || User?.id || "",
+      receiverUserId: selectedUser?._id || selectedUser?.id || "",
+      action_logs: "Scheduled via app",
+      description: scheduledData?.description || "1st meet",
+      note: scheduledData?.note || "User scheduled a date",
+      mode: scheduledData?.mode || "68ad61f71130f0d24d4aff04",
+    };
 
     try {
-      toast.success("schedule date successfully updated");
-      hideModal(hideModal);
+      const resultAction = await dispatch(createEvent(payload));
+      const res = unwrapResult(resultAction);
+      if (res.isSuccess === true) {
+        dispatch(getEventsM(res?.data?.senderUserId));
+        toast.success("Schedule date successfully updated");
+        hideModal(hideModal);
+      } else {
+        toast.error("Failed to schedule event");
+      }
     } catch (error) {
-      console.error("Error updating Contact profile:", error);
-      toast.error("Failed to update Contact info");
+      console.error("Promise error during createEvent:", error);
+      toast.error("Failed to schedule event");
     }
   };
 
@@ -115,7 +145,7 @@ const EventNotificationSchedule = ({
           </svg>
 
           <div className="upperData matched-modal">
-            <h3 style={{ zIndex: "999999" }}>You’res Matched</h3>
+            <h3 style={{ zIndex: "999999" }}>You’re Matched</h3>
             <p>You and Desirae have both liked each other</p>
             <div className="coll row">
               <div className="col-md-8 mod-person-lft col-8">
@@ -191,7 +221,7 @@ const EventNotificationSchedule = ({
               </div>
               <div className="col-md-8 mod-person-rt col-8">
                 <p className="fs-4 text-muted fw-600 per-txt">
-                  {eventnotifyData?.selectUser?.name || ""}
+                  {eventnotifyData?.selectUser?.name || "not found"}
                 </p>
                 <p className="fs-4 text-muted fw-600 per-dest">
                   {eventnotifyData?.selectUser?.occupation || ""}

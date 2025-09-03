@@ -92,7 +92,6 @@ const NotificationFullPage = () => {
   const Store = useSelector((state) => state);
   let notificationActivity =  useSelector((state) =>Store?.activies?.allActivity?.data  || [])
   
-  console.log(notificationActivity,"mmmmmmmm78923789");
   
 
   const [notifications, setNotifications] = useState([]);

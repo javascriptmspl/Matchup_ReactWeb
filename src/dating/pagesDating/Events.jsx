@@ -25,6 +25,7 @@ import {
   getEvents,
 } from "../../service/common-service/eventSlice";
 import toast from "react-hot-toast";
+import { BASE_URL } from "../../base";
 // import { UserData } from "../../assets/DummyData/userData";
 
 const showResult = "Showing 01 - 12 of 139 Results";
@@ -204,7 +205,7 @@ const Events = (e) => {
               className="row g-4 justify-content-center row-cols-lg-4 row-cols-sm-2 row-cols-1 event-main-wrap"
             >
               {storeData && storeData.length > 0 ? (
-                storeData.map((val, i) => (
+                storeData.map(( val, i) => (
                   <div className="col" key={i}>
                     <div className="story__item style2 story--theme-color">
                       <div className="story__inner">
@@ -216,8 +217,12 @@ const Events = (e) => {
                             }}
                           >
                             <img
-                              src={`https://datingapi.meander.software/assets/images/${val?.receiverUserId?.avatars[0]}`}
-                              alt={`${val?.selectUser?.avatar}`}
+                              src={
+                                val?.receiverUserId?.avatars?.[0]
+                                  ? `${BASE_URL}/assets/images/${val.receiverUserId.avatars[0]}`
+                                  : "/assets/images/default-avatar.png"
+                              }
+                              alt={val?.receiverUserId?.name || "Event user"}
                             />
                           </Link>
                           <span className="member__activity member__activity--ofline">
@@ -239,11 +244,11 @@ const Events = (e) => {
                           </p>
                           <p className="event-date">
                             <i className="fas fa-calendar-alt"></i>
-                            {val?.scheduledData?.date}
+                            {val?.scheduledData?.date || "No date"}
                           </p>
                           <p className="event-loc">
                             <i className="fas fa-map-marker-alt"></i>
-                            {val?.selectUser?.location}{" "}
+                            {val?.selectUser?.address || "No location"}
                           </p>
                         </div>
 

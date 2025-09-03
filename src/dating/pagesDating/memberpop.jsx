@@ -6,6 +6,7 @@ import EventNotificationSchedule from "../component/popUps/eventNotificationSche
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUsersByGender } from "../../service/common-service/getuserbyGender";
 import toast from "react-hot-toast";
+import { BASE_URL } from "../../base";
 
 const Memberpop = ({ showModal, hideModal, calenderScheduleDAte, userInfoDate, setSelectedData  }) => {
 
@@ -63,8 +64,8 @@ const { users, loading, error } = useSelector((state) => state.datingApi);
                   {/* Add your logic here */}
                   {/* <img width="25" alt="" /> */}
                 </div>
-                <div className="member__thumb">
-                < img src={`https://datingapi.meander.software/assets/images/${val.avatars[0] || "/default-avatar.png"} `} alt={val.imgAlt || "user"} style={{width: "100%", height: "200px"}}  />
+                <div className="member__thumbmember_thumb">
+                < img className="image23" src={`${BASE_URL}/assets/images/${val.avatars[0] || "/default-avatar.png"} `} alt={val.imgAlt || "user"}  />
                   <span className={val.className}></span>
                 </div>
                 <div className="member__content">
@@ -74,14 +75,14 @@ const { users, loading, error } = useSelector((state) => state.datingApi);
                     <h5 >{val.name}</h5>
                   </Link>
                   <p>
-                    <span>{val.profession}</span> || <span>{val.age}</span>
+                    <span>{val.occupation}</span> || <span>{val.age}</span>
                   </p>
-                  <p>{val.activity}</p>
+                  <p>{val.address}</p>
                 </div>
 
                 <div className="row mt-2 match-icon-main">
                   <div className="col">
-                    <Link className="fs-3 ms-4" to={`/dating/user-profile?userID=${val.id}`}>
+                    <Link className="fs-3 ms-4" to={`/dating/user-profile?userID=${val?._id}`}>
                       <i className="fa fa-user" aria-hidden="true" title="Profile"></i>
                     </Link>
                   </div>

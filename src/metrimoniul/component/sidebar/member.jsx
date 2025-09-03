@@ -51,11 +51,21 @@ const ActiveMember = () => {
                                             <div className="left member--style2">
                                                 <div className="member__thumb">     
                                                     <img
+                                                        // src={
+                                                        //     val.avatars
+                                                        //         ? `${BASE_URL}/assets/images/${val.mainAvatar}`
+                                                        //         : null
+                                                        // }
                                                         src={
-                                                            val.avatars
-                                                                ? `${BASE_URL}/assets/images/${val.mainAvatar}`
-                                                                : null
+                                                            
+                                                                val?.mainAvatar
+                                                                  ? `${BASE_URL}/assets/images/${val?.mainAvatar}`
+                                                                  : val?.avatars?.[0]
+                                                                  ? `${BASE_URL}/assets/images/${val?.avatars[0]}`
+                                                                  : null
+                                                              
                                                         }
+
                                                         // src={
                                                         //     USER_PROFILE?.avatars
                                                         //       ? `https://datingapi.meander.software/assets/images/${USER_PROFILE?.mainAvatar}`

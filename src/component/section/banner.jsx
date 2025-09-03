@@ -526,8 +526,9 @@ const BannerOne = () => {
                             checked={formData.partnerGender === "male"}
                             onChange={handleInputChange}
                           />
+                          
                           <span>Male</span>
-                          <span className="banner__inputlist--icon">
+                          <span className=" ">
                             <i className="fa-solid fa-mars"></i>
                           </span>
                         </label>

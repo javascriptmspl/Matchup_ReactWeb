@@ -4,7 +4,6 @@ import { Modal, Button } from "react-bootstrap";
 
 const EventDelete = ({ showModal, hideModal,onDelete}) => {
     useEffect(() => {
-        console.log("show called")
     }, [showModal]);
    
   const message = "Are you sure want to Delete this Event ?"

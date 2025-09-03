@@ -9,7 +9,10 @@ export const createEvent = createAsyncThunk(
   "event/createEvent",
   async (payload, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${BASE_URL}/events/createEvent`, payload);
+      const response = await axios.post(
+        `${BASE_URL}/events/createEvent`,
+        payload
+      );
       toast.success("Schedule date successfully updated");
       return response.data;
     } catch (error) {
@@ -25,7 +28,22 @@ export const getEvents = createAsyncThunk(
   async (userId, { rejectWithValue }) => {
     try {
       const response = await axios.get(
-        `${BASE_URL}/events/getBySenderUserId/${userId}?modeId=659436bcacc570d6b14edf41&page_number=1&page_size=100`
+        `${BASE_URL}/events/getBySenderUserId/${userId}?modeId=68ad621a1130f0d24d4aff06&page_number=1&page_size=100`
+      );
+      return response.data.data || [];
+    } catch (error) {
+      toast.error("Failed to fetch event data");
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+export const getEventsM = createAsyncThunk(
+  "events/getEventsM",
+  async (userId, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(
+        `${BASE_URL}/events/getBySenderUserId/${userId}?modeId=68ad61f71130f0d24d4aff04&page_number=1&page_size=100`
       );
       return response.data.data || [];
     } catch (error) {
@@ -40,7 +58,9 @@ export const deleteEvent = createAsyncThunk(
   "event/deleteEvent",
   async (eventId, { rejectWithValue }) => {
     try {
-      const response = await axios.delete(`${BASE_URL}/events/deleteEvent/${eventId}`);
+      const response = await axios.delete(
+        `${BASE_URL}/events/deleteEvent/${eventId}`
+      );
       toast.success("Event deleted successfully");
       return eventId; // Return the event ID that was deleted
     } catch (error) {
@@ -88,7 +108,7 @@ const eventSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      
+
       // DELETE
       .addCase(deleteEvent.pending, (state) => {
         state.loading = true;
@@ -96,7 +116,9 @@ const eventSlice = createSlice({
       })
       .addCase(deleteEvent.fulfilled, (state, action) => {
         state.loading = false;
-        state.eventArray = state.eventArray.filter(event => event.id !== action.payload);
+        state.eventArray = state.eventArray.filter(
+          (event) => event.id !== action.payload
+        );
       })
       .addCase(deleteEvent.rejected, (state, action) => {
         state.loading = false;

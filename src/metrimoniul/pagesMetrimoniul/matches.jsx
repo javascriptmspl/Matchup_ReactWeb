@@ -336,7 +336,7 @@ const MatchPage = () => {
                             <div className="col ">
                               <Link
                                 className="fs-3 ms-4"
-                                to={`/metrimonial/user-profile/${val?.receiverUserId?.id}`}
+                                to={`/metrimonial/user-profile/${val?.receiverUserId?._id}`}
                               >
                                 <i
                                   class="fa fa-user"

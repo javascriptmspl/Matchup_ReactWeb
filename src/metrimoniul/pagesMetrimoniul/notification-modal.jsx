@@ -12,7 +12,6 @@ const NotificationModal = () => {
   const Store = useSelector((state) => state);
   let notificationActivity =  useSelector((state) =>Store?.activies?.allActivity?.data  || [])
   
-  console.log(notificationActivity,"67878923789");
 
   const [notifications, setNotifications] = useState([]);
 

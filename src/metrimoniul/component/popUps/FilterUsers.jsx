@@ -188,13 +188,54 @@ const MetriSearchFilterModal = ({ showModal, hideModal }) => {
         <div className="modal-content border-0 mb-4">
           <div className="modal-header">
             <h5 className="modal-title" id="exampleModalLabel1">
-              Filter your searchh
+              Filter your search
             </h5>
           </div>
           <div className="modal-body">
             <form onSubmit={handleFilterSubmit}>
               <div className="banner__list">
                 <div className="row align-items-center row-cols-1">
+                  <div className="banner__list">
+                    <label>{labelchangetwo}</label>
+                    <div className="row">
+                      <div className="col-6">
+                        <label className="banner__inputlist" htmlFor="male2">
+                          <input
+                            type="radio"
+                            id="male2"
+                            name="partnerGender"
+                            className="male"
+                            value="male"
+                            checked={selectedLookingFor === "male"}
+                            onChange={() => setSelectedLookingFor("male")}
+                          />
+                          <span>Male</span>
+                          <span className="banner__inputlist--icon">
+                            <i className="fa-solid fa-mars"></i>
+                          </span>
+                        </label>
+                      </div>
+
+                      <div className="col-6">
+                        <label className="banner__inputlist" htmlFor="female2">
+                          <input
+                            type="radio"
+                            id="female2"
+                            name="partnerGender"
+                            className="female"
+                            value="female"
+                            checked={selectedLookingFor === "female"}
+                            onChange={() => setSelectedLookingFor("female")}
+                          />
+                          <span>Female</span>
+                          <span className="banner__inputlist--icon">
+                            <i className="fa-solid fa-venus"></i>
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="banner__list">
                     <label>{`Distance (${selectedDistance} km)`}</label>
                     <div className="row">

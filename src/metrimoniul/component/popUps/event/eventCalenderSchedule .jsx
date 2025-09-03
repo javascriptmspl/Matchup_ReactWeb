@@ -18,7 +18,6 @@ const EventCalenderSchedule = ({showModal,hideModal,NotifyScheduleData}) => {
   const handleClockClick = () => {
     setShowClock(!showClock);
     setShowCalendar(!showCalendar)
-    console.log("checktime", setShowClock);
   };
 
   const handleVenueChange = (venue) => {
@@ -27,7 +26,6 @@ const EventCalenderSchedule = ({showModal,hideModal,NotifyScheduleData}) => {
   
   const handleCalendarClick = () => {
     setShowCalendar(!showCalendar);
-    console.log(setSelectedDate);
   };
 
  
@@ -54,7 +52,6 @@ const EventCalenderSchedule = ({showModal,hideModal,NotifyScheduleData}) => {
       toast.success("schedule date successfully updated");
       //  setButtonClass("default-btn reverse");
       hideModal(hideModal)
-      console.log("checking  ato")
     } catch (error) {
       console.error("Error updating Contact profile:", error);
       toast.error("Failed to update Contact info");

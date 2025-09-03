@@ -18,8 +18,6 @@ const EventViewSchedule = ({
 
   const profileData = useSelector((state) => state.profile.userData);
 
-  console.log("viewuser", ViewUser);
-
   const User = profileData[0];
 
   // const dataEvent = localStorage.getItem("dataEvent");
@@ -31,16 +29,12 @@ const EventViewSchedule = ({
   // //    ? JSON.parse(datanotifyEvent)
   //     : null;
 
-  //   console.log(parsedDataEvent, parsedDatanotifyEvent);
-
   //   // Assuming setStoreData is a function that updates the state
   //   setStoreData([...parsedDataEvent, ...parsedDatanotifyEvent]);
   // }, [datanotifyEvent, dataEvent]);
-  // console.log(storeData);
 
   // useEffect(() => {
   //   const data = localStorage.getItem("dataEvent");
-  //   console.log(JSON.parse(data));
   //   setStoreData(data ? [JSON.parse(data)] : []);
   // }, []);
 
@@ -50,7 +44,6 @@ const EventViewSchedule = ({
       toast.success("schedule date successfully updated");
       //  setButtonClass("default-btn reverse");
       hideModal(hideModal);
-      console.log("checking  ato");
     } catch (error) {
       console.error("Error updating Contact profile:", error);
       toast.error("Failed to update Contact info");
@@ -167,10 +160,10 @@ const EventViewSchedule = ({
                     <img
                       className="img2 rounded-50"
                       src={
-                        ViewUser?.selectUser?.mainAvatar
-                          ? `${BASE_URL}/assets/images/${ViewUser?.selectUser?.mainAvatar}`
-                          : ViewUser?.selectUser?.avatars?.[0]
-                          ? `${BASE_URL}/assets/images/${ViewUser?.selectUser?.avatars[0]}`
+                        ViewUser?.receiverUserId?.mainAvatar
+                          ? `${BASE_URL}/assets/images/${ViewUser?.receiverUserId?.mainAvatar}`
+                          : ViewUser?.receiverUserId?.avatars?.[0]
+                          ? `${BASE_URL}/assets/images/${ViewUser?.receiverUserId?.avatars[0]}`
                           : userMale
                       }
                       alt={ViewUser?.selectUser?.name || "user"}
@@ -178,10 +171,10 @@ const EventViewSchedule = ({
                   </div>
                   <div className="col-md-8 mod-person-rt col-8">
                     <p className="fs-4 text-muted fw-600 per-txt">
-                      {ViewUser?.selectUser?.name}
+                      {ViewUser?.receiverUserId?.name}
                     </p>
                     <p className="fs-4 text-muted fw-600 per-dest">
-                      {ViewUser?.selectUser?.occupation}
+                      {ViewUser?.receiverUserId?.occupation}
                     </p>
                     <p className="fs-4 text-muted fw-600 location">
                       <span className="location2">
@@ -198,7 +191,7 @@ const EventViewSchedule = ({
                           />
                         </svg>
                       </span>
-                      {ViewUser?.selectUser?.address}
+                      {ViewUser?.receiverUserId?.address}
                     </p>
                   </div>
                 </Fragment>

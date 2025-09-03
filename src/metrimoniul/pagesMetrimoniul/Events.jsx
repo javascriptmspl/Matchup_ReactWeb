@@ -5,13 +5,18 @@ import FooterFour from "../component/layout/footerFour";
 import EventNotificationScheduleModal from "../component/popUps/event/eventNotificationSchedule ";
 import EventCalenderScheduleModal from "../component/popUps/event/eventCalenderSchedule ";
 import EventDelete from "../component/popUps/event/EventDelete";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import MemberPopsModal from "../component/popUps/event/memberpop";
 import EventHeader from "../component/layout/EventHeader";
 import EditEventViewSchedule from "../component/popUps/event/EditEventView";
 import EventViewSchedule from "../component/popUps/event/EventView";
 import userMale from "../../dating/assets/images/myCollection/user-male.jpg";
 import { BASE_URL } from "../../base";
+import {
+  deleteEvent,
+  getEventsM,
+} from "../../service/common-service/eventSlice";
+import toast from "react-hot-toast";
 
 const showResult = "Showing 01 - 12 of 139 Results";
 
@@ -31,7 +36,6 @@ const Events = (e) => {
   const [editEvents, setEditEvents] = useState(false);
   const [loading, setLoading] = useState(false);
   const [storeData, setStoreData] = useState([]);
-
   const [selectedUser, setSelectedUser] = useState([]);
   const [selectedData, setSelectedData] = useState([]);
   const eventArray = useSelector((state) => state.eventArray);
@@ -47,15 +51,29 @@ const Events = (e) => {
     setViewUser(val);
   };
 
-  const dataEvent = localStorage.getItem("dataEvent");
-  const datanotifyEvent = localStorage.getItem("datanotifyEvent");
+  // const dataEvent = localStorage.getItem("dataEvent");
+  // const datanotifyEvent = localStorage.getItem("datanotifyEvent");
+
+  // useEffect(() => {
+  //   const parsedDataEvent = dataEvent ? JSON.parse(dataEvent) : [];
+  //   // const parsedDatanotifyEvent = datanotifyEvent ? JSON.parse(datanotifyEvent) : [];
+  //   // Check for null values before using the spread operator
+  //   setStoreData([...parsedDataEvent]);
+  // }, [dataEvent]);
+
+  const useerData = JSON.parse(localStorage.getItem("userData"));
+  const Userid = useerData.data._id;
+
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    const parsedDataEvent = dataEvent ? JSON.parse(dataEvent) : [];
-    // const parsedDatanotifyEvent = datanotifyEvent ? JSON.parse(datanotifyEvent) : [];
-    // Check for null values before using the spread operator
-    setStoreData([...parsedDataEvent]);
-  }, [dataEvent]);
+    const getEventM = async () => {
+      const res = await dispatch(getEventsM(Userid));
+      // Check for null values before using the spread operator
+      setStoreData(res.payload);
+    };
+    getEventM();
+  }, []);
 
   const clockTime = () => {
     setCalenderSchedule(false);
@@ -96,22 +114,38 @@ const Events = (e) => {
     }, 500);
   };
 
-  const handleDelete = () => {
+  // const handleDelete = () => {
+  //   if (eventToDeleteIndex !== null) {
+  //     const updatedStoreData = [...storeData];
+  //     updatedStoreData.splice(eventToDeleteIndex, 1);
+
+  //     // Update local storage
+  //     localStorage.setItem(
+  //       "dataEvent",
+  //       JSON.stringify(updatedStoreData.filter(Boolean))
+  //     );
+  //     // localStorage.setItem("datanotifyEvent", "[]");
+
+  //     // Update state
+  //     setStoreData(updatedStoreData);
+  //     setDeleteSchedule(false);
+  //     setEventToDeleteIndex(null);
+  //   }
+  // };
+
+  const handleDelete = async () => {
     if (eventToDeleteIndex !== null) {
-      const updatedStoreData = [...storeData];
-      updatedStoreData.splice(eventToDeleteIndex, 1);
-
-      // Update local storage
-      localStorage.setItem(
-        "dataEvent",
-        JSON.stringify(updatedStoreData.filter(Boolean))
-      );
-      // localStorage.setItem("datanotifyEvent", "[]");
-
-      // Update state
-      setStoreData(updatedStoreData);
-      setDeleteSchedule(false);
-      setEventToDeleteIndex(null);
+      const eventId = storeData[eventToDeleteIndex]._id;
+      const res = await dispatch(deleteEvent(eventId));
+      if (res.payload) {
+        const res = await dispatch(getEventsM(Userid));
+        setStoreData(res.payload);
+        toast.success("Event deleted successfully");
+        setDeleteSchedule(false);
+        setEventToDeleteIndex(null);
+      } else {
+        toast.error("Error deleting event");
+      }
     }
   };
 
@@ -197,28 +231,33 @@ const Events = (e) => {
                             }}
                           >
                             <img
-                              src={(() => {
-                                const su = val?.selectUser;
-                                if (su && typeof su === "object") {
-                                  if (
-                                    su.mainAvatar &&
-                                    typeof su.mainAvatar === "string" &&
-                                    su.mainAvatar.trim() !== ""
-                                  ) {
-                                    return `${BASE_URL}/assets/images/${su.mainAvatar}`;
-                                  }
-                                  if (
-                                    Array.isArray(su.avatars) &&
-                                    su.avatars[0] &&
-                                    typeof su.avatars[0] === "string" &&
-                                    su.avatars[0].trim() !== ""
-                                  ) {
-                                    return `${BASE_URL}/assets/images/${su.avatars[0]}`;
-                                  }
-                                }
-                                return userMale;
-                              })()}
-                              alt={val?.selectUser?.name || "user"}
+                              // src={(() => {
+                              //   const su = val?.selectUser;
+                              //   if (su && typeof su === "object") {
+                              //     if (
+                              //       su.mainAvatar &&
+                              //       typeof su.mainAvatar === "string" &&
+                              //       su.mainAvatar.trim() !== ""
+                              //     ) {
+                              //       return `${BASE_URL}/assets/images/${su.mainAvatar}`;
+                              //     }
+                              //     if (
+                              //       Array.isArray(su.avatars) &&
+                              //       su.avatars[0] &&
+                              //       typeof su.avatars[0] === "string" &&
+                              //       su.avatars[0].trim() !== ""
+                              //     ) {
+                              //       return `${BASE_URL}/assets/images/${su.avatars[0]}`;
+                              //     }
+                              //   }
+                              //   return userMale;
+                              // })()}
+                              src={
+                                val?.receiverUserId?.avatars?.[0]
+                                  ? `${BASE_URL}/assets/images/${val.receiverUserId.avatars[0]}`
+                                  : userMale
+                              }
+                              alt={val?.receiverUserId?.name || "user"}
                             />
                           </Link>
                           <span className="member__activity member__activity--ofline">
@@ -232,19 +271,19 @@ const Events = (e) => {
                               selectuse(val);
                             }}
                           >
-                            <h4>{val?.selectUser?.name}</h4>
+                            <h4>{val?.receiverUserId?.name}</h4>
                           </Link>
                           <p>
                             Your meeting is scheduled with{" "}
-                            {val?.selectUser?.name}
+                            {val?.senderUserId?.name}
                           </p>
                           <p className="event-date">
                             <i className="fas fa-calendar-alt"></i>
-                            {val?.scheduledData?.date}
+                            {val?.scheduledData?.date} || "03/10/2025"
                           </p>
                           <p className="event-loc">
                             <i className="fas fa-map-marker-alt"></i>
-                            {val?.scheduledData?.venue}{" "}
+                            {val?.senderUserId?.venue}{" "}|| "New York"
                           </p>
                         </div>
 

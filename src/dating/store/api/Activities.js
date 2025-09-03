@@ -44,7 +44,6 @@ export const getBySenderUserId = async(data)=>{
 
 export const getActivitysByUserId = async(data)=>{
   const {id} =data 
-  console.log(data,'111111138283092809809')
 
   try {
       const response = await axios.get(`${BASE_URL}/activitys/getByUserId/${id}?page_number=1&page_size=122`)

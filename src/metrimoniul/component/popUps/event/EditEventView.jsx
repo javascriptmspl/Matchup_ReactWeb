@@ -146,21 +146,21 @@ const EditEventViewSchedule = ({
                   <img
                     className="img2 rounded-50"
                     src={
-                      ViewUser?.selectUser?.mainAvatar
-                        ? `${BASE_URL}/assets/images/${ViewUser?.selectUser?.mainAvatar}`
-                        : ViewUser?.selectUser?.avatars?.[0]
-                        ? `${BASE_URL}/assets/images/${ViewUser?.selectUser?.avatars[0]}`
+                      ViewUser?.receiverUserId?.mainAvatar
+                        ? `${BASE_URL}/assets/images/${ViewUser?.receiverUserId?.mainAvatar}`
+                        : ViewUser?.receiverUserId?.avatars?.[0]
+                        ? `${BASE_URL}/assets/images/${ViewUser?.receiverUserId?.avatars[0]}`
                         : userMale
                     }
-                    alt={ViewUser?.selectUser?.name || "user"}
+                    alt={ViewUser?.receiverUserId?.name || "user"}
                   />
                 </div>
                 <div className="col-md-8 mod-person-rt col-8">
                   <p className="fs-4 text-muted fw-600 per-txt">
-                    {ViewUser?.selectUser?.name}
+                    {ViewUser?.receiverUserId?.name}
                   </p>
                   <p className="fs-4 text-muted fw-600 per-dest">
-                    {ViewUser?.selectUser?.occupation}
+                    {ViewUser?.receiverUserId?.occupation}
                   </p>
                   <p className="fs-4 text-muted fw-600 location">
                     <span className="location2">
@@ -177,7 +177,7 @@ const EditEventViewSchedule = ({
                         />
                       </svg>
                     </span>
-                    {ViewUser?.selectUser?.address}
+                    {ViewUser?.receiverUserId?.address}
                   </p>
                 </div>
               </Fragment>

@@ -93,7 +93,7 @@ const Memberpop = ({
                   <div className="col">
                     <Link
                       className="fs-3 ms-4"
-                      to={`/dating/user-profile?userID=${val.id}`}
+                      to={`/dating/user-profile?userID=${val._id}`}
                     >
                       <i
                         className="fa fa-user"

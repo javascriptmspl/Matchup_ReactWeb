@@ -6,6 +6,7 @@ import { Modal } from "react-bootstrap";
 import userMale from "../assets/images/myCollection/user-male.jpg";
 import toast from "react-hot-toast";
 import MyContext from "../store/context/UseContext";
+import { BASE_URL } from "../../base";
 
 const EventViewSchedule = ({
   showModal,
@@ -127,7 +128,7 @@ const EventViewSchedule = ({
                   <img
                     src={
                       User?.mainAvatar
-                        ? `https://datingapi.meander.software/assets/images/${User?.mainAvatar}`
+                        ? `${BASE_URL}/assets/images/${User?.mainAvatar}`
                         : userMale
                     }
                     alt="dating thumb"
@@ -157,7 +158,7 @@ const EventViewSchedule = ({
                     <img
                       className="img2 rounded-50"
                       // src={`${ViewUser?.selectUser?.avatar}`}
-                      src={`https://datingapi.meander.software/assets/images/${ViewUser?.receiverUserId?.avatars[0]}`}
+                      src={`${BASE_URL}/assets/images/${ViewUser?.receiverUserId?.avatars[0]}`}
                       alt={ViewUser?.selectUser?.avatar}
                     />
                   </div>
