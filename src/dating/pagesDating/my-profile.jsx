@@ -251,7 +251,9 @@ const MyProfile = () => {
                           </div>
 
                           <div className="info-card-content">
-                            <p>{User?.description || ""}</p>
+                            <p>
+                              {User?.description || "Please add Bio"}
+                            </p>
                           </div>
                         </div>
 
@@ -323,13 +325,13 @@ const MyProfile = () => {
                               <li>
                                 <p className="info-name">Height</p>
                                 <p className="info-details">
-                                  {`${User?.Height} ft` || ""}
+                                  {`${User?.Height} ft` || "Please Add Height"}
                                 </p>
                               </li>
                               <li>
                                 <p className="info-name">Address</p>
                                 <p className="info-details">
-                                  {User?.address || ""}
+                                  {User?.address || "Please add address"}
                                 </p>
                               </li>
                             </ul>
@@ -368,7 +370,8 @@ const MyProfile = () => {
                               <li>
                                 <p className="info-name">Phone</p>
                                 <p className="info-details">
-                                  {User?.phoneNumber || ""}
+                                  {User?.phoneNumber ||
+                                    "Please Add Phone Number"}
                                 </p>
                               </li>
                             </ul>

@@ -1,5 +1,6 @@
 import axios from "axios";
-const  BaseUrl = 'https://datingapi.meander.software';
+import { BASE_URL } from "../../base";
+const  BaseUrl = 'http://173.249.48.121:4457';
 
 
 export const createIntersetApi =async(data)=>{
@@ -45,7 +46,7 @@ export const updateInterest = async (data) => {
     };
     try {
       const response = await fetch(
-        `https://datingapi.meander.software/interest/update/${editId}`,
+        `${BASE_URL}/interest/update/${editId}`,
         options
       );
       const dataaa = await response.json()
@@ -66,7 +67,7 @@ export const updateInterest = async (data) => {
   
     try {
       const response = await fetch(
-        `https://datingapi.meander.software/users/search?name=${name}`,
+        `${BASE_URL}/users/search?name=${name}`,
         options
       );
   
@@ -92,7 +93,7 @@ export const updateInterest = async (data) => {
   
     try {
       const response = await fetch(
-        `https://datingapi.meander.software/interest/search/6565dbb8f55b057bd1fc4a82?name=${name}`,
+        `${BASE_URL}/interest/search/6565dbb8f55b057bd1fc4a82?name=${name}`,
         options
       );
   
@@ -118,7 +119,7 @@ export const updateInterest = async (data) => {
   
     try {
       const response = await fetch(
-        `https://datingapi.meander.software/interest/sort/6565dbb8f55b057bd1fc4a82?sort=${sort}`,
+        `${BASE_URL}/interest/sort/6565dbb8f55b057bd1fc4a82?sort=${sort}`,
         options
       );
       const responseData = await response.json();

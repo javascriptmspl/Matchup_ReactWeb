@@ -6,6 +6,7 @@ import PageHeader from "../component/layout/pageheader";
 import { MODE_METRI } from "../../utils";
 import axios from "axios";
 import Lodder from "../component/layout/Lodder";
+import { BASE_URL } from "../../base";
 
 const Accordion = ({ title, content, isOpen, toggleAccordion }) => {
   const accordionItemStyle = {
@@ -91,7 +92,7 @@ const FAQ = () => {
     const fetchData = async () => {
       try {
         const response = await axios.get(
-          `https://datingapi.meander.software/faq/getall/${MODE_METRI}`
+          `${BASE_URL}/faq/getall/${MODE_METRI}`
         );
 
         if (response?.data?.data?.length > 0) {

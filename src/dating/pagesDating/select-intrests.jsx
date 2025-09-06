@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import { useDispatch } from "react-redux";
-import { updateInterestsAsync } from "../store/slice/profileSlice";
 import { fetchInterests } from "../../service/common-service/getuserbyGender";
+import { updateInterestsAsync } from "../store/slice/profileSlice";
 
 const SelectInterest = () => {
   const [selectedInterests, setSelectedInterests] = useState([]);
@@ -12,7 +12,6 @@ const SelectInterest = () => {
   const user = localStorage.getItem("userData");
   const userObj = user ? JSON.parse(user) : null;
 
-  console.log("user", userObj);
   const userId = userObj?.data?._id;
   const navigate = useNavigate();
 
@@ -124,12 +123,10 @@ const SelectInterest = () => {
 
   const handleNavigateHome = async () => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const interestIds = selectedInterests.map((i) => i._id || i.id || i);
 
       await toast.promise(
-        dispatch(
-          updateInterestsAsync({ userId, interests: selectedInterests })
-        ),
+        dispatch(updateInterestsAsync({ userId, interests: interestIds })),
         {
           loading: "Saving  your interests  😍...",
           success: <b>Settings saved! Redirecting...</b>,
@@ -142,8 +139,6 @@ const SelectInterest = () => {
       toast.error("Error submitting interests. Please try again.");
     }
   };
-
-  console.log("interests", interests);
 
   return (
     <div className="container padding-top padding-bottom">

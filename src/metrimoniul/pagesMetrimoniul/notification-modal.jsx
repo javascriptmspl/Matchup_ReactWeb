@@ -2,28 +2,33 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
 import boy from "../assets/images/member/male/01.jpg";
-import { deleteActivitySlice, getAllActivies, getBySenderUserIds,getActivitysByUsersId } from "../../dating/store/slice/ActivitiesSlice";
+import {
+  deleteActivitySlice,
+  getAllActivies,
+  getBySenderUserIds,
+  getActivitysByUsersId,
+} from "../../dating/store/slice/ActivitiesSlice";
 import { MODE_METRI } from "../../utils";
 import { useDispatch, useSelector } from "react-redux";
 import TimeAgo from "../component/popUps/setting/TimeAgo";
+import { BASE_URL } from "../../base";
 const NotificationModal = () => {
   const datingId = localStorage.getItem("userData");
-  const user_Data =JSON.parse(datingId)
+  const user_Data = datingId ? JSON.parse(datingId) : null;
   const Store = useSelector((state) => state);
-  let notificationActivity =  useSelector((state) =>Store?.activies?.allActivity?.data  || [])
-  
+  let notificationActivity = useSelector(
+    (state) => Store?.activies?.allActivity?.data || []
+  );
 
   const [notifications, setNotifications] = useState([]);
 
   const dispatch = useDispatch();
-  
+
   useEffect(() => {
-    dispatch(getActivitysByUsersId(
-      {
-        id:user_Data.data._id
-      }
-      ));
-  }, [user_Data.data._id]);
+    if (user_Data && user_Data.data && user_Data.data._id) {
+      dispatch(getActivitysByUsersId({ id: user_Data.data._id }));
+    }
+  }, [user_Data?.data?._id]);
 
   const NotificationItem = ({ notification }) => {
     return (
@@ -36,30 +41,30 @@ const NotificationModal = () => {
                 // src={boy}
                 src={
                   notification.receiverUser?.mainAvatar
-                    ? `https://datingapi.meander.software/assets/images/${notification.receiverUser?.mainAvatar}`
+                    ? `${BASE_URL}/assets/images/${notification.receiverUser?.mainAvatar}`
                     : null
                 }
                 // {`url_to_profile_picture/${notification.viewer}.jpg`}
                 // alt={`${notification.viewer}'s profile`}
                 className="profile-picture-notification"
               />
-           You Add on Favourite {notification.receiverUser?.name} profile
+              You Add on Favourite {notification.receiverUser?.name} profile
             </div>
           )}
           {notification.activityType === "like" && (
             <div className="notification-action">
               <img
-              src={
-                notification.receiverUser?.mainAvatar
-                  ? `https://datingapi.meander.software/assets/images/${notification.receiverUser?.mainAvatar}`
-                  : null
-              }
+                src={
+                  notification.receiverUser?.mainAvatar
+                    ? `${BASE_URL}/assets/images/${notification.receiverUser?.mainAvatar}`
+                    : null
+                }
                 // src={boy}
                 // {`url_to_profile_picture/${notification.viewer}.jpg`}
                 // alt={`${notification.viewer}'s profile`}
                 className="profile-picture-notification"
               />
-           You only like {notification.receiverUser?.name} profile
+              You only like {notification.receiverUser?.name} profile
             </div>
           )}
 
@@ -71,7 +76,8 @@ const NotificationModal = () => {
         </div>
         <div className="notification-meta ">
           <p className="notification-timestamp">
-          <TimeAgo createdAt={notification.created_at}/></p>
+            <TimeAgo createdAt={notification.created_at} />
+          </p>
         </div>
       </div>
     );
@@ -85,14 +91,21 @@ const NotificationModal = () => {
         </div>
         <div className="right-icon col-6">
           <Link to="/metrimonial/notifications">
-          <i class="fa fa-expand" aria-hidden="true" title="Full Screen view"></i>
-             </Link>
+            <i
+              class="fa fa-expand"
+              aria-hidden="true"
+              title="Full Screen view"
+            ></i>
+          </Link>
         </div>
       </div>
 
       <div className="notification-modal">
         {notificationActivity.map((notification) => (
-          <NotificationItem key={notification._id} notification={notification} />
+          <NotificationItem
+            key={notification._id}
+            notification={notification}
+          />
         ))}
       </div>
     </>

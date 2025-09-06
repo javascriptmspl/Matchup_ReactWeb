@@ -76,7 +76,7 @@ const allUsersSlice = createSlice({
         try {
           localStorage.setItem(
             "metrimonialUsers",
-            JSON.stringify(state.users || [])
+            JSON.stringify(state.users || []) 
           );
         } catch (_) {}
       })

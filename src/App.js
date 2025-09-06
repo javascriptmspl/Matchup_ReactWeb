@@ -11,14 +11,11 @@ import HomePage from "./pages/home-dating";
 import NoInternetPage from "./component/nointernet/NoInternetPage";
 import useOnlineStatus from "./component/nointernet/useOnlineStatus";
 import Search from "./metrimoniul/pagesMetrimoniul/search";
-import AstroPage from './metrimoniul/pagesMetrimoniul/Astro-page';
-import PurchaseHistory from './metrimoniul/pagesMetrimoniul/purchasehistory.jsx';
-
+import AstroPage from "./metrimoniul/pagesMetrimoniul/Astro-page";
+import PurchaseHistory from "./metrimoniul/pagesMetrimoniul/purchasehistory.jsx";
 
 const App = () => {
   const isOnline = useOnlineStatus();
-
-
 
   return (
     <div className="App">
@@ -37,9 +34,7 @@ const App = () => {
               <Route path="/metrimonial/*" element={<MetrimoniulRoutes />} />
               <Route path="/search/*" element={<Search />} />
               <Route path="/search/*" element={<Search />} />
-              <Route path="/astro" element={<AstroPage />} />
               <Route path="/purchase-history" element={<PurchaseHistory />} />
-              
             </>
           ) : (
             <Route path="*" element={<NoInternetPage />} />
@@ -48,6 +43,6 @@ const App = () => {
       </Router>
     </div>
   );
-}
+};
 
 export default App;

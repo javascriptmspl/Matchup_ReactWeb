@@ -276,7 +276,6 @@ export default function Chat() {
     );
 
     setFilteredItems(filtered);
-    console.log("fileejh", filtered);
   };
 
   const handleChange = (event) => {

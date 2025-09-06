@@ -36,8 +36,12 @@ const NotificationFullPage = lazy(() =>
 );
 const MessengerPage = lazy(() => import("../../component/chat/MessengerPage"));
 const ManageProfile = lazy(() => import("../pagesMetrimoniul/manage-profile"));
-const ManageProfileCareerAndEducation = lazy(() => import("../pagesMetrimoniul/manage-profile-eduAndCareer"))
-const ManageProfileFamily = lazy(() => import("../pagesMetrimoniul/manage-profile-family"))
+const ManageProfileCareerAndEducation = lazy(() =>
+  import("../pagesMetrimoniul/manage-profile-eduAndCareer")
+);
+const ManageProfileFamily = lazy(() =>
+  import("../pagesMetrimoniul/manage-profile-family")
+);
 const MyProfile = lazy(() => import("../pagesMetrimoniul/my-profile"));
 const MatchPage = lazy(() => import("../pagesMetrimoniul/matches"));
 const BlogDetailsSingleUser = lazy(() =>
@@ -62,6 +66,7 @@ const PartnerPreference = lazy(() =>
 );
 const AddPhotos = lazy(() => import("../pagesMetrimoniul/addUserPicture"));
 const Event = lazy(() => import("../pagesMetrimoniul/Events"));
+const AstroPage = lazy(() => import("../pagesMetrimoniul/Astro-page"));
 
 function MetrimoniulRoutes() {
   const [showNotifications, setShowNotifications] = useState(false);
@@ -457,7 +462,7 @@ function MetrimoniulRoutes() {
               </Suspense>
             }
           />
-           <Route
+          <Route
             path="manage-profile-family"
             element={
               <Suspense
@@ -639,7 +644,7 @@ function MetrimoniulRoutes() {
               </Suspense>
             }
           />
-           <Route
+          <Route
             path="events"
             element={
               <Suspense
@@ -650,6 +655,20 @@ function MetrimoniulRoutes() {
                 }
               >
                 <Event />
+              </Suspense>
+            }
+          />
+          <Route
+            path="astro"
+            element={
+              <Suspense
+                fallback={
+                  <div>
+                    <Lodder />
+                  </div>
+                }
+              >
+                <AstroPage />
               </Suspense>
             }
           />

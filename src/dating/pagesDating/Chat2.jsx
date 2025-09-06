@@ -39,6 +39,7 @@ import chatBG from "../../dating/assets/images/chat/ChatBG.jpg"
 import chatBG2 from "../../dating/assets/images/chat/chatbg2.jpg"
 import dummyUserPic from "../../dating/assets/images/myCollection/user-male.jpg"
 import { useSelector } from "react-redux";
+import { BASE_URL } from "../../base";
 
 
 
@@ -552,7 +553,7 @@ export default function App() {
                           <img
                             src={
                               user?.avatars
-                                ? `https://datingapi.meander.software/assets/images/${user?.mainAvatar}`
+                                ? `${BASE_URL}/assets/images/${user?.mainAvatar}`
                                 : dummyUserPic}
                             alt={`avatar ${message.id}`}
                             style={{

@@ -64,9 +64,8 @@ const Events = (e) => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const getEvent = async () => {
+    const getEvent = async() => {
       const res = await dispatch(getEvents(Userid));
-      // Check for null values before using the spread operator
       setStoreData(res.payload);
     };
     getEvent();

@@ -19,7 +19,6 @@ const ManageProfileCareerAndEducation = () => {
   const [userDDDD, setUserDDDDD] = useState();
 
   const profileData = useSelector((state) => state.profile.userData);
-  console.log("-2323profile",profileData)
   const dispatch = useDispatch();
   const userData1 = profileData[0];
   const userDatas = localStorage.getItem("userData");

@@ -103,7 +103,6 @@ const MyProfile = () => {
   } else {
     User = profileData?.[0];
   }
-
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -277,7 +276,7 @@ const MyProfile = () => {
                               </div>
 
                               <div className="info-card-content">
-                                <p>{User?.description || ""}</p>
+                                <p>{User?.description || "Please add Bio"}</p>
                               </div>
                             </div>
 
@@ -366,7 +365,8 @@ const MyProfile = () => {
                                   <li>
                                     <p className="info-name">Phone</p>
                                     <p className="info-details">
-                                      {User?.phoneNumber || ""}
+                                      {User?.phoneNumber ||
+                                        "Please Add Phone Number"}
                                     </p>
                                   </li>
                                 </ul>
@@ -417,7 +417,8 @@ const MyProfile = () => {
                                   <li>
                                     <p className="info-name">Birth Place</p>
                                     <p className="info-details">
-                                      {User?.birthPlace || ""}
+                                      {User?.birthPlace ||
+                                        "Please add Birth Place"}
                                     </p>
                                   </li>
                                   <li>
@@ -545,13 +546,13 @@ const MyProfile = () => {
                                   <li>
                                     <p className="info-name">Family Status</p>
                                     <p className="info-details">
-                                      {User?.familyStatus}
+                                      {User?.familyStatus} 
                                     </p>
                                   </li>
                                   <li>
                                     <p className="info-name">Father’s Name</p>
                                     <p className="info-details">
-                                      {User?.FathersName}
+                                      {User?.FathersName} 
                                     </p>
                                   </li>
                                   <li>

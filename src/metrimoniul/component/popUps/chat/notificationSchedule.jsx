@@ -3,12 +3,12 @@ import { Modal, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import CalenderScheduleModal from "./calenderSchedule";
 import dummyUserPic from "../../../..//dating/assets/images/myCollection/user-male.jpg"
+import { BASE_URL } from "../../../../base";
 
 
 const NotificationScheduleMetri = ({ user, selectedUser, showModal, hideModal, calenderScheduleDAte }) => {
   const LoginUser = user || {}
   const selectUser = selectedUser || {}
-  console.log(LoginUser, selectUser, 'abcd efgh ijkl');
 
 
   return (
@@ -64,7 +64,7 @@ const NotificationScheduleMetri = ({ user, selectedUser, showModal, hideModal, c
                     className="img1"
                     src={
                       LoginUser?.avatars
-                        ? `https://datingapi.meander.software/assets/images/${LoginUser?.mainAvatar}`
+                        ? `${BASE_URL}/assets/images/${LoginUser?.mainAvatar}`
                         : dummyUserPic} style={{
                           borderRadius: '50%',
 

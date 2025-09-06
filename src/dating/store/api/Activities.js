@@ -77,7 +77,7 @@ export const updateActivity = async (data) => {
   };
   try {
     const response = await fetch(
-      `https://datingapi.meander.software/Activity/update/${editId}`,
+      `${BASE_URL}/Activity/update/${editId}`,
       options
     );
     const dataaa = await response.json()
@@ -101,7 +101,7 @@ export const searchUser = async (name) => {
 
   try {
     const response = await fetch(
-      `https://datingapi.meander.software/users/search?name=${name}`,
+      `${BASE_URL}/users/search?name=${name}`,
       options
     );
 
@@ -128,7 +128,7 @@ export const searchActivity = async (name) => {
 
   try {
     const response = await fetch(
-      `https://datingapi.meander.software/Activity/search/6565dbb8f55b057bd1fc4a82?name=${name}`,
+      `${BASE_URL}/Activity/search/6565dbb8f55b057bd1fc4a82?name=${name}`,
       options
     );
 
@@ -156,7 +156,7 @@ export const sortActivity =async(sort)=>{
 
   try {
     const response = await fetch(
-      `https://datingapi.meander.software/Activity/sort/6565dbb8f55b057bd1fc4a82?sort=${sort}`,
+      `${BASE_URL}/Activity/sort/6565dbb8f55b057bd1fc4a82?sort=${sort}`,
       options
     );
     const responseData = await response.json();
@@ -168,3 +168,20 @@ export const sortActivity =async(sort)=>{
     throw error;
   }
 }
+
+
+
+
+
+export const updateFamilyAPI = async (userId, values) => {
+  try {
+    const response = await axios.put(
+      `${BASE_URL}/User/update/${userId}`,
+      values
+    );
+    return response;
+  } catch (error) {
+    console.error("❌ Error in updateFamilyAPI:", error.response?.data || error.message);
+    throw error;
+  }
+};

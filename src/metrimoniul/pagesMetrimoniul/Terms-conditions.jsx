@@ -4,6 +4,7 @@ import FooterFour from "../component/layout/footerFour";
 import { MODE_METRI } from "../../utils";
 import axios from "axios";
 import Lodder from "../component/layout/Lodder";
+import { BASE_URL } from "../../base";
 
 const Termsconditions = () => {
   const [termAndCondition, setTermAndCondition] = useState();
@@ -11,7 +12,7 @@ const Termsconditions = () => {
   const getAlltermsAndConditions = async () => {
     try {
       const resoponse = await axios.get(
-        `https://datingapi.meander.software/termsAndConditions/getall/${MODE_METRI}?page_no=1&page_size=100`
+        `${BASE_URL}/termsAndConditions/getall/${MODE_METRI}?page_no=1&page_size=100`
       );
 
       if (resoponse?.data?.data?.length > 0) {

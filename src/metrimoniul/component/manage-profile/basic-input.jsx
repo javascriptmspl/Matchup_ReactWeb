@@ -32,7 +32,6 @@ const ManageProfileBasicInput = ({ userData, onUpdateProfile }) => {
     validationSchema,
 
     onSubmit: async (values) => {
-      console.log('values=>>>>', values)
       try {
         const updatedUserData = values;
         

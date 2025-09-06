@@ -16,7 +16,6 @@ const ActiveMember = () => {
 
     const userByMode = LOCAL_USER_GENDER_METRI();
 
-    // const showuserByGender = ALL_USER_METRIMONIAL.filter((member) => member.iAm !== userByMode);
     const showuserByGender = ALL_USER_METRIMONIAL.filter(
         (member) => member.iAm !== userByMode && member.id !== selectedUserId.id
       );
@@ -26,7 +25,6 @@ const ActiveMember = () => {
         dispatch(metriGetAllUsersAsync());
     }, [dispatch]);
 
-    console.log("showuserByGender===>", showuserByGender)
     return (
         <div className="active-member bg-white pt-4 mb-4">
             <div className="modal-header">

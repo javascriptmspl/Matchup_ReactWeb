@@ -96,7 +96,6 @@ const Events = (e) => {
       setNotificationSchedule(true);
     }, 500);
   };
-
   const NotifyScheduleData = (data) => {
     setSelectedData(data);
     setCalenderSchedule(false);
@@ -147,7 +146,7 @@ const Events = (e) => {
         toast.error("Error deleting event");
       }
     }
-  };
+  }; 
 
   const handleResize = () => {
     setIsMobile(window.innerWidth <= 768);
@@ -160,7 +159,6 @@ const Events = (e) => {
 
     window.addEventListener("resize", handleResize);
 
-    // Cleanup the event listener on component unmount
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
@@ -168,7 +166,6 @@ const Events = (e) => {
     setLoading(true);
   });
 
-  // Update the handler for MemberPopsModal to set the selected member
   const handleMemberSelected = (val) => {
     setSelectedUser(val); // for modal
     setSelectedMemberForEvent(val); // for event creation

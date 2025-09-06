@@ -20,12 +20,10 @@ const CalenderScheduleMetri = ({
   const handleClockClick = () => {
     setShowClock(!showClock);
     setShowCalendar(!showCalendar)
-    console.log("checktime", setShowClock);
   };
 
   const handleCalendarClick = () => {
     setShowCalendar(!showCalendar);
-    console.log(setSelectedDate);
   };
 
  
@@ -46,7 +44,6 @@ const CalenderScheduleMetri = ({
       toast.success("schedule date successfully updated");
       //  setButtonClass("default-btn reverse");
       hideModal(hideModal)
-      console.log("checking  ato")
     } catch (error) {
       console.error("Error updating Contact profile:", error);
       toast.error("Failed to update Contact info");

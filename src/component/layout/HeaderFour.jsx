@@ -111,7 +111,7 @@ const HeaderFour = () => {
   const handleLogoutApi = async () => {
     try {
       const response = await fetch(
-        `https://datingapi.meander.software/User/${userId}/logout`,
+        `${BASE_URL}/User/${userId}/logout`,
         {
           method: "PUT",
           headers: {

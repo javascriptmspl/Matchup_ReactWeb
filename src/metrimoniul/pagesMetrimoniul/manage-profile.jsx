@@ -66,7 +66,6 @@ const ManageProfile = () => {
   }, [dispatch, userId]);
 
   const updateProfileData = useCallback(async () => {
-    console.log('called func')
     try {
       dispatch(getUserProfileAsync(userId));
     } catch (error) {

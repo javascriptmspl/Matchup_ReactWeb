@@ -10,6 +10,7 @@ import { MODE_METRI } from "../../utils";
 import { useDispatch, useSelector } from "react-redux";
 import dummyUserPic from "../../dating/assets/images/myCollection/user-male.jpg"
 import userPic from "../../assets/images/member/profile/download (3).jpeg";
+import { BASE_URL } from "../../base";
 
 const NotificationItem = ({ notification, markAsRead }) => {
   const user = useSelector((state) => state.profile.userData[0])
@@ -23,7 +24,7 @@ const NotificationItem = ({ notification, markAsRead }) => {
           <img
           src={
             notification.receiverUser?.mainAvatar
-              ? `https://datingapi.meander.software/assets/images/${notification.receiverUser?.mainAvatar}`
+              ? `${BASE_URL}/assets/images/${notification.receiverUser?.mainAvatar}`
               : userPic
           }
             // src={boy}
@@ -45,7 +46,7 @@ const NotificationItem = ({ notification, markAsRead }) => {
             className="profile-picture-notification"
             src={
               notification.receiverUser?.mainAvatar
-                ? `https://datingapi.meander.software/assets/images/${notification.receiverUser?.mainAvatar}`
+                ? `${BASE_URL}/assets/images/${notification.receiverUser?.mainAvatar}`
                 : userPic
             }
             // src={defaultImage}

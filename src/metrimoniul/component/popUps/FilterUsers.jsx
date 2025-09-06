@@ -79,14 +79,10 @@ const MetriSearchFilterModal = ({ showModal, hideModal }) => {
         queryParams.append("maxAge", selectAge.maxAge);
       }
 
-      // This modeId looks static in your example, add accordingly
       queryParams.append("modeId", "68ad61f71130f0d24d4aff04");
 
-      // Final API URL
       const url = `${BASE_URL}/User/filter?${queryParams.toString()}&t=${Date.now()}`;
-      console.log("API URL:", url);
 
-      // API call (GET)
       const response = await fetch(url, {
         method: "GET",
         headers: {
@@ -100,9 +96,7 @@ const MetriSearchFilterModal = ({ showModal, hideModal }) => {
       }
 
       const data = await response.json();
-      console.log("API Response:", data);
 
-      // ✅ Now you can update state or pass data to UI
       hideModal();
       navigate("/metrimonial/members", { state: { data: data.data } });
     } catch (error) {

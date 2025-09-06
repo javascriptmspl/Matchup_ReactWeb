@@ -11,7 +11,6 @@ const SelectInterest = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // ✅ localStorage se userId lena (same as dating)
   const user = localStorage.getItem("userData");
   const userObj = user ? JSON.parse(user) : null;
   const userId = userObj?.data?._id;
@@ -21,7 +20,7 @@ const SelectInterest = () => {
       try {
         const res = await dispatch(
           fetchInterests({
-            token: "68ad621a1130f0d24d4aff06", // same token
+            token: "68ad621a1130f0d24d4aff06", 
             page_no: 1,
             page_size: 1000,
           })
@@ -35,7 +34,6 @@ const SelectInterest = () => {
     loadInterests();
   }, [dispatch]);
 
-  // ✅ object based selection (same as dating)
   const handleInterestToggle = (interest) => {
     if (selectedInterests.includes(interest)) {
       setSelectedInterests((prev) => prev.filter((item) => item !== interest));
@@ -44,22 +42,25 @@ const SelectInterest = () => {
     }
   };
 
-  // ✅ submit function (same as dating)
   const handleNavigateHome = async () => {
     try {
+      const interestIds = selectedInterests.map((i) => i._id || i.id || i);
+  
       await toast.promise(
-        dispatch(updateInterestsAsync({ userId, interests: selectedInterests })),
+        dispatch(updateInterestsAsync({ userId, interests: interestIds })),
         {
           loading: "Saving your interests 😍...",
           success: <b>Settings saved! Redirecting...</b>,
           error: <b>Could not save. Please try again.</b>,
         }
       );
-      navigate("/metrimonial/add-photos"); // ✅ matrimonial route
+  
+      navigate("/metrimonial/add-photos");
     } catch (error) {
       toast.error("Error submitting interests. Please try again.");
     }
   };
+  
 
   return (
     <div className="container padding-top padding-bottom">

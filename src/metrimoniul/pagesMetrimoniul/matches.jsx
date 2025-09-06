@@ -29,11 +29,9 @@ const MatchPage = () => {
   const UserData = useSelector((state) => state.getAllUser.users);
   const loading = useSelector((state) => state.getAllUser.loading);
   const dispatch = useDispatch();
-  const navigate = useNavigate(); // Hook to navigate
+  const navigate = useNavigate();
 
-  const handleAstroClick = () => {
-    navigate("/astro"); // Navigate to the AstroPage route
-  };
+  const handleAstroClick = () => navigate("/metrimonial/astro");
 
   const Store = useSelector((state) => state);
   let matchUserList = useSelector(
@@ -45,7 +43,6 @@ const MatchPage = () => {
   const SuperLikes = matchUserList
     ? matchUserList.filter((i) => i.activityType === "superlike")
     : [];
-  console.log(SuperLikes);
   const datingId = localStorage.getItem("userData");
 
   const user_Data = JSON.parse(datingId);
@@ -148,7 +145,7 @@ const MatchPage = () => {
                     Likes.map((val, i) => (
                       <div className="member__item " key={i}>
                         <div className="member__inner member__inner-sized-hover react-main position-relative">
-                          <div
+                          {/* <div
                             className="member-atsro"
                             onClick={handleAstroClick}
                             style={{ cursor: "pointer" }}
@@ -161,7 +158,7 @@ const MatchPage = () => {
                             <small className="text-light float-end pe-2 pt-1">
                               Astro
                             </small>
-                          </div>
+                          </div> */}
                           <div className="react main_user_img">
                             <img
                               src={getBlackImage(val?.receiverUserId?._id)}
@@ -186,12 +183,15 @@ const MatchPage = () => {
                                   : userMale
                               }
                               alt="dating thumb"
+                              style={{ height: "100%", width: "100%" }}
                             />
                             <span
                               className={val?.receiverUserId?.className}
                             ></span>
                           </div>
-                          <div className="member-atsro">
+                          <div className="member-atsro"
+                          onClick={handleAstroClick}
+                          style={{ cursor: "pointer" }}>
                             <img
                               src={astro}
                               alt=""
@@ -303,6 +303,7 @@ const MatchPage = () => {
                                   : userMale
                               }
                               alt={`${val?.receiverUserId?.imgAlt || "user"}`}
+                              style={{ height: "100%", width: "100%" }}
                             />
                             <span
                               className={val?.receiverUserId?.className}
@@ -368,7 +369,7 @@ const MatchPage = () => {
                         "Matches are not available{" "}
                         <a href="/metrimonial/members">
                           <strong>
-                            <u>Find Your Matche </u>
+                            <u>Find Your Matches </u>
                           </strong>
                         </a>{" "}
                         now!"

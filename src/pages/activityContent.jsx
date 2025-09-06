@@ -2,6 +2,7 @@
 import { Link } from "react-router-dom";
 import userMale from "../dating/assets/images/myCollection/user-male.jpg"
 import { useDispatch, useSelector } from "react-redux";
+import { BASE_URL } from "../base";
 
 
 const ActivityTimeline = () => {
@@ -126,7 +127,7 @@ const ActivityTimeline = () => {
                   <img
                             src={
                               User?.mainAvatar
-                                ? `https://datingapi.meander.software/assets/images/${User?.mainAvatar}`
+                                ? `${BASE_URL}/assets/images/${User?.mainAvatar}`
                                 : userMale
                             }
                             alt="dating thumb"

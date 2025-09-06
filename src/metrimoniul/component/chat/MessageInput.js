@@ -22,7 +22,6 @@ const MessageInput = ({ onSendMessage }) => {
   };
 
   const handleUpload = () => {
-    console.log("Upload button clicked");
   };
 
   return (

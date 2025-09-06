@@ -62,13 +62,16 @@ export const deleteEvent = createAsyncThunk(
         `${BASE_URL}/events/deleteEvent/${eventId}`
       );
       toast.success("Event deleted successfully");
-      return eventId; // Return the event ID that was deleted
+      return eventId; 
     } catch (error) {
       toast.error("Failed to delete event");
       return rejectWithValue(error.response?.data || error.message);
     }
   }
 );
+
+
+
 
 const eventSlice = createSlice({
   name: "event",

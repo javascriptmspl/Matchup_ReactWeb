@@ -7,6 +7,7 @@ import userMale from "../../assets/images/myCollection/user-male.jpg"
 import toast from "react-hot-toast";
 import { addToEventAsync } from "../../store/slice/shop/EventSlice";
 import MyContext from "../../store/context/UseContext";
+import { BASE_URL } from "../../../base";
 // import { UserData } from "../../assets/DummyData/userData";
 
 
@@ -102,7 +103,7 @@ const {eventDatahandle}=useContext(MyContext)
                 <img
                             src={
                               User?.mainAvatar
-                                ? `https://datingapi.meander.software/assets/images/${User?.mainAvatar}`
+                                ? `${BASE_URL}/assets/images/${User?.mainAvatar}`
                                 : userMale
                             }
                             alt="dating thumb"

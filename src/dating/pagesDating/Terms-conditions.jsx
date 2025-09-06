@@ -21,7 +21,6 @@ const Termsconditions = () => {
     getTandCondition();
   }, [getTandCondition]);
 
-  console.log("data tnc ", getTermAndCondition);
 
   return (
     <>

@@ -27,8 +27,8 @@ const MembersPage = () => {
   const location = useLocation();
   const Store = useSelector((state) => state);
 
-  // If navigated with filtered data, use it; otherwise, use default
   const filteredMembers = location.state?.data;
+
   const [members, setMembers] = useState(filteredMembers || []);
   const [filterModal, setFilterModal] = useState(false);
   const [filter, setFilter] = useState("");
@@ -61,7 +61,7 @@ const MembersPage = () => {
     );
   };
 
-  const handleAstroClick = () => navigate("/astro");
+  const handleAstroClick = () => navigate("/metrimonial/astro");
 
   const handleLike = async (_id) => {
     let toastId;
@@ -120,7 +120,6 @@ const MembersPage = () => {
     const g = gender.trim().toLowerCase();
     if (g === "male") return "female";
     if (g === "female") return "male";
-    // Add more options if your app supports more genders
     return null;
   };
 
@@ -128,7 +127,6 @@ const MembersPage = () => {
     try {
       setLoading(true);
 
-      // Load activities first
       await dispatch(
         getBySenderUserIds({
           modeid: MODE_METRI,
@@ -138,10 +136,8 @@ const MembersPage = () => {
 
       let list = Store?.getAllUser?.users || [];
 
-      // Always determine the gender to look for
       let lookingGender = user_Data?.data?.looking;
       if (!lookingGender) {
-        // Fallback: infer from iAm
         lookingGender = getOppositeGender(user_Data?.data?.iAm);
       }
 
@@ -153,6 +149,7 @@ const MembersPage = () => {
               userId: user_Data.data._id,
             })
           ).unwrap();
+
           list = resp?.data || [];
         } else {
           const resp = await dispatch(metriGetAllUsersAsync()).unwrap();
@@ -160,10 +157,8 @@ const MembersPage = () => {
         }
       }
 
-      // Apply approval filter
       const approvedList = list.filter(isUserApproved);
 
-      // Show only opposite gender (men see women, women see men)
       const finalList = approvedList.filter((m) => m.iAm === lookingGender);
 
       setMembers(finalList);
@@ -240,7 +235,7 @@ const MembersPage = () => {
             {/* Members List */}
             <div className="section__wrapper">
               <div className="row g-0 mx-12-none justify-content-center">
-                {members.slice(0,4).map((val, i) => (
+                {members.slice(0, 4).map((val, i) => (
                   <div className="member__item" key={i}>
                     <div className="member__inner">
                       <div className="member__thumb member-atsro-main">
@@ -252,7 +247,7 @@ const MembersPage = () => {
                           const thumbnails = Array.isArray(val.avatars)
                             ? val.avatars
                                 .filter((a) => a && a !== mainShown)
-                                .slice(0, 4 )
+                                .slice(0, 4)
                             : [];
                           return (
                             <>

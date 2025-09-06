@@ -69,7 +69,6 @@ const ContactUs = () => {
     initialValues: initialValues,
     validationSchema: validationSchema,
     onSubmit: (values, { resetForm }) => {
-      console.log(values);
       toast.success("Message sent Successfully");
       resetForm();
     },

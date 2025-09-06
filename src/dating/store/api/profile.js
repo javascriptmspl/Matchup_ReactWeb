@@ -4,7 +4,6 @@ import { BASE_URL } from "../../../base";
 
 // Profile picture upload
 export const uploadProfilePicture = async (imageData, userId) => {
-  console.log("userId api ", userId)
     try {
       const formData = new FormData();
       formData.append('image', imageData);
@@ -40,10 +39,12 @@ export const uploadProfilePicture = async (imageData, userId) => {
   };
   
 
-  // Profile picture upload
   export const updateUserInterests = async (userId, interests) => {
     try {
-      const response = await axios.put(`${BASE_URL}/User/update/${userId}`, { interests });
+      const response = await axios.put(`${BASE_URL}/User/update/${userId}`, {
+        interest: interests,
+      });
+  
       return response.data;
     } catch (error) {
       throw error;

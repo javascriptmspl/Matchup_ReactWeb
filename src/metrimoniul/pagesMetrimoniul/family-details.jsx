@@ -4,6 +4,8 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import toast, { Toaster } from "react-hot-toast";
 import HeaderFour from "../component/layout/HeaderFour";
+import { metriUpdateFamilyAsync } from "../../service/common-service/familydetails";
+import { useDispatch } from "react-redux";
 
 const title = "Welcome to Matchup";
 const desc =
@@ -11,8 +13,11 @@ const desc =
 const accTitle = "Account Details";
 
 const FamilyDetails = (selectedProfile) => {
-  const navigate = useNavigate();
 
+  const storedUser = localStorage.getItem("userData");
+const userId = storedUser ? JSON.parse(storedUser)?.data?._id : null;
+  const navigate = useNavigate();
+  const dispatch=useDispatch()
   const saveSettings = async (selectedProfile) => {
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -20,6 +25,41 @@ const FamilyDetails = (selectedProfile) => {
       }, 2000);
     });
   };
+
+  // const formik = useFormik({
+  //   initialValues: {
+  //     familyStatus: "",
+  //     FathersName: "",
+  //     FathersStatus: "",
+  //     MothersName: "",
+  //     MothersStatus: "",
+  //     NumberOfBrother: 0,
+  //     NoOfMarriedBrother: 0,
+  //     NumberOfSister: 0,
+  //     NoOfMarriedSister: 0,
+  //     GovtIDProof: "",
+  //   },
+  //   onSubmit: async (values) => {
+  //     try {
+  //       await new Promise((resolve) => setTimeout(resolve, 100));
+
+  //       await toast.promise(
+  //         saveSettings(selectedProfile), 
+  //         {
+  //           loading: "Saving your family details 😍...",
+  //           success: <b>Family details saved! Redirecting...</b>,
+  //           error: <b>Could not save. Please try again.</b>,
+  //         }
+  //       );
+
+  //       navigate("/metrimonial/partner-preference");
+  //     } catch (error) {
+  //       toast.error("Error submitting Family details. Please try again.");
+  //     }
+  //   },
+  // });
+
+
 
   const formik = useFormik({
     initialValues: {
@@ -36,27 +76,23 @@ const FamilyDetails = (selectedProfile) => {
     },
     onSubmit: async (values) => {
       try {
-        // Simulate a delay using setTimeout
-        await new Promise((resolve) => setTimeout(resolve, 100));
-
-        // Use toast.promise correctly
         await toast.promise(
-          saveSettings(selectedProfile), // Assuming saveSettings is a function to save family details
+          dispatch(metriUpdateFamilyAsync({ userId, values })).unwrap(),
           {
             loading: "Saving your family details 😍...",
             success: <b>Family details saved! Redirecting...</b>,
             error: <b>Could not save. Please try again.</b>,
           }
         );
-
         navigate("/metrimonial/partner-preference");
-        console.log("Form values submitted:", values);
       } catch (error) {
-        // Remove the following line to prevent the error toast
-        // toast.error("Error submitting Family details. Please try again.");
+        toast.error("Error submitting Family details. Please try again.");
       }
     },
   });
+  
+
+
 
   const handleFileChange = (event) => {
     formik.setFieldValue("GovtIDProof", event.currentTarget.files[0]);

@@ -160,7 +160,7 @@ const MembersPage = () => {
                       >
                         {val?.mainAvatar ? (
                           <img
-                            src={`https://datingapi.meander.software/assets/images/${val?.mainAvatar}`}
+                            src={`${BASE_URL}/assets/images/${val?.mainAvatar}`}
                             alt={`${val.imgAlt}`}
                             style={{
                               width: "160px",

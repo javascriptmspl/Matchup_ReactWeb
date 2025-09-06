@@ -9,6 +9,7 @@ export const getFindPartnerAPI = async () => {
         );
         return response.data
     } catch (error) {
+        
         console.error("Error fetching members:", error);
     }
 };

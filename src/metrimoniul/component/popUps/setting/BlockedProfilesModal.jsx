@@ -5,7 +5,6 @@ const BlockedProfilesModal = ({ showModal, hideModal }) => {
     if (!showModal) return null;
 
     const handleUnblock = (userId) => {
-        // Implement unblock logic here
         console.log(`Unblock user with ID: ${userId}`);
     };
 
