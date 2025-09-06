@@ -97,15 +97,28 @@ export const fetchInterests = createAsyncThunk(
 );
 
 // 🔹 Get filtered users
+
 export const getFilteredUsers = createAsyncThunk(
   "dating/getFilteredUsers",
   async (
-    { gender, address, minAge, maxAge, modeId, name },
+    { userId, gender, address, minAge, maxAge, modeId, name, location },
     { rejectWithValue }
   ) => {
     try {
       const response = await axios.get(
-        `${BASE_URL}/User/filter?gender=${gender}&address=${address}&minAge=${minAge}&maxAge=${maxAge}&modeId=${modeId}&name=${name}`
+        `${BASE_URL}/User/filter`, 
+        {
+          params: {
+            userId,
+            gender,
+            address,
+            minAge,
+            maxAge,
+            modeId,
+            name,
+            location,
+          },
+        }
       );
       return response.data;
     } catch (error) {
@@ -113,6 +126,7 @@ export const getFilteredUsers = createAsyncThunk(
     }
   }
 );
+
 
 // ---------------------
 // Slice

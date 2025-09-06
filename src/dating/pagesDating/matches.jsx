@@ -19,7 +19,7 @@ const MatchPage = () => {
   const [favrorite, setFavorite] = useState(UserData.slice(0, 7));
   const [matches, setMatches] = useState(UserData.slice(8, 15));
   const [user , setuser]=useState([])
-  const [likedUser, setLikedUser] = useState([]);
+  const [matchUserList, setMatchUserList] = useState([]);
   const User = JSON.parse(localStorage.getItem("userData"))
   const userId = User?.data?._id;
   const findUser = User?.data?.looking;
@@ -99,7 +99,7 @@ const MatchPage = () => {
           page_number: 1,
           page_size: 10
         })).unwrap();
-        setLikedUser(res?.data)
+        setMatchUserList(res?.data)
       } catch (error) {
         toast.error("Failed to fetch activities: " + error.message);
       }
@@ -109,11 +109,10 @@ const MatchPage = () => {
 
 
 
-  // console.log("user=====>>",user);
 
   const buttonEvent = async (id, reaction) => {
     try {
-      await dispatch(
+  const res = await dispatch(
         createActivity({
           senderUserId: userId,
           receiverUserId: id,
@@ -126,16 +125,17 @@ const MatchPage = () => {
           page_size: 10,
         })
       ).unwrap();
-  
-      dispatch(
-        getActivitiesBySenderUserId({
-          senderUserId: userId,
-          modeId: modeId,
-          page_number: 1,
-          page_size: 10,
-        })
-      );
-  
+      if(res){
+      const res2 = await dispatch(
+          getActivitiesBySenderUserId({
+            senderUserId: userId,
+            modeId: modeId,
+            page_number: 1,
+            page_size: 10,
+          })
+        ).unwrap();
+        setMatchUserList(res2?.data);
+      }
       toast.success(`${reaction} action performed successfully`);
     } catch (err) {
       console.error("Activity error:", err);
@@ -143,9 +143,13 @@ const MatchPage = () => {
     }
   };
   
-
+  const Likes = matchUserList
+  ? matchUserList.filter((i) => i.activityType === "like")
+  : [];
+const SuperLikes = matchUserList
+  ? matchUserList.filter((i) => i.activityType === "superlike")
+  : [];
   
-console.log("likedUser=====>>",likedUser);
 
   return (
     <>
@@ -195,61 +199,167 @@ console.log("likedUser=====>>",likedUser);
               </div>
             </div>
 
-            <div className="row g-0 justify-content-center mx-12-none  ">
-              {likedUser.map((val, i) => (
-                <div className="member__item " key={i}>
-                  <div className="member__inner member__inner-sized-hover react-main">
-                    <div className="react">
-                      <img
-                        src={getBlackImage(val.id)}
-                        width="25"
-                        alt=""
-                        // onClick={() => handleClick(val.id, val.name, val)}
-                      />
-                    </div>
-                    <div className="member__thumb">
-                      <img src={`${BASE_URL}/assets/images/${val.receiverUserId.avatars[0]}`} alt={`${val.receiverUserId.name}`}
-                      style={{width:"100%",height:"100%"}} />
-                      <span className={val.className}></span>
-                    </div>
-                    <div className="member__content">
-                      <Link to={`/dating/user-profile/${val.receiverUserId._id}`}>
-                        <h5>{val.receiverUserId.name}</h5>
-                      </Link>
-                      <p>
-                        <span>{val.receiverUserId.education || "Not Added"}</span> || <span>{val.receiverUserId.age || "Not Added"}</span>
-                      </p>
-                      <p>{val.activity}</p>
-                    </div>
-
-                    <div className="row mt-2 match-icon-main">
-                      <div className="col ">
-                        <Link
-                          className="fs-3 ms-4"
-                          to={`/dating/user-profile/${val?.receiverUserId?._id}`}
-                        >
-                          <i
-                            class="fa fa-user"
-                            aria-hidden="true"
-                            title="Profile"x
-                          ></i>
-                        </Link>
+            {/* <div className="row g-0 justify-content-center mx-12-none  ">
+              {SuperLikes.length > 0 && (
+                SuperLikes.map((val, i) => (
+                  <div className="member__item " key={i}>
+                    <div className="member__inner member__inner-sized-hover react-main">
+                      <div className="react">
+                        <img
+                          src={getBlackImage(val.id)}
+                          width="25"
+                          alt=""
+                          // onClick={() => handleClick(val.id, val.name, val)}
+                        />
                       </div>
-
-                      <div className="col">
-                        <Link className="fs-3 ms-3" to="/dating/chat-page2">
-                          <i
-                            class="fa fa-comment"
-                            aria-hidden="true"
-                            title="Message"
-                          ></i>
+                      <div className="member__thumb">
+                        <img 
+                        // src={`${BASE_URL}/assets/images/${val.receiverUserId.avatars[0]}`}
+                        src={
+                          val?.receiverUserId?.mainAvatar
+                            ? `${BASE_URL}/assets/images/${val?.receiverUserId?.mainAvatar}`
+                            : val?.receiverUserId?.avatars?.[0]
+                            ? `${BASE_URL}/assets/images/${val?.receiverUserId?.avatars[0]}`
+                            : null
+                        }
+                         alt={`${val.receiverUserId.name}`}
+                        style={{width:"100%",height:"100%"}} />
+                        <span className={val.className}></span>
+                      </div>
+                      <div className="member__content">
+                        <Link to={`/dating/user-profile/${val.receiverUserId._id}`}>
+                          <h5>{val.receiverUserId.name}</h5>
                         </Link>
+                        <p>
+                          <span>{val.receiverUserId.education || "Not Added"}</span> || <span>{val.receiverUserId.age || "Not Added"}</span>
+                        </p>
+                        <p>{val.activity}</p>
+                      </div>
+  
+                      <div className="row mt-2 match-icon-main">
+                        <div className="col ">
+                          <Link
+                            className="fs-3 ms-4"
+                            to={`/dating/user-profile/${val?.receiverUserId?._id}`}
+                          >
+                            <i
+                              class="fa fa-user"
+                              aria-hidden="true"
+                              title="Profile"x
+                            ></i>
+                          </Link>
+                        </div>
+  
+                        <div className="col">
+                          <Link className="fs-3 ms-3" to="/dating/chat-page2">
+                            <i
+                              class="fa fa-comment"
+                              aria-hidden="true"
+                              title="Message"
+                            ></i>
+                          </Link>
+                        </div>
                       </div>
                     </div>
                   </div>
+                ))
+              )}
+              {SuperLikes.length === 0 && <h2>No Super Likes Found</h2>}
+            </div> */}
+            <div className="row g-0 justify-content-center mx-12-none">
+                  {SuperLikes && SuperLikes.length > 0 ? (
+                    SuperLikes.map((val, i) => (
+                      <div className="member__item" key={i}>
+                        <div className="member__inner member__inner-sized-hover react-main">
+                          <div className="react">
+                            <div className="command-swiper" onClick={() => buttonEvent(val?.receiverUserId?._id, "superlike")}>
+                              <i className="fa-solid fa-star" style={{ color: '#387ADF' }}></i>
+                            </div>
+                          </div>
+                          <div className="member__thumb  member__thumb__matches">
+                            <img
+                              src={
+                                val?.receiverUserId?.mainAvatar
+                                  ? `${BASE_URL}/assets/images/${val?.receiverUserId?.mainAvatar}`
+                                  : val?.receiverUserId?.avatars?.[0]
+                                  ? `${BASE_URL}/assets/images/${val?.receiverUserId?.avatars[0]}`
+                                  : null
+                              }
+                              alt={`${val?.receiverUserId?.imgAlt || "user"}`}
+                              style={{ width: "100%", height: "100%" }}
+                            />
+                            <span
+                              className={val?.receiverUserId?.className}
+                            ></span>
+                          </div>
+                          <div className="member__content">
+                            <Link
+                              to={`/metrimonial/user-profile/${val?.receiverUserId?._id}`}
+                            >
+                              <h5>{val?.receiverUserId?.name}</h5>
+                            </Link>
+                            <div>
+                              <p>
+                                <span>{val?.receiverUserId?.occupation}</span>{" "}
+                                || <span>{val?.receiverUserId?.age}</span>
+                              </p>
+                              <div>
+                                <p>
+                                  <i
+                                    class="fa fa-map-marker"
+                                    style={{ color: "#f24570" }}
+                                    aria-hidden="true"
+                                  ></i>{" "}
+                                  {val?.receiverUserId?.address}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+ 
+                          <div className="row mt-2 match-icon-main">
+                            <div className="col ">
+                              <Link
+                                className="fs-3 ms-4"
+                                to={`/metrimonial/user-profile/${val?.receiverUserId?._id}`}
+                              >
+                                <i
+                                  class="fa fa-user"
+                                  aria-hidden="true"
+                                  title="Profile"
+                                ></i>
+                              </Link>
+                            </div>
+ 
+                            <div className="col">
+                              <Link
+                                className="fs-3 ms-3"
+                                to="/metrimonial/chat"
+                              >
+                                <i
+                                  class="fa fa-comment"
+                                  aria-hidden="true"
+                                  title="Meassage"
+                                ></i>
+                              </Link>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="col text-center">
+                      <h5>
+                        "Favorite List are not available{" "}
+                        <a href="/dating/members">
+                          <strong>
+                            <u>Find Your Matche </u>
+                          </strong>
+                        </a>{" "}
+                        now!"
+                      </h5>
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
           </div>
 
           <div className="section__wrapper my-5">
@@ -259,24 +369,36 @@ console.log("likedUser=====>>",likedUser);
               </div>
             </div>
             <div className="row g-0 justify-content-center mx-12-none">
-              {user.slice(0,10).map((val, i) => (
+              {Likes && Likes.length > 0 ? (
+              Likes.slice(0,10).map((val, i) => (
                 <div className="member__item" key={i}>
                   <div className="member__inner member__inner-sized-hover react-main">
                     <div className="react">
                       <img
-                        src={getLoveImage(val.id)}
+                        src={getBlackImage(val?.receiverUserId?._id)}
                         width="25"
                         alt=""
                         onClick={() => buttonEvent(val._id, "like")}
                       />
                     </div>
                     <div className="member__thumb">
-                      <img style={{width:"100%",height:"100%"}} src={`${BASE_URL}/assets/images/${val.avatars[0]}`} alt={`${val.imgAlt}`} />
+                      <img style={{width:"100%",height:"100%"}}
+                      //  src={`${BASE_URL}/assets/images/${val.avatars[0]}`} alt={`${val.imgAlt}`} 
+                      src={
+                        val?.receiverUserId?.mainAvatar
+                          ? `${BASE_URL}/assets/images/${val?.receiverUserId?.mainAvatar}`
+                          : val?.receiverUserId?.avatars?.[0]
+                          ? `${BASE_URL}/assets/images/${val?.receiverUserId?.avatars[0]}`
+                          : null
+                      }
+                      alt={`${val?.receiverUserId?.name}`}
+                       
+                       />
                       <span className={val.className}></span>
                     </div>
                     <div className="member__content">
-                      <Link to={`/dating/user-profile/${val.id}`}>
-                        <h5>{val.name}</h5>
+                      <Link to={`/dating/user-profile/${val?.receiverUserId?._id}`}>
+                        <h5>{val?.receiverUserId?.name}</h5>
                       </Link>
                       <div>
                         <p>
@@ -322,16 +444,21 @@ console.log("likedUser=====>>",likedUser);
                     </div>
                   </div>
                 </div>
-              ))}
+              ))
+            ):(
+                <div className="col text-center">
+                  <h5>No matches found</h5>
+                </div>
+              )}
             </div>
-            <div className="member__pagination mt-4">
+            {/* <div className="member__pagination mt-4">
               <div className="member__pagination--left">
                 <p>Viewing 1 - 20 of 12,345 Members</p>
               </div>
               <div className="member__pagination--right">
-                {/* <Pagination /> */}
+                <Pagination />
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

@@ -139,15 +139,7 @@ const MyProfile = () => {
       );
     }
   };
-
-  const interests = [
-    "Traveling",
-    "Reading",
-    "Cooking",
-    "Sports",
-    "Music",
-    "Photography",
-  ];
+ 
 
   return (
     <Fragment>
@@ -712,7 +704,7 @@ const MyProfile = () => {
                       <div className="">
                         <h4>Interests</h4>
                         <div className="row">
-                          {interests.map((interest, index) => (
+                          {User?.interest.map((interest, index) => (
                             <div
                               key={index}
                               style={{
@@ -729,7 +721,7 @@ const MyProfile = () => {
                                   : ""
                               }`}
                             >
-                              {interest}
+                              {interest.name}
                             </div>
                           ))}
                         </div>

@@ -13,6 +13,8 @@ import { useDispatch } from "react-redux";
 import { createActivity, fetchUsersByGender, getFilteredUsers } from "../../service/common-service/getuserbyGender";
 // import { getFindPartnerAPI } from "../../service/MANAGE_API/find-user-API";
 import { metriGetAllUsersAsync } from "../../service/MANAGE_SLICE/find-user-SLICE";
+import { log } from "handlebars/runtime";
+import { fetchPotentialUsers } from "../../service/common-service/find-patner";
 
 function FindFriendPageNew() {
   const [members, setMembers] = useState([]);
@@ -42,29 +44,21 @@ function FindFriendPageNew() {
   useEffect(() => {
     const myfun = async () => {
       if (User && User?.data) {
-        const response = await dispatch(fetchUsersByGender({
-          gender: findUser,
-          userId: modeId
-        })).unwrap();
-        setMembers(response?.data);
+        try {
+          const response = await dispatch(
+            fetchPotentialUsers({ userId, modeId })
+          ).unwrap();
+          setMembers(response?.data); 
+        } catch (err) {
+          console.error("Error fetching users:", err);
+        }
       } else {
-        const res = await dispatch(metriGetAllUsersAsync()).unwrap();
-        setMembers(res);
+        // const res = await dispatch(metriGetAllUsersAsync()).unwrap();
+        // setMembers(res);
       }
     }
     myfun()
-  }, [])
-
-
-
-  // useEffect(() => {
-  //   setMembersbygender(
-  //     showUserByGender.filter(
-  //       (member) => !sessionInteractedUsers.includes(member._id)
-  //     )
-  //   );
-  // }, [sessionInteractedUsers]);
-
+  },[])
 
 
   useEffect(() => {
@@ -150,14 +144,17 @@ function FindFriendPageNew() {
     }, transitionDuration);
   };
 
-  const buttonEvent = (reaction) => {
+
+  const buttonEvent = async (reaction) => {
     const el = document.querySelector(".photo-swiper");
     if (el) {
       const transitionDuration = Math.random() * 500 + 500;
       el.style.transitionDuration = `${transitionDuration}ms`;
+  
       let x = Math.random() * 500 + 100;
       let y = Math.random() * 1000 - 200;
       let rotate = (x * y * 4e-4) / (Math.abs(x) + Math.abs(y));
+  
       if (reaction === "like") {
         el.classList.toggle("like-swiper");
       } else if (reaction === "dislike") {
@@ -168,41 +165,58 @@ function FindFriendPageNew() {
         x = rotate = 0;
         y = y < 0 ? y * 3 : -y * 3;
       }
+  
+      // 🔹 Animate swipe
       setPhotoStyle({
         transform: `translate(${x}px, ${y}px) rotate(${rotate}deg)`,
         opacity: 0,
       });
+  
       repeat(transitionDuration * 0.8);
+  
+      // 🔹 Only hit API if NOT dislike
+        try {
+          // First: create activity
+          await dispatch(
+            createActivity({
+              senderUserId: userId,
+              receiverUserId: showUserByGender[currentIndex]?._id,
+              action_logs: `User ${user?._id} ${reaction} User ${showUserByGender[currentIndex]?._id}`,
+              description: `${reaction} Action`,
+              note: "",
+              mode: modeId,
+              activityType: reaction,
+            })
+          ).unwrap();
+  
+          // Second: refresh potential users
+          const response = await dispatch(
+            fetchPotentialUsers({ userId, modeId })
+          ).unwrap();
+  
+          setMembers(response?.data || response);
+        } catch (err) {
+          console.error("API Error in buttonEvent:", err);
+        }
+  
       setTimeout(() => {
         handleSwipe();
       }, 400);
     }
   };
+  
+  
 
-
-  // const buttonEvent = (reaction) => {
-  //   // Dispatch from component
-  //   dispatch(createActivity({
-  //     senderUserId: userId,
-  //     receiverUserId: showUserByGender[currentIndex]?._id,
-  //     action_logs: `User ${user?._id} ${reaction} User ${showUserByGender[currentIndex]?._id}`,
-  //     description: `${reaction} Action`,
-  //     note: "",
-  //     mode: modeId,
-  //     activityType: reaction
-  //   }));
-
-  // };
 
   const user = showUserByGender[currentIndex];
 
-  const languages = [
-    { id: 1, name: "English" },
-    { id: 2, name: "Spanish" },
-    { id: 3, name: "Mandarin Chinese" },
-    { id: 4, name: "French" },
-    { id: 5, name: "Hindi" }
-  ];
+  // const languages = [
+  //   { id: 1, name: "English" },
+  //   { id: 2, name: "Spanish" },
+  //   { id: 3, name: "Mandarin Chinese" },
+  //   { id: 4, name: "French" },
+  //   { id: 5, name: "Hindi" }
+  // ];
 
   const dummyInterests = [
     { name: "Movies" },
@@ -212,28 +226,26 @@ function FindFriendPageNew() {
     { name: "Sports" },
   ];
 
-  const userInterests =
-    showUserByGender[currentIndex]?.interest &&
-      Array.isArray(showUserByGender[currentIndex]?.interest) &&
-      showUserByGender[currentIndex]?.interest.some((item) => item?.name)
-      ? showUserByGender[currentIndex]?.interest
-      : dummyInterests;
+const userInterests = showUserByGender[currentIndex]?.interest ?? dummyInterests;
+
 
       const handleFilterSearch = async (filters) => {
         try {
           const response = await dispatch(
-            getFilteredUsers({ ...filters, modeId })
+            getFilteredUsers({
+              ...filters,
+              userId,   
+              modeId,  
+              location: filters.address // or however you map location
+            })
           ).unwrap();
-    
+      
           if (response?.data && response.data.length > 0) {
             setMembers(response.data);
           } else {
-            // fallback normal flow
+            // fallback flow
             const res = await dispatch(
-              fetchUsersByGender({
-                gender: findUser,
-                userId: modeId,
-              })
+              fetchPotentialUsers({ userId, modeId })
             ).unwrap();
             setMembers(res?.data);
           }
@@ -241,7 +253,7 @@ function FindFriendPageNew() {
           console.error("Filter API Error:", err);
         }
       };
-
+      
 
 
 
@@ -272,12 +284,7 @@ function FindFriendPageNew() {
         }} >
           <div className="container" >
             <div className="row">
-              {/* <div className="col-lg-2 col-xl-2"></div> */}
-
-
               <div className="col-sm-12 col-md-5 col-lg-5 col-xl-5">
-                {/* {
-              members.map((val, i) => { */}
                 <div className="smartphone-swiper my-lg-3 my-lx-3 my-md-3">
                   <div className="screen-swiper">
                     <div className="topbar-swiper">
@@ -363,8 +370,6 @@ function FindFriendPageNew() {
                     </footer>
                   </div>
                 </div>
-                {/* })
-            }  */}
               </div>
 
               <div className="col-sm-12 col-md-7 col-lg-7 col-xl-7">
@@ -415,10 +420,8 @@ function FindFriendPageNew() {
 
                   <h3 className="mt-5">Interests</h3>
                   <div className="d-flex flex-wrap">
-                    {showUserByGender[currentIndex]?.interest &&
-                      Array.isArray(showUserByGender[currentIndex]?.interest) &&
-                      showUserByGender[currentIndex]?.interest.length > 0 ? (
-                      userInterests.map((val, index) => (
+                      {userInterests && userInterests.length > 0 ? (
+                      userInterests.map((interest, index) => (
                         <div className="col-auto" key={index}>
                           <p
                             style={{
@@ -431,7 +434,7 @@ function FindFriendPageNew() {
                             }}
                             className={`interest-item flex-nowrap `}
                           >
-                            {val?.name}
+                            {interest?.name}
                           </p>
                         </div>
                       ))
@@ -453,10 +456,12 @@ function FindFriendPageNew() {
                       <p className=""><b style={{ color: "#213366" }}><i class="me-1 fa fa-language" aria-hidden="true"></i>
                         Language I know :</b></p>
                       <div className="d-flex flex-wrap">
-                        {
+                        {/* {
                           languages ? (
-                            languages.map((val, index) => (
-                              <div className="col-auto" key={index}>
+                            languages.map((val, index) => ( */}
+                              <div className="col-auto" 
+                              // key={index}
+                              >
                                 <p
                                   style={{
                                     margin: "5px 5px",
@@ -470,14 +475,14 @@ function FindFriendPageNew() {
                                   }}
                                   className={`interest-item flex-nowrap text-muted`}
                                 ><b>
-                                    {val?.name}
+                                    {showUserByGender[currentIndex]?.motherTongue}
                                   </b>
                                 </p>
                               </div>
-                            ))
+                            {/* ))
                           ) : (
                             <p>No Language available</p>
-                          )}
+                          )} */}
                       </div>
                     </div>
                   </div>

@@ -14,6 +14,7 @@ import intersetSlice from "./service/MANAGE_SLICE/interest-SLICE"
 import EventSlice from "./dating/store/slice/shop/EventSlice";
 import datingApiReducer from "../src/service/common-service/getuserbyGender"
 import eventReducer from "../src/service/common-service/eventSlice"
+import findPatnerSlice from "./service/common-service/find-patner"
 
 const store = configureStore({
   reducer: {
@@ -22,6 +23,7 @@ const store = configureStore({
     findPartner: findPartnerSlice,
     activies: ActivitiesSlice,
     termAndConditionSlice: termAndConditionSlice,
+    findPatner: findPatnerSlice,
     eventSlice: EventSlice,  
     // shop
     products: productReducer,
