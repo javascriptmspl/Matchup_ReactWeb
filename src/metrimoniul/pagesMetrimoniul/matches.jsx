@@ -1,93 +1,93 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import FooterFour from "../component/layout/footerFour";
-import Pagination from "../component/section/pagination";
 import SelectProduct from "../component/select/selectproduct";
 import toast, { Toaster } from "react-hot-toast";
-import { useLocation } from "react-router-dom";
 import loveRed from "../assets/images/icons/love_red.png";
 import loveBlack from "../assets/images/icons/love_black.png";
 import HeaderFour from "../component/layout/HeaderFour";
 import { useDispatch, useSelector } from "react-redux";
 import Lodder from "../component/layout/Lodder";
-import { metriGetAllUsersAsync } from "../../service/MANAGE_SLICE/find-user-SLICE";
 import { BASE_URL } from "../../base";
-import {
-  deleteActivitySlice,
-  getAllActivies,
-  getBySenderUserIds,
-} from "../../dating/store/slice/ActivitiesSlice";
-import { MODE_METRI } from "../../utils";
+
 import userMale from "../../dating/assets/images/myCollection/user-male.jpg";
-// import Astro from "../assets/images/astrology-horoscope.svg"
 import astro from "../assets/images/icons/Astro.png";
+import {
+  createActivity,
+  getActivitiesBySenderUserId,
+} from "../../service/common-service/getuserbyGender";
 
 const MatchPage = () => {
-  const location = useLocation();
-  const { likedUserId, likedUserName } = location.state || {};
-  const { superLikedUserId, superLikedUserName } = location.state || {};
-  const UserData = useSelector((state) => state.getAllUser.users);
   const loading = useSelector((state) => state.getAllUser.loading);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const handleAstroClick = () => navigate("/metrimonial/astro");
 
-  const Store = useSelector((state) => state);
-  let matchUserList = useSelector(
-    (state) => Store?.activies?.Activity?.data || []
-  );
-  const Likes = matchUserList
-    ? matchUserList.filter((i) => i.activityType === "like")
-    : [];
-  const SuperLikes = matchUserList
-    ? matchUserList.filter((i) => i.activityType === "superlike")
-    : [];
   const datingId = localStorage.getItem("userData");
 
   const user_Data = JSON.parse(datingId);
-  const [favoriteContentList, setFavoriteContentList] = useState([]);
-  const [favrorite, setFavorite] = useState(UserData);
-  const [members, setMembers] = useState([]);
-  const [matches, setMatches] = useState(UserData);
+  const userId = user_Data.data._id;
+  const modeId = user_Data.data.mode;
+
+  const [matches, setMatches] = useState([]);
 
   useEffect(() => {
-    dispatch(
-      getBySenderUserIds({ modeid: MODE_METRI, id: user_Data.data._id })
-    );
-  }, [user_Data.data._id]);
+    const Mydata = async () => {
+      try {
+        const res = await dispatch(
+          getActivitiesBySenderUserId({
+            senderUserId: userId,
+            modeId: modeId,
+            page_number: 1,
+            page_size: 10,
+          })
+        ).unwrap();
+        setMatches(res?.data);
+      } catch (error) {
+        toast.error("Failed to fetch activities: " + error.message);
+      }
+    };
+    Mydata();
+  }, []);
 
-  useEffect(() => {
-    if (!loading) {
-      setMatches(UserData);
-      setFavorite(UserData);
-    }
-  }, [loading, UserData]);
-
-  const handleClick = async (_id, userName, user) => {
-    let loadingToastId;
+  const buttonEvent = async (id, reaction) => {
     try {
-      loadingToastId = toast.loading("Updating...");
-      await dispatch(deleteActivitySlice(_id));
-
-      dispatch(
-        getBySenderUserIds({ modeid: MODE_METRI, id: user_Data.data._id })
-      );
-
-      toast.success(
-        `You've removed ${userName} from favorites and added to matches. 😢`
-      );
-      toast.dismiss(loadingToastId);
-    } catch (error) {
-      console.error("Error in handleClick:", error);
-      toast.dismiss(loadingToastId);
+      const res = await dispatch(
+        createActivity({
+          senderUserId: userId,
+          receiverUserId: id,
+          action_logs: `User ${userId} ${reaction} User ${id}`,
+          description: `${reaction} Action`,
+          note: "",
+          mode: modeId,
+          activityType: reaction,
+          page_number: 1,
+          page_size: 10,
+        })
+      ).unwrap();
+      if (res) {
+        const res2 = await dispatch(
+          getActivitiesBySenderUserId({
+            senderUserId: userId,
+            modeId: modeId,
+            page_number: 1,
+            page_size: 10,
+          })
+        ).unwrap();
+        setMatches(res2?.data);
+      }
+      toast.success(`${reaction} action performed successfully`);
+    } catch (err) {
+      console.error("Activity error:", err);
+      toast.error("Failed to perform action");
     }
   };
 
-  const getBlackImage = (userId) => {
-    const isFavrites = favoriteContentList.some((val) => val.id === userId);
-    return isFavrites ? loveBlack : loveRed;
-  };
+  const Likes = matches ? matches.filter((i) => i.activityType === "like") : [];
+  const SuperLikes = matches
+    ? matches.filter((i) => i.activityType === "superlike")
+    : [];
 
   return (
     <>
@@ -145,31 +145,14 @@ const MatchPage = () => {
                     Likes.map((val, i) => (
                       <div className="member__item " key={i}>
                         <div className="member__inner member__inner-sized-hover react-main position-relative">
-                          {/* <div
-                            className="member-atsro"
-                            onClick={handleAstroClick}
-                            style={{ cursor: "pointer" }}
-                          >
-                            <img
-                              src={astro}
-                              alt=""
-                              className="member-atsro-imgs"
-                            />
-                            <small className="text-light float-end pe-2 pt-1">
-                              Astro
-                            </small>
-                          </div> */}
+                        
                           <div className="react main_user_img">
                             <img
-                              src={getBlackImage(val?.receiverUserId?._id)}
+                              src={loveRed}
                               width="25"
                               alt=""
                               onClick={() =>
-                                handleClick(
-                                  val?._id,
-                                  val?.receiverUserId?.name,
-                                  val
-                                )
+                                buttonEvent(val?.receiverUserId?._id, "like")
                               }
                             />
                           </div>
@@ -189,9 +172,11 @@ const MatchPage = () => {
                               className={val?.receiverUserId?.className}
                             ></span>
                           </div>
-                          <div className="member-atsro"
-                          onClick={handleAstroClick}
-                          style={{ cursor: "pointer" }}>
+                          <div
+                            className="member-atsro"
+                            onClick={handleAstroClick}
+                            style={{ cursor: "pointer" }}
+                          >
                             <img
                               src={astro}
                               alt=""
@@ -281,14 +266,13 @@ const MatchPage = () => {
                         <div className="member__inner member__inner-sized-hover react-main">
                           <div className="react">
                             <img
-                              src={getBlackImage(val?.receiverUserId?._id)}
+                              src={loveRed}
                               width="25"
                               alt=""
                               onClick={() =>
-                                handleClick(
-                                  val?._id,
-                                  val?.receiverUserId?.name,
-                                  val
+                                buttonEvent(
+                                  val?.receiverUserId?._id,
+                                  "superlike"
                                 )
                               }
                             />
@@ -378,11 +362,8 @@ const MatchPage = () => {
                   )}
                 </div>
                 <div className="member__pagination mt-4">
-                  {/* <div className="member__pagination--left">
-                <p>Viewing 1 - 20 of 12,345 Members</p>
-              </div> */}
+                  
                   <div className="member__pagination--right">
-                    {/* <Pagination /> */}
                   </div>
                 </div>
               </div>

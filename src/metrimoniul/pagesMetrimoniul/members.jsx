@@ -1,14 +1,9 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import SelectProduct from "../component/select/selectproduct";
-import { LOCAL_USER_GENDER_METRI, MODE_METRI } from "../../utils";
 import { useEffect, useState } from "react";
 import userMale from "../../dating/assets/images/myCollection/user-male.jpg";
-import { metriGetAllUsersAsync } from "../../service/MANAGE_SLICE/find-user-SLICE";
-import {
-  createActivities,
-  getBySenderUserIds,
-} from "../../dating/store/slice/ActivitiesSlice";
-import { useDispatch, useSelector } from "react-redux";
+
+import { useDispatch } from "react-redux";
 import HeaderFour from "../component/layout/HeaderFour";
 import MetriSearchFilterModal from "../component/popUps/FilterUsers";
 import toast from "react-hot-toast";
@@ -18,14 +13,17 @@ import superlike from "../assets/images/icons/superlike.png";
 import cancel from "../assets/images/icons/cancel.png";
 import astro from "../assets/images/icons/Astro.png";
 import FooterFour from "../component/layout/footerFour";
-import { fetchUsersByGender } from "../../service/common-service/getuserbyGender";
+import {
+  createActivity,
+  getFilteredUsers,
+} from "../../service/common-service/getuserbyGender";
 import { BASE_URL } from "../../base";
+import { fetchPotentialUsers } from "../../service/common-service/find-patner";
 
 const MembersPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const Store = useSelector((state) => state);
 
   const filteredMembers = location.state?.data;
 
@@ -36,147 +34,79 @@ const MembersPage = () => {
 
   const datingId = localStorage.getItem("userData");
   const user_Data = datingId ? JSON.parse(datingId) : null;
-  const userByMode = LOCAL_USER_GENDER_METRI();
-
-  const isUserApproved = (user) => {
-    if (!user) return false;
-    const normalize = (v) =>
-      typeof v === "string" ? v.trim().toLowerCase() : v;
-
-    const status = normalize(user.status);
-    const accountStatus = normalize(user.accountStatus);
-    const approvalStatus = normalize(user.approvalStatus);
-
-    return (
-      user.isVerified ||
-      user.verified ||
-      user.emailVerified ||
-      user.isEmailVerified ||
-      user.isApproved ||
-      user.approved ||
-      user.adminApproved ||
-      approvalStatus === "approved" ||
-      ["approved", "active", "verified"].includes(status) ||
-      ["approved", "active", "verified"].includes(accountStatus)
-    );
-  };
+  const userId = user_Data?.data?._id;
+  const modeId = user_Data?.data?.mode;
 
   const handleAstroClick = () => navigate("/metrimonial/astro");
 
-  const handleLike = async (_id) => {
-    let toastId;
+  const buttonEvent = async (id, reaction) => {
     try {
-      toastId = toast.loading("Sending like...");
-      await dispatch(
-        createActivities({
-          senderUserId: user_Data.data._id,
-          receiverUserId: _id,
-          action_logs: "likes",
-          description: "likes",
-          note: "likes",
-          mode: MODE_METRI,
-          activityType: "like",
+      const res = await dispatch(
+        createActivity({
+          senderUserId: userId,
+          receiverUserId: id,
+          action_logs: `User ${userId} ${reaction} User ${id}`,
+          description: `${reaction} Action`,
+          note: "",
+          mode: modeId,
+          activityType: reaction,
+          page_number: 1,
+          page_size: 10,
         })
-      );
-      setMembers((prev) => prev.filter((m) => m._id !== _id));
-      toast.success("You liked this user");
-    } catch {
-      toast.error("Failed to send like.");
-    } finally {
-      toast.dismiss(toastId);
-    }
-  };
-
-  const handleSuperLike = async (_id) => {
-    let toastId;
-    try {
-      toastId = toast.loading("Sending Superlike...");
-      await dispatch(
-        createActivities({
-          senderUserId: user_Data.data._id,
-          receiverUserId: _id,
-          action_logs: "superlikes",
-          description: "Superlike",
-          note: "Superlike",
-          mode: MODE_METRI,
-          activityType: "superlike",
-        })
-      );
-      setMembers((prev) => prev.filter((m) => m._id !== _id));
-      toast.success("You Superliked this user");
-    } catch {
-      toast.error("Failed to send superlike.");
-    } finally {
-      toast.dismiss(toastId);
-    }
-  };
-
-  const handleCancel = (_id) => {
-    setMembers((prev) => prev.filter((m) => m._id !== _id));
-  };
-
-  const getOppositeGender = (gender) => {
-    if (!gender) return null;
-    const g = gender.trim().toLowerCase();
-    if (g === "male") return "female";
-    if (g === "female") return "male";
-    return null;
-  };
-
-  const loadMembers = async () => {
-    try {
-      setLoading(true);
-
-      await dispatch(
-        getBySenderUserIds({
-          modeid: MODE_METRI,
-          id: user_Data?.data?._id,
-        })
-      );
-
-      let list = Store?.getAllUser?.users || [];
-
-      let lookingGender = user_Data?.data?.looking;
-      if (!lookingGender) {
-        lookingGender = getOppositeGender(user_Data?.data?.iAm);
+      ).unwrap();
+      if (res) {
+        const res2 = await dispatch(
+          fetchPotentialUsers({ userId, modeId })
+        ).unwrap();
+        setMembers(res2?.data);
       }
-
-      if (!Array.isArray(list) || list.length === 0) {
-        if (lookingGender) {
-          const resp = await dispatch(
-            fetchUsersByGender({
-              gender: lookingGender,
-              userId: user_Data.data._id,
-            })
-          ).unwrap();
-
-          list = resp?.data || [];
-        } else {
-          const resp = await dispatch(metriGetAllUsersAsync()).unwrap();
-          list = Array.isArray(resp) ? resp : resp?.data || [];
-        }
-      }
-
-      const approvedList = list.filter(isUserApproved);
-
-      const finalList = approvedList.filter((m) => m.iAm === lookingGender);
-
-      setMembers(finalList);
+      toast.success(`${reaction} action performed successfully`);
     } catch (err) {
-      console.error("Error loading members", err);
-    } finally {
-      setLoading(false);
+      console.error("Activity error:", err);
+      toast.error("Failed to perform action");
     }
   };
 
   useEffect(() => {
-    if (filteredMembers) {
-      setMembers(filteredMembers);
-      setLoading(false);
-    } else {
-      loadMembers();
+    const myfun = async () => {
+      try {
+        const response = await dispatch(
+          fetchPotentialUsers({ userId, modeId })
+        ).unwrap();
+        setLoading(false);
+        setMembers(response?.data);
+      } catch (err) {
+        console.error("Error fetching users:", err);
+      }
+    };
+    myfun();
+  }, []);
+
+  const handleFilterSearch = async (filters) => {
+
+    try {
+      const response = await dispatch(
+        getFilteredUsers({
+          ...filters,
+          userId,
+          modeId,
+          location: filters.address, // or however you map location
+        })
+      ).unwrap();
+
+      if (response?.data && response.data.length > 0) {
+        setMembers(response.data);
+      } else {
+        // fallback flow
+        const res = await dispatch(
+          fetchPotentialUsers({ userId, modeId })
+        ).unwrap();
+        setMembers(res?.data);
+      }
+    } catch (err) {
+      console.error("Filter API Error:", err);
     }
-  }, [filteredMembers]);
+  };
 
   return (
     <>
@@ -235,7 +165,7 @@ const MembersPage = () => {
             {/* Members List */}
             <div className="section__wrapper">
               <div className="row g-0 mx-12-none justify-content-center">
-                {members.slice(0, 4).map((val, i) => (
+                {members?.slice(0, 4).map((val, i) => (
                   <div className="member__item" key={i}>
                     <div className="member__inner">
                       <div className="member__thumb member-atsro-main">
@@ -315,7 +245,8 @@ const MembersPage = () => {
                               alt=""
                               className="pointer"
                               title="Cancel"
-                              onClick={() => handleCancel(val._id)}
+                              onClick={() => buttonEvent(val?._id, "dislike")}
+                              // onClick={() => handleCancel(val._id)}
                             />
                           </div>
                           <div className="col-4 mx-auto">
@@ -324,7 +255,7 @@ const MembersPage = () => {
                               alt=""
                               className="pointer"
                               title="SuperLike"
-                              onClick={() => handleSuperLike(val._id)}
+                              onClick={() => buttonEvent(val?._id, "superlike")}
                             />
                           </div>
                           <div className="col-4 mx-auto">
@@ -333,7 +264,7 @@ const MembersPage = () => {
                               alt=""
                               className="pointer"
                               title="Like"
-                              onClick={() => handleLike(val._id)}
+                              onClick={() => buttonEvent(val?._id, "like")}
                             />
                           </div>
                         </div>
@@ -345,6 +276,7 @@ const MembersPage = () => {
               <MetriSearchFilterModal
                 showModal={filterModal}
                 hideModal={() => setFilterModal(false)}
+                onSubmit={handleFilterSearch}
               />
             </div>
           </div>

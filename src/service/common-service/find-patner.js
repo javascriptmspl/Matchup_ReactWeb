@@ -8,6 +8,7 @@ export const fetchPotentialUsers = createAsyncThunk(
       `${BASE_URL}/User/getAllPartnersUsers?modeId=${modeId}&userId=${userId}`
     );
     const data = await response.json();
+
     return data;
   }
 );
@@ -28,8 +29,8 @@ const usersSlice = createSlice({
       })
       .addCase(fetchPotentialUsers.fulfilled, (state, action) => {
         state.loading = false;
-        state.data = action.payload;
-      })
+        state.data = action.payload.data;
+      })    
       .addCase(fetchPotentialUsers.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;

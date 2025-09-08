@@ -50,7 +50,6 @@ const ManageProfileFamily = () => {
   const profileData = useSelector((state) => state.profile?.userData);
   const dispatch = useDispatch();
   const userData1 = profileData[0];
-  console.log('newuserdata',profileData)
   const userDatas = localStorage.getItem("userData");
   const userDataObj = JSON.parse(userDatas);
   const userId = userDataObj?.data?.data?._id || null;

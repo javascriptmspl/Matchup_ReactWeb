@@ -1,24 +1,14 @@
 import React, { useState } from "react";
 import { Form, Modal } from "react-bootstrap";
-import SelectGender from "../select/selectgender";
-import { useDispatch } from "react-redux";
 import { BASE_URL } from "../../../base";
 import { useNavigate } from "react-router-dom";
-const title = "Find your true love";
-const desc = "Serious dating with your perfect match is just a click away.";
 
-const labelchangeone = "I am a";
 const labelchangetwo = "Looking for";
-const labelchangethree = "Age";
-const labelchangefour = "Cities";
-const btnText = "Find Your Partner";
 
-const MetriSearchFilterModal = ({ showModal, hideModal }) => {
+const MetriSearchFilterModal = ({ showModal, hideModal, onSubmit }) => {
   const navigate = useNavigate();
   const [selectedDistance, setSelectedDistance] = useState(10);
-  const dispatch = useDispatch();
 
-  const [selectedGender, setSelectedGender] = useState("male");
   const [selectedLookingFor, setSelectedLookingFor] = useState("female");
   const [selectAge, setSelectAge] = useState({
     minAge: "20",
@@ -59,50 +49,33 @@ const MetriSearchFilterModal = ({ showModal, hideModal }) => {
     return ageOptions1;
   };
 
-  const handleFilterSubmit = async (e) => {
+  const handleFilterSubmit = (e) => {
     e.preventDefault();
 
     try {
-      // Build query string dynamically
-      let queryParams = new URLSearchParams();
+      const userDatas = localStorage.getItem("userData");
+      const userDataObj = userDatas ? JSON.parse(userDatas) : null;
+      const userId =
+        userDataObj?.data?.data?._id || userDataObj?.data?._id || null;
 
-      if (selectedLookingFor) {
-        queryParams.append("gender", selectedLookingFor);
-      }
-      if (selectedCountry) {
-        queryParams.append("address", selectedCountry);
-      }
-      if (selectAge.minAge) {
-        queryParams.append("minAge", selectAge.minAge);
-      }
-      if (selectAge.maxAge) {
-        queryParams.append("maxAge", selectAge.maxAge);
-      }
+      const filterData = {
+        userId,
+        gender: selectedLookingFor,
+        address: selectedCountry,
+        location: selectedCountry,
+        minAge: selectAge.minAge,
+        maxAge: selectAge.maxAge,
+        distance: selectedDistance,
+        modeId: "68ad61f71130f0d24d4aff04",
+      };
 
-      queryParams.append("modeId", "68ad61f71130f0d24d4aff04");
-
-      const url = `${BASE_URL}/User/filter?${queryParams.toString()}&t=${Date.now()}`;
-
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        cache: "no-store",
-      });
-
-      if (!response.ok) {
-        throw new Error("API request failed");
-      }
-
-      const data = await response.json();
-
+      onSubmit(filterData);
       hideModal();
-      navigate("/metrimonial/members", { state: { data: data.data } });
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error("Error building filters:", error);
     }
   };
+
   const usaCities = [
     "New York",
     "Los Angeles",
@@ -155,8 +128,6 @@ const MetriSearchFilterModal = ({ showModal, hideModal }) => {
     "USA",
   ];
 
-  const minimumAge = ["18", "19", "20"];
-  const maximumAge = ["19", "20", "21"];
   const handleCountryChange = (e) => {
     setSelectedCountry(e.target.value);
   };
@@ -252,7 +223,7 @@ const MetriSearchFilterModal = ({ showModal, hideModal }) => {
                         name="country"
                         value={selectedCountry}
                         onChange={handleCountryChange}
-                        required
+                        // required
                       >
                         <option value="" disabled>
                           Select a city
