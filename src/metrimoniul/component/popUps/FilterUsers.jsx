@@ -1,12 +1,9 @@
 import React, { useState } from "react";
 import { Form, Modal } from "react-bootstrap";
-import { BASE_URL } from "../../../base";
-import { useNavigate } from "react-router-dom";
 
 const labelchangetwo = "Looking for";
 
 const MetriSearchFilterModal = ({ showModal, hideModal, onSubmit }) => {
-  const navigate = useNavigate();
   const [selectedDistance, setSelectedDistance] = useState(10);
 
   const [selectedLookingFor, setSelectedLookingFor] = useState("female");

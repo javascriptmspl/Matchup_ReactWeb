@@ -90,7 +90,7 @@ const MembersPage = () => {
           ...filters,
           userId,
           modeId,
-          location: filters.address, // or however you map location
+          location: filters.address, 
         })
       ).unwrap();
 
