@@ -165,7 +165,7 @@ const MembersPage = () => {
             {/* Members List */}
             <div className="section__wrapper">
               <div className="row g-0 mx-12-none justify-content-center">
-                {members?.slice(0, 4).map((val, i) => (
+                {members?.map((val, i) => (
                   <div className="member__item" key={i}>
                     <div className="member__inner">
                       <div className="member__thumb member-atsro-main">

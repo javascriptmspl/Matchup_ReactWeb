@@ -101,7 +101,7 @@ export const fetchInterests = createAsyncThunk(
 export const getFilteredUsers = createAsyncThunk(
   "dating/getFilteredUsers",
   async (
-    { userId, gender, address, minAge, maxAge, modeId, name, location },
+    { userId, gender, address, minAge, maxAge, modeId, name },
     { rejectWithValue }
   ) => {
     try {
@@ -116,7 +116,7 @@ export const getFilteredUsers = createAsyncThunk(
             maxAge,
             modeId,
             name,
-            location,
+          
           },
         }
       );

@@ -59,7 +59,7 @@ const MetriSearchFilterModal = ({ showModal, hideModal, onSubmit }) => {
         userId,
         gender: selectedLookingFor,
         address: selectedCountry,
-        location: selectedCountry,
+        // location: selectedCountry,
         minAge: selectAge.minAge,
         maxAge: selectAge.maxAge,
         distance: selectedDistance,

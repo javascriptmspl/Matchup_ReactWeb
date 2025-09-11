@@ -28,7 +28,10 @@ const notificationSlice = createSlice({
       })
       .addCase(fetchNotifications.fulfilled, (state, action) => {
         state.loading = false;
-        state.list = action.payload?.data || []; 
+        state.list = Array.isArray(action.payload)
+  ? action.payload
+  : action.payload?.data || [];
+ 
       })
       .addCase(fetchNotifications.rejected, (state, action) => {
         state.loading = false;

@@ -1,117 +1,3 @@
-// import React, { useState, useEffect } from "react";
-// import { Link } from "react-router-dom";
-
-// import {
-//   deleteActivitySlice,
-//   getAllActivies,
-//   getBySenderUserIds,
-//   getActivitysByUsersId,
-// } from "../../dating/store/slice/ActivitiesSlice";
-// import { MODE_METRI } from "../../utils";
-// import { useDispatch, useSelector } from "react-redux";
-// import TimeAgo from "../component/popUps/setting/TimeAgo";
-// import { BASE_URL } from "../../base";
-// const NotificationModal = () => {
-//   const datingId = localStorage.getItem("userData");
-//   const user_Data = datingId ? JSON.parse(datingId) : null;
-//   const Store = useSelector((state) => state);
-//   let notificationActivity = useSelector(
-//     (state) => Store?.activies?.allActivity?.data || []
-//   );
-
-//   const [notifications, setNotifications] = useState([]);
-
-//   const dispatch = useDispatch();
-
-//   useEffect(() => {
-//     if (user_Data && user_Data.data && user_Data.data._id) {
-//       dispatch(getActivitysByUsersId({ id: user_Data.data._id }));
-//     }
-//   }, [user_Data?.data?._id]);
-
-//   const NotificationItem = ({ notification }) => {
-//     return (
-//       <div className="notification-item ">
-//         <div className="notification-content ">
-//           <p className="notification-message">{notification.activityType}</p>
-//           {notification.activityType === "superlike" && (
-//             <div className="notification-action">
-//               <img
-//                 src={
-//                   notification.receiverUser?.mainAvatar
-//                     ? `${BASE_URL}/assets/images/${notification.receiverUser.mainAvatar}`
-//                     : notification.receiverUser?.avatars?.length
-//                     ? `${BASE_URL}/assets/images/${notification.receiverUser.avatars[0]}`
-//                     : "/default-avatar.png"
-//                 }
-//                 className="profile-picture-notification"
-//                 alt={notification.receiverUser?.name || "User"}
-//               />
-//               You Add on Favourite {notification.receiverUser?.name} profile
-//             </div>
-//           )}
-//           {notification.activityType === "like" && (
-//             <div className="notification-action">
-//               <img
-//                 src={
-//                   notification.receiverUser?.mainAvatar
-//                     ? `${BASE_URL}/assets/images/${notification.receiverUser.mainAvatar}`
-//                     : notification.receiverUser?.avatars?.length
-//                     ? `${BASE_URL}/assets/images/${notification.receiverUser.avatars[0]}`
-//                     : "/default-avatar.png"
-//                 }
-//                 className="profile-picture-notification"
-//                 alt={notification.receiverUser?.name || "User"}
-//               />
-//               You only like {notification.receiverUser?.name} profile
-//             </div>
-//           )}
-
-//           {notification.type === "connection-request" && (
-//             <p className="notification-action">
-//               🤝 {notification.sender} sent you a connection request
-//             </p>
-//           )}
-//         </div>
-//         <div className="notification-meta ">
-//           <p className="notification-timestamp">
-//             <TimeAgo createdAt={notification.created_at} />
-//           </p>
-//         </div>
-//       </div>
-//     );
-//   };
-
-//   return (
-//     <>
-//       <div className="notification-modal-top col-12 d-flex">
-//         <div className="left-head col-6">
-//           <h3 className="notification-title mb-md-4">Notificationss</h3>
-//         </div>
-//         <div className="right-icon col-6">
-//           <Link to="/metrimonial/notifications">
-//             <i
-//               class="fa fa-expand"
-//               aria-hidden="true"
-//               title="Full Screen view"
-//             ></i>
-//           </Link>
-//         </div>
-//       </div>
-
-//       <div className="notification-modal">
-//         {notificationActivity.map((notification) => (
-//           <NotificationItem
-//             key={notification._id}
-//             notification={notification}
-//           />
-//         ))}
-//       </div>
-//     </>
-//   );
-// };
-
-// export default NotificationModal;
 
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
@@ -148,6 +34,9 @@ const NotificationModal = () => {
   }, [userId]);
 
   const NotificationItem = ({ notification }) => {
+
+
+    
     const avatar = notification.senderUserId?.mainAvatar
       ? `${BASE_URL}/assets/images/${notification.senderUserId.mainAvatar}`
       : notification.senderUserId?.avatars?.length
@@ -162,11 +51,16 @@ const NotificationModal = () => {
       >
         <div className="notification-content">
           <div className="notification-action">
+         
+          <Link
+                              to={`/metrimonial/user-profile/${notification.senderUserId?._id}`}
+                            >
+
             <img
               src={avatar}
               className="profile-picture-notification"
               alt={notification.senderUserId?.name || "User"}
-            />
+            /> </Link>
             <span>
               <strong>{notification.senderUserId?.name}</strong>{" "}
               {notification.message}
@@ -192,7 +86,7 @@ const NotificationModal = () => {
         <div className="right-icon col-6">
           <Link to="/metrimonial/notifications">
             <i
-              className="fa fa-expand"
+              className="fa fa-expand"  
               aria-hidden="true"
               title="Full Screen view"
             ></i>

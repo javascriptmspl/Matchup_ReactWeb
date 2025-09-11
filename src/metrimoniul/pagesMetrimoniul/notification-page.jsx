@@ -1,117 +1,3 @@
-// import React, { useState, useEffect } from "react";
-// import { Badge, Container, Row } from "react-bootstrap";
-// import HeaderFour from "../component/layout/HeaderFour";
-// import boy from "../assets/images/member/male/01.jpg";
-// import connectionRequestImage from "../assets/images/member/male/02.jpg";
-// import defaultImage from "../assets/images/member/male/03.jpg";
-// import SelectProduct from "../component/select/selectproduct";
-// import {
-//   deleteActivitySlice,
-//   getAllActivies,
-//   getBySenderUserIds,
-//   getActivitysByUsersId,
-// } from "../../dating/store/slice/ActivitiesSlice";
-// import { MODE_METRI } from "../../utils";
-// import { useDispatch, useSelector } from "react-redux";
-// import dummyUserPic from "../../dating/assets/images/myCollection/user-male.jpg";
-// import userPic from "../../assets/images/member/profile/download (3).jpeg";
-// import { BASE_URL } from "../../base";
-
-// const NotificationItem = ({ notification }) => {
-//   return (
-//     <div className="notification-item ">
-//       <div className="notification-content ">
-//         <p className="notification-message">{notification.activityType}</p>
-//         {notification.activityType === "superlike" && (
-//           <div className="notification-action">
-//             <img
-//               src={
-//                 notification.receiverUser?.mainAvatar
-//                   ? `${BASE_URL}/assets/images/${notification.receiverUser?.mainAvatar}`
-//                   : userPic
-//                   ?`${BASE_URL}/assets/images/${notification.receiverUser?.avatars[0]}`
-//                   :null
-//               }
-//               className="profile-picture-notification"
-//               alt={notification.receiverUser?.name || "User"}
-//             />
-//             You Add on Favourite {notification.receiverUser?.name} profile
-//           </div>
-//         )}
-//         {notification.activityType === "like" && (
-//           <div className="notification-action">
-//             <img
-//               src={
-//                 notification.receiverUser?.mainAvatar
-//                   ? `${BASE_URL}/assets/images/${notification.receiverUser?.mainAvatar}`
-//                   : userPic
-//                   ?`${BASE_URL}/assets/images/${notification.receiverUser?.avatars[0]}`
-//                   :null
-//               }
-//               className="profile-picture-notification"
-//               alt={notification.receiverUser?.name || "User"}
-//             />
-//             You only like {notification.receiverUser?.name} profile
-//           </div>
-//         )}
-//       </div>
-//       <div className="notification-meta ">
-//         <p className="notification-timestamp">{notification.created_at}</p>
-//       </div>
-//     </div>
-//   );
-// };
-
-// const NotificationFullPage = () => {
-//   const datingId = localStorage.getItem("userData");
-//   const user_Data = JSON.parse(datingId);
-//   const dispatch = useDispatch();
-//   let notificationActivity = useSelector(
-//     (state) => state.activies.allActivity?.data || []
-//   );
-
-//   useEffect(() => {
-//     dispatch(getActivitysByUsersId({ id: user_Data.data._id }));
-//   }, [user_Data.data._id]);
-
-//   return (
-//     <>
-//       <HeaderFour />
-//       <Container>
-//         <Row className="align-items-center">
-//           <div className="col-lg-6 col-md-6 col-sm-12">
-//             <h2 className="notification-title-page">Notifications</h2>
-//           </div>
-//           <div className="col-lg-6 col-md-6 col-sm-12">
-//             <div className="member__info--right member__info--right-notification ">
-//               <div className="member__info--customselect right w-100">
-//                 <div className="default-btn">
-//                   <span>Order By:</span>
-//                 </div>
-//                 <div className="banner__inputlist">
-//                   <SelectProduct select={"Newest"} />
-//                 </div>
-//               </div>
-//             </div>
-//           </div>
-//         </Row>
-//         <div className="notification-modal-page">
-//           {notificationActivity.map((notification) => (
-//             <NotificationItem
-//               key={notification._id}
-//               notification={notification}
-//             />
-//           ))}
-//         </div>
-//       </Container>
-//     </>
-//   );
-// };
-
-// export default NotificationFullPage;
-
-
-
 
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -120,47 +6,48 @@ import HeaderFour from "../component/layout/HeaderFour";
 import SelectProduct from "../component/select/selectproduct";
 import { BASE_URL } from "../../base";
 import { fetchNotifications } from "../../service/common-service/notificationslice";
+import TimeAgo from "../component/popUps/setting/TimeAgo";
+import { Link } from "react-router-dom";
+
 
 const NotificationItem = ({ notification }) => {
+  const avatar = notification.senderUserId?.mainAvatar
+    ? `${BASE_URL}/assets/images/${notification.senderUserId.mainAvatar}`
+    : notification.senderUserId?.avatars?.length
+    ? `${BASE_URL}/assets/images/${notification.senderUserId.avatars[0]}`
+    : "/default-avatar.png";
+
   return (
-    <div className="notification-item">
+    <div
+      className={`notification-item ${
+        notification.status === "UNREAD" ? "unread" : "read"
+      }`}
+    >
       <div className="notification-content">
-        <p className="notification-message">{notification.notificationType}</p>
+        <div className="notification-action">
+        <Link
+                              to={`/metrimonial/user-profile/${notification.senderUserId?._id}`}
+                            >
 
-        {notification.notificationType === "SUPERLIKE" && (
-          <div className="notification-action">
-            <img
-              src={
-                notification.senderUserId?.avatars?.length
-                  ? `${BASE_URL}/assets/images/${notification.senderUserId.avatars[0]}`
-                  : "/default-avatar.png"
-              }
-              className="profile-picture-notification"
-              alt={notification.senderUserId?.name || "User"}
-            />
-            {notification.senderUserId?.name} {notification.message}
-          </div>
-        )}
 
-        {notification.notificationType === "LIKE" && (
-          <div className="notification-action">
-            <img
-              src={
-                notification.senderUserId?.avatars?.length
-                  ? `${BASE_URL}/assets/images/${notification.senderUserId.avatars[0]}`
-                  : "/default-avatar.png"
-              }
-              className="profile-picture-notification"
-              alt={notification.senderUserId?.name || "User"}
-            />
-            {notification.senderUserId?.name}  {notification.message}
-          </div>
-        )}
+                          
+       
+          <img
+            src={avatar}
+            className="profile-picture-notification"
+            alt={notification.senderUserId?.name || "User"}
+          />
+            </Link>
+          <span>
+            <strong>{notification.senderUserId?.name}</strong>{" "}
+            {notification.message}
+          </span>
+        </div>
       </div>
 
       <div className="notification-meta">
         <p className="notification-timestamp">
-          {new Date(notification.createdAt).toLocaleString()}
+          <TimeAgo createdAt={notification.createdAt} />
         </p>
       </div>
     </div>
@@ -210,13 +97,14 @@ const NotificationFullPage = () => {
         {error && <p style={{ color: "red" }}>Error: {error}</p>}
 
         <div className="notification-modal-page">
-          {notifications.map((notification) => (
-            <NotificationItem
-              key={notification._id}
-              notification={notification}
-            />
-          ))}
-        </div>
+  {notifications.length === 0 ? (
+    <p>No notifications found.</p>
+  ) : (
+    notifications.map((notification) => (
+      <NotificationItem key={notification._id} notification={notification} />
+    ))
+  )}
+</div>
       </Container>
     </>
   );
