@@ -19,146 +19,8 @@ import { BASE_URL } from "../../base";
 
 const activety = "Active 3 Days Ago";
 
-let MemberInfo = [
-  {
-    imgUrl: "assets/images/member/profile/01.jpg",
-    imgAlt: "Dating Thumb",
-    imgLink: "assets/images/member/profile/01.jpg",
-  },
-  {
-    imgUrl: "assets/images/member/profile/02.jpg",
-    imgAlt: "Dating Thumb",
-    imgLink: "assets/images/member/profile/02.jpg",
-  },
-  {
-    imgUrl: "assets/images/member/profile/03.jpg",
-    imgAlt: "Dating Thumb",
-    imgLink: "assets/images/member/profile/03.jpg",
-  },
-  {
-    imgUrl: "assets/images/member/profile/04.jpg",
-    imgAlt: "Dating Thumb",
-    imgLink: "assets/images/member/profile/04.jpg",
-  },
-  {
-    imgUrl: "assets/images/member/profile/05.jpg",
-    imgAlt: "Dating Thumb",
-    imgLink: "assets/images/member/profile/05.jpg",
-  },
-  {
-    imgUrl: "assets/images/member/profile/06.jpg",
-    imgAlt: "Dating Thumb",
-    imgLink: "assets/images/member/profile/06.jpg",
-  },
-];
 
-let FriendList = [
-  {
-    imgUrl: "assets/images/member/profile/profile.jpg",
-    imgAlt: "Dating Thumb",
-    activity: "Online",
-    name: "Michele Storm",
-    age: "32 Years old",
-  },
-  {
-    imgUrl: "assets/images/member/male/02.jpg",
-    imgAlt: "Dating Thumb",
-    activity: "Online",
-    name: "Ryhan Kabir",
-    age: "28 Years old",
-  },
-  {
-    imgUrl: "assets/images/member/male/03.jpg",
-    imgAlt: "Dating Thumb",
-    activity: "Online",
-    name: "Umes Zadov",
-    age: "24 Years old",
-  },
-  {
-    imgUrl: "assets/images/member/female/03.jpg",
-    imgAlt: "Dating Thumb",
-    activity: "Online",
-    name: "Subrina Kabir",
-    age: "22 Years old",
-  },
-  {
-    imgUrl: "assets/images/member/male/04.jpg",
-    imgAlt: "Dating Thumb",
-    activity: "Online",
-    name: "Rafsan Hossin",
-    age: "18 Years old",
-  },
-  {
-    imgUrl: "assets/images/member/female/04.jpg",
-    imgAlt: "Dating Thumb",
-    activity: "Online",
-    name: "Onty Islam",
-    age: "28 Years old",
-  },
-  {
-    imgUrl: "assets/images/member/male/05.jpg",
-    imgAlt: "Dating Thumb",
-    activity: "Online",
-    name: "Shakibul Hassan",
-    age: "23 Years old",
-  },
-  {
-    imgUrl: "assets/images/member/female/05.jpg",
-    imgAlt: "Dating Thumb",
-    activity: "Online",
-    name: "Rasmi Rahni",
-    age: "21 Years old",
-  },
-  {
-    imgUrl: "assets/images/member/male/06.jpg",
-    imgAlt: "Dating Thumb",
-    activity: "Online",
-    name: "Somrat Islam",
-    age: "32 Years old",
-  },
-  {
-    imgUrl: "assets/images/member/female/06.jpg",
-    imgAlt: "Dating Thumb",
-    activity: "Online",
-    name: "Soily Soshi",
-    age: "27 Years old",
-  },
-  {
-    imgUrl: "assets/images/member/male/07.jpg",
-    imgAlt: "Dating Thumb",
-    activity: "Online",
-    name: "Sajahan Sagor",
-    age: "25 Years old",
-  },
-  {
-    imgUrl: "assets/images/member/female/07.jpg",
-    imgAlt: "Dating Thumb",
-    activity: "Online",
-    name: "Umme Nishat",
-    age: "20 Years old",
-  },
-  {
-    imgUrl: "assets/images/member/male/08.jpg",
-    imgAlt: "Dating Thumb",
-    activity: "Online",
-    name: "Andro Rassel",
-    age: "26 Years old",
-  },
-  {
-    imgUrl: "assets/images/member/female/08.jpg",
-    imgAlt: "Dating Thumb",
-    activity: "Online",
-    name: "Zinat Zaara",
-    age: "16 Years old",
-  },
-  {
-    imgUrl: "assets/images/member/female/01.jpg",
-    imgAlt: "Dating Thumb",
-    activity: "Online",
-    name: "Angel Mili",
-    age: "27 Years old",
-  },
-];
+
 
 const UserProfile = () => {
   const [showInstallApp, setShowInstallApp] = useState(false);
@@ -168,9 +30,7 @@ const UserProfile = () => {
   const dispatch = useDispatch();
   const { member } = location.state || {};
 
-  // const queryParams = new URLSearchParams(window.location.search);
-  // const userId = queryParams.get('userID');
-  // const filteredUser = UserData.filter(user => user.id === parseInt(userId, 10));
+  
 
   const USER_GET_BY_ID = useSelector((state) => state?.userCreate?.Viewuser);
   const USER_PROFILE = USER_GET_BY_ID && USER_GET_BY_ID[0];
@@ -192,7 +52,6 @@ const UserProfile = () => {
   useEffect(() => {
     if (id) {
       dispatch(getByIdviewUsersAsync(id));
-      // dispatch(filterPartnerByGenderAsync())
     }
 
     try {

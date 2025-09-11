@@ -15,7 +15,7 @@ import EventSlice from "./dating/store/slice/shop/EventSlice";
 import datingApiReducer from "../src/service/common-service/getuserbyGender"
 import eventReducer from "../src/service/common-service/eventSlice"
 import findPatnerSlice from "./service/common-service/find-patner"
-
+import notificationReducer from "./service/common-service/notificationslice"
 const store = configureStore({
   reducer: {
     userCreate: userSlice,
@@ -39,6 +39,8 @@ const store = configureStore({
 
     datingApi: datingApiReducer,
     event: eventReducer,
+    notifications: notificationReducer
+    
 
   },
   middleware: [thunk],

@@ -6,14 +6,6 @@ import ActiveMember from "../component/sidebar/member";
 import FooterFour from "../component/layout/footerFour";
 import userMale from "../../dating/assets/images/myCollection/user-male.jpg";
 
-// male img
-import imgmale1 from "../assets/images/member/male/02.jpg";
-import imgmale2 from "../assets/images/member/male/03.jpg";
-import imgmale4 from "../assets/images/member/male/05.jpg";
-
-//female img
-import imgfemale3 from "../assets/images/member/female/03.jpg";
-import imgfemale5 from "../assets/images/member/female/05.jpg";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getUserProfileAsync,
@@ -27,55 +19,12 @@ import HeaderFour from "../component/layout/HeaderFour";
 import Lodder from "../component/layout/Lodder";
 import { USER_ID_LOGGEDIN } from "../../utils";
 import { BASE_URL } from "../../base";
+// import axios from "axios";
+import {
+  fetchMediaAsync,
+  uploadMediaAsync,
+} from "../../service/common-service/upload-images";
 const activety = "Online";
-
-let MideaAll = [
-  {
-    id: 1,
-    imgUrl: imgmale1,
-    imgAlt: "Dating Thumb",
-  },
-  {
-    id: 2,
-    imgUrl: imgmale2,
-    imgAlt: "Dating Thumb",
-  },
-  {
-    id: 3,
-    imgUrl: imgmale4,
-    imgAlt: "Dating Thumb",
-  },
-  {
-    id: 4,
-    imgUrl: imgfemale3,
-    imgAlt: "Dating Thumb",
-  },
-  {
-    id: 5,
-    imgUrl: imgfemale5,
-    imgAlt: "Dating Thumb",
-  },
-  {
-    id: 6,
-    imgUrl: imgmale2,
-    imgAlt: "Dating Thumb",
-  },
-  {
-    id: 7,
-    imgUrl: imgfemale5,
-    imgAlt: "Dating Thumb",
-  },
-  {
-    id: 8,
-    imgUrl: imgfemale5,
-    imgAlt: "Dating Thumb",
-  },
-  {
-    id: 9,
-    imgUrl: imgfemale5,
-    imgAlt: "Dating Thumb",
-  },
-];
 
 const MyProfile = () => {
   const uploading = useSelector((state) => state.profile.uploading);
@@ -85,13 +34,19 @@ const MyProfile = () => {
   const [showPhoto, setShowPhoto] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [visibleCountAll, setVisibleCountAll] = useState(9);
+  const [visibleCountAlbum, setVisibleCountAlbum] = useState(9);
+  const [visibleCountPhoto, setVisibleCountPhoto] = useState(9);
+
+  const [mediaList, setMediaList] = useState([]);
+  const [pendingUploads, setPendingUploads] = useState([]);
 
   const userID = USER_ID_LOGGEDIN;
 
-  const handleImageClickOpenModal = (image) => {
-    setSelectedImage(image);
-    setShowPhoto(true);
-  };
+  // const handleImageClickOpenModal = (image) => {
+  //   setSelectedImage(image);
+  //   setShowPhoto(true);
+  // };
 
   const user = useSelector((state) => state.userCreate.user);
 
@@ -103,10 +58,26 @@ const MyProfile = () => {
   } else {
     User = profileData?.[0];
   }
+
+  useEffect(() => {
+    if (User && Array.isArray(User.avatars)) {
+      setMediaList(
+        User.avatars.map((img, idx) => ({
+          id: idx,
+          imgUrl: `${BASE_URL}/assets/images/${img}`,
+          imgAlt: "uploaded",
+          type: "all", // fallback type for existing images
+          name: typeof img === "string" ? img.split("/").pop() : undefined,
+        }))
+      );
+    } else {
+      setMediaList([]);
+    }
+  }, [User]);
+
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-      const imageUrl = URL.createObjectURL(file);
       dispatch(
         uploadProfilePictureAsync({ imageData: file, userId: userID })
       ).then(() => {
@@ -126,9 +97,33 @@ const MyProfile = () => {
     const timeoutId = setTimeout(() => {
       setShowInstallApp(true);
     }, 0);
-
     return () => clearTimeout(timeoutId);
   }, []);
+
+  const datingId = localStorage.getItem("userData");
+  const user_Data = JSON.parse(datingId);
+  const userId = user_Data.data._id;
+
+  const handleUpload = (e, type) => {
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+      // Add to pendingUploads for immediate UI feedback
+      const newPending = files.map((file, idx) => ({
+        id: Date.now() + idx,
+        imgUrl: URL.createObjectURL(file),
+        imgAlt: "uploaded",
+        type: type || "all",
+        temp: true,
+        name: file.name,
+      }));
+      setPendingUploads((prev) => [...newPending, ...prev]);
+      dispatch(uploadMediaAsync({ userId, files, type })).then(() => {
+        dispatch(getUserProfileAsync(userID)).then(() => {
+          forceUpdate((f) => !f);
+        });
+      });
+    }
+  };
 
   return (
     <Fragment>
@@ -546,13 +541,13 @@ const MyProfile = () => {
                                   <li>
                                     <p className="info-name">Family Status</p>
                                     <p className="info-details">
-                                      {User?.familyStatus} 
+                                      {User?.familyStatus}
                                     </p>
                                   </li>
                                   <li>
                                     <p className="info-name">Father’s Name</p>
                                     <p className="info-details">
-                                      {User?.FathersName} 
+                                      {User?.FathersName}
                                     </p>
                                   </li>
                                   <li>
@@ -630,7 +625,14 @@ const MyProfile = () => {
                                       aria-selected="true"
                                     >
                                       <i className="fa-solid fa-table-cells-large"></i>{" "}
-                                      All <span>12</span>
+                                      All{" "}
+                                      <span>
+                                        {" "}
+                                        {
+                                          [...pendingUploads, ...mediaList]
+                                            .length
+                                        }{" "}
+                                      </span>
                                     </button>
                                   </li>
                                   <li className="nav-item" role="presentation">
@@ -645,7 +647,14 @@ const MyProfile = () => {
                                       aria-selected="false"
                                     >
                                       <i className="fa-solid fa-camera"></i>{" "}
-                                      Albums <span>4</span>
+                                      Albums{" "}
+                                      <span>
+                                        {" "}
+                                        {
+                                          [...pendingUploads, ...mediaList]
+                                            .length
+                                        }
+                                      </span>
                                     </button>
                                   </li>
                                   <li className="nav-item" role="presentation">
@@ -660,13 +669,19 @@ const MyProfile = () => {
                                       aria-selected="false"
                                     >
                                       <i className="fa-solid fa-image"></i>{" "}
-                                      Photos <span>4</span>
+                                      Photos{" "}
+                                      <span>
+                                        {" "}
+                                         {
+                                          [...pendingUploads, ...mediaList]
+                                            .length
+                                        }
+                                      </span>
                                     </button>
                                   </li>
                                 </ul>
 
                                 <div className="tab-content" id="myTabContent3">
-                                  {/* midea all images show on modal  */}
                                   <div
                                     className="tab-pane fade show active"
                                     id="all-media"
@@ -681,7 +696,10 @@ const MyProfile = () => {
                                               <i className="fa-solid fa-upload"></i>{" "}
                                               Upload
                                             </div>
-                                            <input type="file" />
+                                            <input
+                                              type="file"
+                                              onChange={(e) => handleUpload(e)}
+                                            />
                                           </div>
                                         </li>
                                       </ul>
@@ -691,28 +709,40 @@ const MyProfile = () => {
                                           hideModal={() => setShowPhoto(false)}
                                           selectedImage={selectedImage}
                                         />
-                                        {MideaAll.map((item) => (
-                                          <div
-                                            className="col"
-                                            key={item.id}
-                                            onClick={() =>
-                                              handleImageClickOpenModal(item)
-                                            }
-                                          >
-                                            <div className="media-thumb video-thumb pointer">
-                                              <img
-                                                src={item.imgUrl}
-                                                alt={item.imgAlt}
-                                              />
+
+                                        {[...pendingUploads, ...mediaList]
+                                          .slice(0, visibleCountAll)
+                                          .map((item) => (
+                                            <div className="col" key={item.id}>
+                                              <div className="media-thumb video-thumb pointer">
+                                                <img
+                                                  src={item.imgUrl}
+                                                  alt={
+                                                    item.imgAlt || "uploaded"
+                                                  }
+                                                />
+                                              </div>
                                             </div>
-                                          </div>
-                                        ))}
+                                          ))}
                                       </div>
                                       <div className="text-center mt-5">
-                                        <a href="#" className="default-btn">
-                                          <i className="fa-solid fa-spinner"></i>{" "}
-                                          Load More
-                                        </a>
+                                        {[...pendingUploads, ...mediaList]
+                                          .length > visibleCountAll && (
+                                          <button
+                                            className="default-btn"
+                                            onClick={() =>
+                                              setVisibleCountAll(
+                                                [
+                                                  ...pendingUploads,
+                                                  ...mediaList,
+                                                ].length
+                                              )
+                                            }
+                                          >
+                                            <i className="fa-solid fa-spinner"></i>{" "}
+                                            Load More
+                                          </button>
+                                        )}
                                       </div>
                                     </div>
                                   </div>
@@ -732,83 +762,49 @@ const MyProfile = () => {
                                               <i className="fa-solid fa-upload"></i>{" "}
                                               Upload
                                             </div>
-                                            <input type="file" />
+                                            <input
+                                              type="file"
+                                              onChange={(e) =>
+                                                handleUpload(e, "album")
+                                              }
+                                            />
                                           </div>
                                         </li>
                                       </ul>
                                       <div className="row row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xl-3 g-3">
-                                        <div className="col">
-                                          <div className="media-thumb albam-thumb">
-                                            <img
-                                              src="../assets/images/allmedia/02.jpg"
-                                              alt="dating thumb"
-                                            />
-                                            <a
-                                              href="../assets/images/allmedia/02.jpg"
-                                              target="_blank"
-                                              className="icon"
-                                            >
-                                              <i className="fa-solid fa-camera"></i>
-                                            </a>
-                                          </div>
-                                        </div>
-                                        <div className="col">
-                                          <div className="media-thumb albam-thumb">
-                                            <img
-                                              src="../assets/images/allmedia/06.jpg"
-                                              alt="dating thumb"
-                                            />
-                                            <a
-                                              href="../assets/images/allmedia/06.jpg"
-                                              target="_blank"
-                                              className="icon"
-                                            >
-                                              <i className="fa-solid fa-camera"></i>
-                                            </a>
-                                          </div>
-                                        </div>
-                                        <div className="col">
-                                          <div className="media-thumb albam-thumb">
-                                            <img
-                                              src="../assets/images/allmedia/10.jpg"
-                                              alt="dating thumb"
-                                            />
-                                            <a
-                                              href="../assets/images/allmedia/10.jpg"
-                                              target="_blank"
-                                              className="icon"
-                                            >
-                                              <i className="fa-solid fa-camera"></i>
-                                            </a>
-                                          </div>
-                                        </div>
-                                        <div className="col">
-                                          <div className="media-thumb albam-thumb">
-                                            <img
-                                              src="../assets/images/allmedia/12.jpg"
-                                              alt="dating thumb"
-                                            />
-                                            <a
-                                              href="../assets/images/allmedia/12.jpg"
-                                              target="_blank"
-                                              className="icon"
-                                            >
-                                              <i className="fa-solid fa-camera"></i>
-                                            </a>
-                                          </div>
-                                        </div>
+                                        {[...pendingUploads, ...mediaList]
+                                          .slice(0, visibleCountAlbum)
+                                          .map((item) => (
+                                            <div className="col" key={item.id}>
+                                              <div className="media-thumb albam-thumb">
+                                                <img
+                                                  src={item.imgUrl}
+                                                  alt={
+                                                    item.imgAlt || "uploaded"
+                                                  }
+                                                />
+                                              </div>
+                                            </div>
+                                          ))}
                                       </div>
 
                                       <div className="text-center mt-5">
-                                        <a href="#" className="default-btn">
+                                        <button
+                                          className="default-btn"
+                                          onClick={() =>
+                                            setVisibleCountAlbum(
+                                              [...pendingUploads, ...mediaList]
+                                                .length
+                                            )
+                                          }
+                                        >
                                           <i className="fa-solid fa-spinner"></i>{" "}
                                           Load More
-                                        </a>
+                                        </button>
                                       </div>
                                     </div>
                                   </div>
 
-                                  {/* midea photos images show on modal */}
                                   <div
                                     className="tab-pane fade"
                                     id="photos-media"
@@ -823,33 +819,44 @@ const MyProfile = () => {
                                               <i className="fa-solid fa-upload"></i>{" "}
                                               Upload
                                             </div>
-                                            <input type="file" />
+                                            <input
+                                              type="file"
+                                              onChange={(e) =>
+                                                handleUpload(e, "photo")
+                                              }
+                                            />
                                           </div>
                                         </li>
                                       </ul>
                                       <div className="row row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xl-3 g-3">
-                                        {MideaAll.map((item) => (
-                                          <div
-                                            className="col"
-                                            key={item.id}
-                                            onClick={() =>
-                                              handleImageClickOpenModal(item)
-                                            }
-                                          >
-                                            <div className="media-thumb video-thumb pointer">
-                                              <img
-                                                src={item.imgUrl}
-                                                alt={item.Alt}
-                                              />
+                                        {[...pendingUploads, ...mediaList]
+                                          .slice(0, visibleCountPhoto)
+                                          .map((item) => (
+                                            <div className="col" key={item.id}>
+                                              <div className="media-thumb video-thumb pointer">
+                                                <img
+                                                  src={item.imgUrl}
+                                                  alt={
+                                                    item.imgAlt || "uploaded"
+                                                  }
+                                                />
+                                              </div>
                                             </div>
-                                          </div>
-                                        ))}
+                                          ))}
                                       </div>
                                       <div className="text-center mt-5">
-                                        <a href="#" className="default-btn">
+                                        <button
+                                          className="default-btn"
+                                          onClick={() =>
+                                            setVisibleCountPhoto(
+                                              [...pendingUploads, ...mediaList]
+                                                .length
+                                            )
+                                          }
+                                        >
                                           <i className="fa-solid fa-spinner"></i>{" "}
                                           Load More
-                                        </a>
+                                        </button>
                                       </div>
                                     </div>
                                   </div>

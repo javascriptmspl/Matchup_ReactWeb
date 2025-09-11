@@ -13,11 +13,9 @@ export const uploadProfilePictureAsync = createAsyncThunk(
     console.log("userId slice dp", userId);
     try {
       const response = await uploadProfilePicture(imageData, userId);
-      // Ensure the latest profile is fetched so UI reflects the new avatar everywhere
       try {
         await thunkAPI.dispatch(getUserProfileAsync(userId));
       } catch (_) {
-        // no-op: avoid breaking upload flow if refresh fails
       }
       return response;
     } catch (error) {
@@ -95,7 +93,6 @@ const profileSlice = createSlice({
       })
       .addCase(uploadProfilePictureAsync.fulfilled, (state) => {
         state.uploading = false;
-        // bump cache-buster so avatar URLs refresh everywhere without reload
         state.avatarVersion = Date.now();
       })
       .addCase(uploadProfilePictureAsync.rejected, (state, action) => {
