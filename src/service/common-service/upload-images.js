@@ -35,7 +35,7 @@ const mediaSlice = createSlice({
       })
       .addCase(uploadMediaAsync.fulfilled, (state, action) => {
         state.loading = false;
-        state.mediaList.push(...action.payload); // spread array
+        state.mediaList.push(...action.payload); 
       })
       .addCase(uploadMediaAsync.rejected, (state, action) => {
         state.loading = false;

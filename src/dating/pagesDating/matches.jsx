@@ -199,73 +199,6 @@ const SuperLikes = matchUserList
               </div>
             </div>
 
-            {/* <div className="row g-0 justify-content-center mx-12-none  ">
-              {SuperLikes.length > 0 && (
-                SuperLikes.map((val, i) => (
-                  <div className="member__item " key={i}>
-                    <div className="member__inner member__inner-sized-hover react-main">
-                      <div className="react">
-                        <img
-                          src={getBlackImage(val.id)}
-                          width="25"
-                          alt=""
-                          // onClick={() => handleClick(val.id, val.name, val)}
-                        />
-                      </div>
-                      <div className="member__thumb">
-                        <img 
-                        // src={`${BASE_URL}/assets/images/${val.receiverUserId.avatars[0]}`}
-                        src={
-                          val?.receiverUserId?.mainAvatar
-                            ? `${BASE_URL}/assets/images/${val?.receiverUserId?.mainAvatar}`
-                            : val?.receiverUserId?.avatars?.[0]
-                            ? `${BASE_URL}/assets/images/${val?.receiverUserId?.avatars[0]}`
-                            : null
-                        }
-                         alt={`${val.receiverUserId.name}`}
-                        style={{width:"100%",height:"100%"}} />
-                        <span className={val.className}></span>
-                      </div>
-                      <div className="member__content">
-                        <Link to={`/dating/user-profile/${val.receiverUserId._id}`}>
-                          <h5>{val.receiverUserId.name}</h5>
-                        </Link>
-                        <p>
-                          <span>{val.receiverUserId.education || "Not Added"}</span> || <span>{val.receiverUserId.age || "Not Added"}</span>
-                        </p>
-                        <p>{val.activity}</p>
-                      </div>
-  
-                      <div className="row mt-2 match-icon-main">
-                        <div className="col ">
-                          <Link
-                            className="fs-3 ms-4"
-                            to={`/dating/user-profile/${val?.receiverUserId?._id}`}
-                          >
-                            <i
-                              class="fa fa-user"
-                              aria-hidden="true"
-                              title="Profile"x
-                            ></i>
-                          </Link>
-                        </div>
-  
-                        <div className="col">
-                          <Link className="fs-3 ms-3" to="/dating/chat-page2">
-                            <i
-                              class="fa fa-comment"
-                              aria-hidden="true"
-                              title="Message"
-                            ></i>
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-              {SuperLikes.length === 0 && <h2>No Super Likes Found</h2>}
-            </div> */}
             <div className="row g-0 justify-content-center mx-12-none">
                   {SuperLikes && SuperLikes.length > 0 ? (
                     SuperLikes.map((val, i) => (
@@ -378,12 +311,11 @@ const SuperLikes = matchUserList
                         src={getBlackImage(val?.receiverUserId?._id)}
                         width="25"
                         alt=""
-                        onClick={() => buttonEvent(val._id, "like")}
+                        onClick={() => buttonEvent(val?.receiverUserId?._id, "like")}
                       />
                     </div>
                     <div className="member__thumb">
                       <img style={{width:"100%",height:"100%"}}
-                      //  src={`${BASE_URL}/assets/images/${val.avatars[0]}`} alt={`${val.imgAlt}`} 
                       src={
                         val?.receiverUserId?.mainAvatar
                           ? `${BASE_URL}/assets/images/${val?.receiverUserId?.mainAvatar}`
@@ -451,14 +383,7 @@ const SuperLikes = matchUserList
                 </div>
               )}
             </div>
-            {/* <div className="member__pagination mt-4">
-              <div className="member__pagination--left">
-                <p>Viewing 1 - 20 of 12,345 Members</p>
-              </div>
-              <div className="member__pagination--right">
-                <Pagination />
-              </div>
-            </div> */}
+        
           </div>
         </div>
       </div>

@@ -14,6 +14,20 @@ import Search from "./metrimoniul/pagesMetrimoniul/search";
 import AstroPage from "./metrimoniul/pagesMetrimoniul/Astro-page";
 import PurchaseHistory from "./metrimoniul/pagesMetrimoniul/purchasehistory.jsx";
 import { createRequire } from 'module';
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { getUserProfileAsync } from "./dating/store/slice/profileSlice";
+
+function AppInitializer() {
+  const dispatch = useDispatch();
+  useEffect(() => {
+    const userData = JSON.parse(localStorage.getItem("userData"));
+    if (userData && userData.data && userData.data._id) {
+      dispatch(getUserProfileAsync(userData.data._id));
+    }
+  }, [dispatch]);
+  return null;
+}
 
 const require = createRequire(import.meta.url);
 const App = () => {
@@ -21,6 +35,7 @@ const App = () => {
 
   return (
     <div className="App">
+      <AppInitializer />
       <Router>
         <ScrollToTop />
         <Routes>

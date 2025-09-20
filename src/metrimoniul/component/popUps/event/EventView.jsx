@@ -18,7 +18,7 @@ const EventViewSchedule = ({
 
   const profileData = useSelector((state) => state.profile.userData);
 
-  const User = profileData[0];
+  const User = profileData;
 
   // const dataEvent = localStorage.getItem("dataEvent");
   // const datanotifyEvent = localStorage.getItem("datanotifyEvent");
@@ -202,15 +202,15 @@ const EventViewSchedule = ({
           <div className="date-time-wrap view-event">
             <p className="date-modal">
               <i className="fas fa-calendar-alt"></i>
-              {ViewUser?.scheduledData?.date || ""}
+              {ViewUser?.scheduledData?.date || "24-01-2026"}
             </p>
             <p className="time-modal">
               <i className="fas fa-clock"></i>
-              {ViewUser?.scheduledData?.time || ""}
+              {ViewUser?.scheduledData?.time || "10:00 AM"}
             </p>
             <p className="loc-modal">
               <i className="fas fa-map-marker-alt"></i>
-              {ViewUser?.scheduledData?.venue || ""}
+              {ViewUser?.scheduledData?.venue || "New York "}
             </p>
           </div>
 

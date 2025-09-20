@@ -1,10 +1,10 @@
 export const getKey = () => {
   const datingId = localStorage.getItem("userData");
-  const dattingObj = JSON.parse(datingId);
- 
-  if (dattingObj?.data?.mode=== "68ad61f71130f0d24d4aff04") {
+  const dattingObj = datingId ? JSON.parse(datingId) : null;
+
+  if (dattingObj?.data?.mode === "68ad61f71130f0d24d4aff04") {
     return "metrimonial";
-  } else if (dattingObj?.data?.mode=== "68ad621a1130f0d24d4aff06") {
+  } else if (dattingObj?.data?.mode === "68ad621a1130f0d24d4aff06") {
     return "dating";
   } else {
     return "dating";
@@ -13,7 +13,7 @@ export const getKey = () => {
 
 export const Mode = () => {
   const user = localStorage.getItem("userData");
-  const users = JSON.parse(user);
+  const users = user ? JSON.parse(user) : null;
   const mode = users?.data?.mode || "68ad621a1130f0d24d4aff06";
   return mode;
 };
@@ -26,19 +26,19 @@ export const MODE_DATING = "68ad621a1130f0d24d4aff06";
 // EXPORT USER FROM LOCAL STORAGE
 export const LOCAL_USER_GENDER = () => {
   const user = localStorage.getItem("userData");
-  const users = JSON.parse(user);
+  const users = user ? JSON.parse(user) : null;
   return users?.data?.iAm;
 };
 export const LOCAL_USER_GENDER_METRI = () => {
   const user = localStorage.getItem("userData");
-  const users = JSON.parse(user);
+  const users = user ? JSON.parse(user) : null;
   return users?.data?.iAm;
 };
 
 // export curuent user
 export const CURRENT_LOGIN_USER = () => {
   const user = localStorage.getItem("userData");
-  const users = JSON.parse(user);
+  const users = user ? JSON.parse(user) : null;
   return users?.data?._id;
 };
 

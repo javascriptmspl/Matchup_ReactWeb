@@ -16,7 +16,7 @@ const initialUserData = {
   gender: "Woman",
   lookingFor: "Men",
   maritalStatus: "Single",
-  dob: "07/11/1997",    
+  dob: "07/11/1997",
   age: 36,
   address: "mohali",
 
@@ -43,12 +43,13 @@ const ManageProfile = () => {
   const [activeTab, setActiveTab] = useState("basicInfo");
   const [userDDDD, setUserDDDDD] = useState();
 
-  const profileData = useSelector((state) => state.profile.userData);
+  const profileData = useSelector((state) => state.profile?.userData);
   const dispatch = useDispatch();
-  const userData1 = profileData[0];
+  const userData1 = profileData;
+  console.log("usssmsmmsm", userData1);
   const userDatas = localStorage.getItem("userData");
-  const userDataObj = JSON.parse(userDatas);
-  const userId = userDataObj?.data?.data?._id || null;
+  const userDataObj = userDatas ? JSON.parse(userDatas) : null;
+  const userId = userDataObj?.data?._id || null;
 
   const getHandle = useCallback(() => {
     dispatch(getUserProfileAsync(userId));
@@ -65,6 +66,19 @@ const ManageProfile = () => {
     getHandle();
   }, [getHandle]);
 
+  useEffect(() => {
+    if (profileData) {
+      // Handle both array and object formats
+      const userProfileData = Array.isArray(profileData)
+        ? profileData[0]
+        : profileData;
+      if (userProfileData) {
+        setUserData(userProfileData);
+        setUserDDDDD(userProfileData);
+      }
+    }
+  }, [profileData]);
+
   const updateUserData = (newUserData) => {
     setUserData(newUserData);
     setEditMode(false);
@@ -75,7 +89,6 @@ const ManageProfile = () => {
     setEditMode(true);
   };
 
-  // Add this function to refresh the profile after update
   const refreshProfile = () => {
     dispatch(getUserProfileAsync(userId));
   };
@@ -169,13 +182,11 @@ const ManageProfile = () => {
                         <ul className="info-list">
                           <li>
                             <p className="info-name">I'm looking for</p>
-                            <p className="info-details">
-                              {userData.iAmLookingFor}
-                            </p>
+                            <p className="info-details">{userData1?.looking}</p>
                           </li>
                           <li>
                             <p className="info-name">Whatever I like</p>
-                            <p className="info-details">{userData.ILike}</p>
+                            <p className="info-details">{userData1.ILike}</p>
                           </li>
                         </ul>
                       </div>
@@ -200,7 +211,13 @@ const ManageProfile = () => {
                         <ul className="info-list">
                           <li>
                             <p className="info-name">Interest</p>
-                            <p className="info-details">{userData.interest}</p>
+                            <p className="info-details">
+                              {Array.isArray(userData.interest)
+                                ? userData.interest
+                                    .map((item) => item.name || item)
+                                    .join(", ")
+                                : userData.interest || "No interests"}
+                            </p>
                           </li>
                           <li>
                             <p className="info-name">Favorite vocations</p>
@@ -280,7 +297,7 @@ const ManageProfile = () => {
                       updateUserData={updateUserData}
                       editMode={editMode}
                       getHandle={getHandle}
-                      onUpdateProfile={refreshProfile}
+                      onUpdateProfile={updateProfileData}
                     />
                   )}
                 </div>
@@ -291,7 +308,7 @@ const ManageProfile = () => {
                       updateUserData={updateUserData}
                       editMode={editMode}
                       getHandle={getHandle}
-                      onUpdateProfile={refreshProfile}
+                      onUpdateProfile={updateProfileData}
                     />
                   )}
                 </div>
@@ -301,6 +318,7 @@ const ManageProfile = () => {
                       userData={userData}
                       updateUserData={updateUserData}
                       editMode={editMode}
+                      onUpdateProfile={updateProfileData}
                     />
                   )}
                 </div>
@@ -310,6 +328,7 @@ const ManageProfile = () => {
                       userData={userData}
                       updateUserData={updateUserData}
                       editMode={editMode}
+                      onUpdateProfile={updateProfileData}
                     />
                   )}
                 </div>
@@ -319,6 +338,7 @@ const ManageProfile = () => {
                       userData={userData}
                       updateUserData={updateUserData}
                       editMode={editMode}
+                      onUpdateProfile={updateProfileData}
                     />
                   )}
                 </div>

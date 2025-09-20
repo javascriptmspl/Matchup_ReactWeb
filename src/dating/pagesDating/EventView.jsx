@@ -22,7 +22,7 @@ const EventViewSchedule = ({
 
   const { eventArray } = useContext(MyContext);
 
-  const User = profileData[0];
+  const User = profileData;
 
   const dataEvent = localStorage.getItem("dataEvent");
   const datanotifyEvent = localStorage.getItem("datanotifyEvent");
@@ -103,7 +103,7 @@ const EventViewSchedule = ({
                 </p>
                 <p className="fs-4 text-muted fw-600 per-dest">
                   {" "}
-                  {User?.occupation || "Business Man"}
+                  {User?.occupation || "Marketing Manager"}
                 </p>
                 <p className="fs-4 text-muted fw-600 location ">
                   <span>
@@ -120,7 +120,7 @@ const EventViewSchedule = ({
                       />
                     </svg>
                   </span>
-                  {User?.address || "Delhi,NCR"}
+                  {User?.address || "New York, USA"}
                 </p>
               </div>
               <div className="col-md-4 col-4 modal-imgg-wrap">

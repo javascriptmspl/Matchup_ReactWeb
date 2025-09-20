@@ -11,7 +11,7 @@ import SearchFilterModal from "../component/popUps/searchModal";
 import { LOCAL_USER_GENDER, modeId } from "../../utils";
 
 const MembersPage = () => {
-  const isAuthenction = useSelector((state) => state.userCreate.isAuth)
+  const isAuthenction = useSelector((state) => state.userCreate.isAuth);
 
   const [members, setMembers] = useState([]);
   const [membersbygennder, setMembersbygender] = useState([]);
@@ -21,24 +21,22 @@ const MembersPage = () => {
   const [filterModal, setFilterModal] = useState(false);
   const [sessionInteractedUsers, setSessionInteractedUsers] = useState([]);
 
-
-
-
-
   const userByMode = LOCAL_USER_GENDER();
 
-  const showUserByGender = members.filter((member) => member.iAm !== userByMode);
+  const showUserByGender = members.filter(
+    (member) => member.iAm !== userByMode
+  );
 
   const tempRemoveUsers = showUserByGender.filter(
     (member) => !sessionInteractedUsers.includes(member._id)
   );
-
 
   const getAllUsers = useCallback(async () => {
     try {
       const response = await axios.get(
         `${BASE_URL}/User/getall/${modeId}?page_no=$1&page_size=100`
       );
+      console.log("loggg", response);
       setMembers(response.data.data.splice(0, 15));
       setLoading(false);
     } catch (error) {
@@ -48,15 +46,14 @@ const MembersPage = () => {
   }, []);
 
   useEffect(() => {
-    setMembersbygender(tempRemoveUsers)
+    setMembersbygender(tempRemoveUsers);
   }, [sessionInteractedUsers, tempRemoveUsers]);
 
   useEffect(() => {
     getAllUsers();
-  }, [])
+  }, []);
 
   const toastLove = (_id) => {
-    // Update the local state of sessionInteractedUsers when the user likes another user
     setSessionInteractedUsers((prevUsers) => [...prevUsers, _id]);
     toast.success("You've got a new admirer! 💖");
   };
@@ -68,7 +65,9 @@ const MembersPage = () => {
 
   const toastCross = (_id) => {
     setSessionInteractedUsers((prevUsers) => [...prevUsers, _id]);
-    toast.success("Not a match this time, but plenty more connections await! 🚫");
+    toast.success(
+      "Not a match this time, but plenty more connections await! 🚫"
+    );
   };
 
   const calculateAge = (dob) => {
@@ -77,13 +76,15 @@ const MembersPage = () => {
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
 
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
       age--;
     }
 
     return age;
   };
-
 
   return (
     <Fragment>
@@ -122,7 +123,7 @@ const MembersPage = () => {
                         autocomplete="off"
                         value={searchInputQuery}
                         onChange={(e) => setSearchInputQuery(e.target.value)}
-                      // style={{float:"left"}}
+                        // style={{float:"left"}}
                       />
                       {/* Corrected button type */}
                       <button type="submit">
@@ -147,7 +148,6 @@ const MembersPage = () => {
             <div className="row g-0 justify-content-center mx-12-none cstm-user-wrapp">
               {loading ? (
                 <>
-
                   <div className="loader"></div>
                 </>
               ) : (
@@ -184,7 +184,6 @@ const MembersPage = () => {
                           <p>
                             <span>{val.occupation || "profession"}</span> ||{" "}
                             <span>{calculateAge(val.dob) || "18"}</span>
-
                           </p>
                           <div>
                             <p>
@@ -199,18 +198,35 @@ const MembersPage = () => {
                         </div>
                       </div>
                       <div className="member__btns text-center">
-                        <button className="icon_border_red" onClick={() => toastLove(val._id)}>
-                          <i className="fa fa-heart icon_text_red" aria-hidden="true"></i>
+                        <button
+                          className="icon_border_red"
+                          onClick={() => toastLove(val._id)}
+                        >
+                          <i
+                            className="fa fa-heart icon_text_red"
+                            aria-hidden="true"
+                          ></i>
                         </button>
 
-                        <button className="icon_border_yellow" onClick={() => toastStar(val._id)}>
-                          <i className="fa fa-star icon_text_yellow" aria-hidden="true"></i>
+                        <button
+                          className="icon_border_yellow"
+                          onClick={() => toastStar(val._id)}
+                        >
+                          <i
+                            className="fa fa-star icon_text_yellow"
+                            aria-hidden="true"
+                          ></i>
                         </button>
 
-                        <button className="icon_border_blue" onClick={() => toastCross(val._id)}>
-                          <i className="fa fa-times icon_text_blue" aria-hidden="true"></i>
+                        <button
+                          className="icon_border_blue"
+                          onClick={() => toastCross(val._id)}
+                        >
+                          <i
+                            className="fa fa-times icon_text_blue"
+                            aria-hidden="true"
+                          ></i>
                         </button>
-
                       </div>
                     </div>
                   </div>

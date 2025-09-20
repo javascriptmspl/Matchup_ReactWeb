@@ -43,9 +43,9 @@ let HeaderSocialList = [
 ];
 
 const HeaderFour = ({ unreadCount }) => {
-  const profileData = useSelector((state) => state.profile.userData);
-  const avatarVersion = useSelector((state) => state.profile.avatarVersion);
-  const userProfile = useSelector((state) => state.userCreate.user);
+  const profileData = useSelector((state) => state?.profile?.userData) || [];
+  const avatarVersion = useSelector((state) => state?.profile?.avatarVersion);
+  const userProfile = useSelector((state) => state?.userCreate?.user);
   const [username, setUsername] = useState(localStorage.getItem("userData"));
   const [userData, setUserData] = useState(localStorage.getItem("userData"));
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
@@ -53,7 +53,7 @@ const HeaderFour = ({ unreadCount }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const userDataObj = JSON.parse(userData);
+  const userDataObj = userData ? JSON.parse(userData) : null;
   const userId = userDataObj?.data?._id || null;
 
   const isSmallScreen = window.innerWidth <= 768 && 992;
@@ -95,15 +95,12 @@ const HeaderFour = ({ unreadCount }) => {
 
   const handleLogoutApi = async () => {
     try {
-      const response = await fetch(
-        `${BASE_URL}/User/${userId}/logout`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await fetch(`${BASE_URL}/User/${userId}/logout`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
       if (response.ok) {
         setLogoutStatus("Logout successful");
       } else {
@@ -124,12 +121,12 @@ const HeaderFour = ({ unreadCount }) => {
     setUsername(null);
   };
 
-  const Userssss = JSON.parse(userData);
+  const Userssss = userData ? JSON.parse(userData) : null;
   // Prefer the canonical profile slice (kept up-to-date after uploads),
   // fall back to userCreate slice if profile slice is empty
-  const User = profileData?.[0] ?? userProfile?.data;
+  const User = profileData ?? userProfile?.data ?? {};
 
-  const lastimg = User?.avatars.length - 1;
+  const lastimg = Array.isArray(User?.avatars) ? User.avatars.length - 1 : -1;
 
   useEffect(() => {}, [getKey]);
 
@@ -216,8 +213,9 @@ const HeaderFour = ({ unreadCount }) => {
                       src={
                         User?.mainAvatar
                           ? `${BASE_URL}/assets/images/${User?.mainAvatar}?v=${avatarVersion}`
-                          : User?.avatars?.[0]
-                          ? `${BASE_URL}/assets/images/${User?.avatars?.[0]}?v=${avatarVersion}`
+                          : Array.isArray(User?.avatars) &&
+                            User?.avatars?.length > 0
+                          ? `${BASE_URL}/assets/images/${User?.avatars[0]}?v=${avatarVersion}`
                           : userMale
                       }
                       // ||

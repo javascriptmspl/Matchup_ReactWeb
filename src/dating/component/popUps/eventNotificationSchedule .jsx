@@ -3,27 +3,35 @@ import { useDispatch, useSelector } from "react-redux";
 import { Modal, Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import CalenderScheduleModal from "./calenderSchedule";
-import userMale from "../../assets/images/myCollection/user-male.jpg"
+import userMale from "../../assets/images/myCollection/user-male.jpg";
 import toast from "react-hot-toast";
 import MyContext from "../../store/context/UseContext";
-import { createEvent, getEvents } from "../../../service/common-service/eventSlice";
+import {
+  createEvent,
+  getEvents,
+} from "../../../service/common-service/eventSlice";
 import { unwrapResult } from "@reduxjs/toolkit";
 import { BASE_URL } from "../../../base";
 
-
-
-const EventNotificationSchedule = ({ showModal, hideModal, calenderScheduleDAte, selectedUser, selectUseriNFO, scheduledData }) => {
-  const { eventDatahandle } = useContext(MyContext)
-  const dispatch = useDispatch()
+const EventNotificationSchedule = ({
+  showModal,
+  hideModal,
+  Viewuser,
+  calenderScheduleDAte,
+  selectedUser,
+  selectUseriNFO,
+  scheduledData,
+}) => {
+  const { eventDatahandle } = useContext(MyContext);
+  const dispatch = useDispatch();
   const profileData = useSelector((state) => state.profile.userData);
-    const User = profileData[0];
+  const User = profileData;
 
   const eventnotifyData = {
     user: User,
     selectUser: selectedUser,
     scheduledData: scheduledData,
-  }
-  
+  };
 
   // const handleSubmitnotification = (e) => {
   //   eventDatahandle(eventnotifyData)
@@ -45,7 +53,7 @@ const EventNotificationSchedule = ({ showModal, hideModal, calenderScheduleDAte,
   // };
   const handleSubmitnotification = async (e) => {
     e.preventDefault();
-  
+
     const payload = {
       senderUserId: User?._id || User?.id || "",
       receiverUserId: selectedUser?._id || selectedUser?.id || "",
@@ -54,35 +62,39 @@ const EventNotificationSchedule = ({ showModal, hideModal, calenderScheduleDAte,
       note: scheduledData?.note || "User scheduled a date",
       mode: scheduledData?.mode || "68ad621a1130f0d24d4aff06",
     };
-    
-  
+
     try {
-     
       const resultAction = await dispatch(createEvent(payload));
-      const res = unwrapResult(resultAction); 
-      if(res.isSuccess === true){
+      const res = unwrapResult(resultAction);
+      if (res.isSuccess === true) {
         dispatch(getEvents(res?.data?.senderUserId));
-      toast.success("Schedule date successfully updated");
-      hideModal(hideModal)
-    } else {
-      toast.error("Failed to schedule event");
-    }
+        toast.success("Schedule date successfully updated");
+        hideModal(hideModal);
+      } else {
+        toast.error("Failed to schedule event");
+      }
     } catch (error) {
       console.error("Promise error during createEvent:", error);
       toast.error("Failed to schedule event");
     }
   };
-  
 
   return (
-    <Modal show={showModal} onHide={hideModal} centered >
-
-
+    <Modal show={showModal} onHide={hideModal} centered>
       <div className="main" style={{ position: "relative" }}>
-        <span onClick={hideModal} style={{ position: "absolute", right: "20px", top: "8px", color: "#213366", cursor: "pointer" }}>
+        <span
+          onClick={hideModal}
+          style={{
+            position: "absolute",
+            right: "20px",
+            top: "8px",
+            color: "#213366",
+            cursor: "pointer",
+          }}
+        >
           <i className="fa fa-times fs-3 modal-cls" aria-hidden="true"></i>
         </span>
-        <div className="svg-top " >
+        <div className="svg-top ">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="330"
@@ -96,7 +108,13 @@ const EventNotificationSchedule = ({ showModal, hideModal, calenderScheduleDAte,
               fill="#D6B6F9"
             />
             <defs>
-              <linearGradient id="gradient-col" x1="0%" y1="0%" x2="100%" y2="0%">
+              <linearGradient
+                id="gradient-col"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="0%"
+              >
                 <stop offset="0%" style={{ stopColor: "#F093FB" }} />
                 <stop offset="100%" style={{ stopColor: "#f24570" }} />
               </linearGradient>
@@ -108,8 +126,14 @@ const EventNotificationSchedule = ({ showModal, hideModal, calenderScheduleDAte,
             <p>You and Desirae have both liked each other</p>
             <div className="coll row">
               <div className="col-md-8 mod-person-lft col-8">
-                <p className="fs-4 text-muted fw-600 per-txt"> {User?.name || ""}</p>
-                <p className="fs-4 text-muted fw-600 per-dest"> {User?.occupation || ""}</p>
+                <p className="fs-4 text-muted fw-600 per-txt">
+                  {" "}
+                  {User?.name || ""}
+                </p>
+                <p className="fs-4 text-muted fw-600 per-dest">
+                  {" "}
+                  {User?.occupation || "Marketing Manager"}
+                </p>
                 <p className="fs-4 text-muted fw-600 location ">
                   <span>
                     <svg
@@ -125,7 +149,7 @@ const EventNotificationSchedule = ({ showModal, hideModal, calenderScheduleDAte,
                       />
                     </svg>
                   </span>
-                  {User?.address || ""}
+                  {User?.address || "New York, USA"}
                 </p>
               </div>
               <div className="col-md-4 col-4 modal-imgg-wrap">
@@ -145,7 +169,6 @@ const EventNotificationSchedule = ({ showModal, hideModal, calenderScheduleDAte,
             </div>
 
             <div className=" col6 heart-svg">
-
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
@@ -158,7 +181,6 @@ const EventNotificationSchedule = ({ showModal, hideModal, calenderScheduleDAte,
                   fill="white"
                 />
               </svg>
-
             </div>
             <div className="row rt2">
               <div className="col-md-4 col-4 modal-imgg-wrap">
@@ -169,15 +191,19 @@ const EventNotificationSchedule = ({ showModal, hideModal, calenderScheduleDAte,
                     selectedUser?.avatars
                       ? `${BASE_URL}/assets/images/${selectedUser?.avatars[0]}`
                       : userMale
-                      ?`${BASE_URL}/assets/images/${selectedUser?.mainAvatar}`
-                      :userMale
+                      ? `${BASE_URL}/assets/images/${selectedUser?.mainAvatar}`
+                      : userMale
                   }
                   alt=""
                 />
               </div>
               <div className="col-md-8 mod-person-rt col-8">
-                <p className="fs-4 text-muted fw-600 per-txt">{selectedUser?.name || ""}</p>
-                <p className="fs-4 text-muted fw-600 per-dest">{selectedUser?.occupation || ""}</p>
+                <p className="fs-4 text-muted fw-600 per-txt">
+                  {selectedUser?.name || ""}
+                </p>
+                <p className="fs-4 text-muted fw-600 per-dest">
+                  {selectedUser?.occupation || ""}
+                </p>
                 <p className="fs-4 text-muted fw-600 location">
                   <span className="location2">
                     <svg
@@ -211,21 +237,23 @@ const EventNotificationSchedule = ({ showModal, hideModal, calenderScheduleDAte,
               <i class="fas fa-map-marker-alt"></i>
               {scheduledData?.venue || ""}
             </p>
-
           </div>
 
           <div className="main-bottom">
             <Link onClick={hideModal}>
               <button className="send-msg-btn">
                 <p className="content">Send a Message</p>
-              </button></Link>
+              </button>
+            </Link>
 
-            <Link >
-              <button onClick={handleSubmitnotification} className="schedule-date" >
-                <p className="celender schedulename">
-                  Submit
-                </p>
-              </button></Link>
+            <Link>
+              <button
+                onClick={handleSubmitnotification}
+                className="schedule-date"
+              >
+                <p className="celender schedulename">Submit</p>
+              </button>
+            </Link>
           </div>
         </div>
       </div>

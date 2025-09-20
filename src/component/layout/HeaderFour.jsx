@@ -54,7 +54,7 @@ const HeaderFour = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const userDataObj = JSON.parse(userData);
+  const userDataObj = userData ? JSON.parse(userData) : null;
 
   const userId = userDataObj?.data?._id || null;
   const [forceUpdate, setForceUpdate] = useState(false);
@@ -110,15 +110,12 @@ const HeaderFour = () => {
 
   const handleLogoutApi = async () => {
     try {
-      const response = await fetch(
-        `${BASE_URL}/User/${userId}/logout`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await fetch(`${BASE_URL}/User/${userId}/logout`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
       if (response.ok) {
         setLogoutStatus("Logout successful");
       } else {
@@ -139,14 +136,14 @@ const HeaderFour = () => {
     setUsername(null);
   };
 
-  const Userssss = JSON.parse(userData);
+  const Userssss = userData ? JSON.parse(userData) : null;
 
-  const User = profileData[0] ?? userDataObj?.data;
-  const lastimg = User?.avatars.length - 1;
+  const User = profileData ?? userDataObj?.data ?? {};
+  const lastimg = Array.isArray(User?.avatars) ? User.avatars.length - 1 : -1;
 
   const getKey = () => {
     const datingId = localStorage.getItem("userData");
-    const dattingObj = JSON.parse(datingId);
+    const dattingObj = datingId ? JSON.parse(datingId) : null;
 
     if (dattingObj?.data?.mode === MODE_METRI) {
       return "metrimonial";
@@ -261,8 +258,9 @@ const HeaderFour = () => {
                       src={
                         User?.mainAvatar
                           ? `${BASE_URL}/assets/images/${User?.mainAvatar}?v=${avatarVersion}`
-                          : User?.avatars?.[0]
-                          ? `${BASE_URL}/assets/images/${User?.avatars?.[0]}?v=${avatarVersion}`
+                          : Array.isArray(User?.avatars) &&
+                            User?.avatars?.length > 0
+                          ? `${BASE_URL}/assets/images/${User?.avatars[0]}?v=${avatarVersion}`
                           : userMale
                       }
                       // ||

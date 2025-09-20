@@ -3,20 +3,18 @@ import { BASE_URL } from "../../../base";
 import store from "../../../hooks/useLocalStorage";
 import { log } from "handlebars/runtime";
 
-export const Local_User = JSON.parse(localStorage.getItem('userData'))
-export const UserID =Local_User?.data?._id
+export const Local_User = JSON.parse(localStorage.getItem("userData"));
+export const UserID = Local_User?.data?._id;
 
-
-const _id = Local_User?._id
+const _id = Local_User?._id;
 //login Api
 export const userLogin = async (credentials) => {
   try {
-    
     const response = await axios.post(`${BASE_URL}/User/login`, credentials);
     const data = response.data;
 
-     localStorage.setItem("token", data.token);
-     localStorage.setItem("userData", JSON.stringify(data));
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("userData", JSON.stringify(data));
 
     return data;
   } catch (error) {
@@ -61,7 +59,9 @@ export const sentOtpApi = async (data) => {
 //user get by id
 export const getbyiduser = async (data) => {
   try {
-    const resoponse = await axios.get(`${BASE_URL}/User/getById/${data?data:_id}`);
+    const resoponse = await axios.get(
+      `${BASE_URL}/User/getById/${data ? data : _id}`
+    );
     return resoponse.data;
   } catch (error) {
     console.error(error);
@@ -81,25 +81,6 @@ export const verifyOTPApi = async (data) => {
     throw error;
   }
 };
-// export const verifyOTPApi = async (data)=>{
-//   const options ={
-//     method:'POST',
-//     headers:{
-//       'content-type':'application/json',
-//     },
-//     body:JSON.stringify(data)
-
-//   }
-//   try {
-//     debugger
-//     const response = await fetch(`${BASE_URL}/User/verifyOtpEmail`,options)
-//     console(response)
-//     return response
-//   } catch (error) {
-//     throw error
-
-//   }
-// }
 
 export const forgotPassword = async (data) => {
   localStorage.setItem("forgetemail", data?.email);

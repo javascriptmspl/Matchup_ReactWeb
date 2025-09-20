@@ -31,7 +31,6 @@ const LogIn = () => {
     e.preventDefault();
     if (!forgotPassword) {
       if (!isValidEmailFormat(userEmail)) {
-        // Show toast error if email format is incorrect
         toast.error("Please enter a valid email address");
         return;
       }
@@ -55,43 +54,47 @@ const LogIn = () => {
               }
             },
             error: (err) => {
-              toast.error("please enter correct email or Password");
+              let errorMsg = "please enter correct email or Password";
+              if (err && err.message) {
+                errorMsg = err.message;
+              } else if (typeof err === "object") {
+                try {
+                  errorMsg = JSON.stringify(err);
+                } catch (e) {}
+              } else if (typeof err === "string") {
+                errorMsg = err;
+              }
+              toast.error(errorMsg);
+              console.error("Login error:", err);
             },
           }
         );
       } catch (err) {}
     }
   };
-  // handlehandleForgot
   const handleForgot = () => {
     setForgotPassword(true);
   };
-  // handleSentOtp
   const handleSentOtp = async () => {
     if (!isValidEmailFormat(userEmail)) {
-      // Show toast error if email format is incorrect
       toast.error("Please enter a valid email address");
       return;
     }
     try {
-      // Dispatch action to send OTP
       const data = await dispatch(sendOtpAsync({ email: userEmail }));
       if (data.meta.requestStatus === "rejected") {
         toast.error("Enter Valid Email");
         return;
       }
       setSendotp(true);
-      // Display toast message
       toast.success("OTP sent to your email!");
     } catch (error) {
-      // Handle error and display toast message
       toast.error("Failed to send OTP. Please try again.");
       console.error(error);
     }
   };
   const handleverifyOtp = async () => {
     if (!isValidEmailFormat(userEmail)) {
-      // Show toast error if email format is incorrect
       toast.error("Please enter a valid email address");
       return;
     }
@@ -102,7 +105,6 @@ const LogIn = () => {
     const aa = await dispatch(
       verifyOtpAsync({ otp, token: state.userOtp.data.token })
     );
-    // const aa=  await verifyOTPApi({otp,token:state.userOtp.data.token})
     if (aa && aa.payload && aa.payload.isSuccess) {
       navigate(`/${getKey()}`);
       toast.success("Login Successfully!");
@@ -259,21 +261,6 @@ const LogIn = () => {
                       <span>Sign In</span>
                     </button>
                   )}
-                  {/* <div className="or">
-                    <p>OR</p>
-                  </div>
-                  <div className="or-content">
-                    <p>{otherTitle}</p>
-                    <a href="#" className="default-btn reverse">
-                      <img src="assets/images/login/google.png" alt="google" />{" "}
-                      <span>Sign Up with Google</span>
-                    </a>
-                    <p className="or-signup">
-                      {" "}
-                      Don't have an account?{" "}
-                      <Link to="/register">Sign up here</Link>
-                    </p>
-                  </div> */}
                 </form>
               </div>
             </div>

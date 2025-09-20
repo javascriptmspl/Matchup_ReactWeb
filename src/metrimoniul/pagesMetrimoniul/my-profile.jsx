@@ -56,7 +56,7 @@ const MyProfile = () => {
   if (user?.data) {
     User = user.data;
   } else {
-    User = profileData?.[0];
+    User = profileData;
   }
 
   useEffect(() => {
@@ -87,7 +87,8 @@ const MyProfile = () => {
   };
 
   useEffect(() => {
-    dispatch(getUserProfileAsync(userID));
+    dispatch(getUserProfileAsync(userID)).unwrap();
+
     setTimeout(() => {
       setLoading(false);
     }, 500);
@@ -107,7 +108,6 @@ const MyProfile = () => {
   const handleUpload = (e, type) => {
     const files = Array.from(e.target.files);
     if (files.length > 0) {
-      // Add to pendingUploads for immediate UI feedback
       const newPending = files.map((file, idx) => ({
         id: Date.now() + idx,
         imgUrl: URL.createObjectURL(file),
@@ -672,7 +672,7 @@ const MyProfile = () => {
                                       Photos{" "}
                                       <span>
                                         {" "}
-                                         {
+                                        {
                                           [...pendingUploads, ...mediaList]
                                             .length
                                         }
@@ -710,7 +710,7 @@ const MyProfile = () => {
                                           selectedImage={selectedImage}
                                         />
 
-                                        {[...pendingUploads, ...mediaList]
+                                        {[...mediaList]
                                           .slice(0, visibleCountAll)
                                           .map((item) => (
                                             <div className="col" key={item.id}>
@@ -764,15 +764,13 @@ const MyProfile = () => {
                                             </div>
                                             <input
                                               type="file"
-                                              onChange={(e) =>
-                                                handleUpload(e, "album")
-                                              }
+                                              onChange={(e) => handleUpload(e)}
                                             />
                                           </div>
                                         </li>
                                       </ul>
                                       <div className="row row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xl-3 g-3">
-                                        {[...pendingUploads, ...mediaList]
+                                        {[...mediaList]
                                           .slice(0, visibleCountAlbum)
                                           .map((item) => (
                                             <div className="col" key={item.id}>
@@ -829,7 +827,7 @@ const MyProfile = () => {
                                         </li>
                                       </ul>
                                       <div className="row row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xl-3 g-3">
-                                        {[...pendingUploads, ...mediaList]
+                                        {[...mediaList]
                                           .slice(0, visibleCountPhoto)
                                           .map((item) => (
                                             <div className="col" key={item.id}>

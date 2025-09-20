@@ -22,7 +22,7 @@ const EditEventViewSchedule = ({
 
   const profileData = useSelector((state) => state.profile.userData);
 
-  const User = profileData[0];
+  const User = profileData;
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -187,15 +187,15 @@ const EditEventViewSchedule = ({
           <div className="date-time-wrap">
             <p className="date-modal">
               <i className="fas fa-calendar-alt"></i>
-              {ViewUser?.scheduledData?.date || ""}
+              {ViewUser?.scheduledData?.date || "01-02-2026"}
             </p>
             <p className="time-modal">
               <i className="fas fa-clock"></i>
-              {ViewUser?.scheduledData?.time || ""}
+              {ViewUser?.scheduledData?.time || "01:00 PM"}
             </p>
             <p className="loc-modal">
               <i className="fas fa-map-marker-alt"></i>
-              {ViewUser?.scheduledData?.venue || ""}
+              {ViewUser?.scheduledData?.venue || "New York"}
             </p>
           </div>
 

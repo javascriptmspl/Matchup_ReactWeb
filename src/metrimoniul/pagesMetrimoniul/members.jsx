@@ -97,7 +97,6 @@ const MembersPage = () => {
       if (response?.data && response.data.length > 0) {
         setMembers(response.data);
       } else {
-        // fallback flow
         const res = await dispatch(
           fetchPotentialUsers({ userId, modeId })
         ).unwrap();
@@ -170,7 +169,7 @@ const MembersPage = () => {
                     <div className="member__inner">
                       <div className="member__thumb member-atsro-main">
                         {(() => {
-                          const mainShown = val.mainAvatar || val.avatars?.[0];
+                          const mainShown = val.mainAvatar || val.avatars[0];
                           const mainSrc = mainShown
                             ? `${BASE_URL}/assets/images/${mainShown}`
                             : userMale;

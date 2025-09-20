@@ -92,7 +92,7 @@ const EditEventViewSchedule = ({
 
 
 
-  const User = profileData[0];
+  const User = profileData;
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -157,7 +157,7 @@ const EditEventViewSchedule = ({
                 </p>
                 <p className="fs-4 text-muted fw-600 per-dest">
                   {" "}
-                  {User?.occupation || ""}
+                  {User?.occupation || "Marketing Manager"}
                 </p>
                 <p className="fs-4 text-muted fw-600 location ">
                   <span>
@@ -174,16 +174,16 @@ const EditEventViewSchedule = ({
                       />
                     </svg>
                   </span>
-                  {User?.address || ""}
+                  {User?.address || "New York, USA"}
                 </p>
               </div>
               <div className="col-md-4 col-4 modal-imgg-wrap">
                 <div className="girl ">
                   <img
                     src={
-                      User?.avatars
-                        ? `${BASE_URL}/assets/images/${User?.avatars[0]}`
-                        : userMale
+                      User?.mainAvatar
+                      ? `${BASE_URL}/assets/images/${User?.mainAvatar}`
+                      : userMale
                     }
                     alt="dating thumb"
                   />
@@ -250,15 +250,15 @@ const EditEventViewSchedule = ({
             <div className="date-time-wrap">
               <p className="date-modal">
                 <i className="fas fa-calendar-alt"></i>
-                {ViewUser?.scheduledData?.date || ""}
+                {ViewUser?.scheduledData?.date || "01-12-2025"}
               </p>
               <p className="time-modal">
                 <i className="fas fa-clock"></i>
-                {ViewUser?.scheduledData?.time || ""}
+                {ViewUser?.scheduledData?.time || "2:00 PM"}
               </p>
               <p className="loc-modal">
                 <i className="fas fa-map-marker-alt"></i>
-                {ViewUser?.scheduledData?.venue || ""}
+                {ViewUser?.scheduledData?.venue || "New York"}
               </p>
             </div>
        

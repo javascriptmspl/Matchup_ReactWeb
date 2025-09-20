@@ -1,6 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { updateFamilyAPI } from "../../dating/store/api/Activities";
-// import { updateFamilyAPI } from "../MANAGE_API/family-API";
 
 export const metriUpdateFamilyAsync = createAsyncThunk(
   "family/updateFamily",

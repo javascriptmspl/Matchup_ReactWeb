@@ -94,6 +94,7 @@ let MideaAll = [
 const MyProfile = () => {
   const uploading = useSelector((state) => state.profile?.uploading);
   const profileData = useSelector((state) => state.profile?.userData);
+  console.log("profileData",profileData)
   const data = useSelector((state) => state.userCreate);
   const [showInstallApp, setShowInstallApp] = useState(false);
   const [force, forceUpdate] = useState(false);
@@ -106,6 +107,7 @@ const MyProfile = () => {
 
   const getUser = JSON.parse(localStorage.getItem("userData"));
   const id = getUser?.data?._id;
+  
 
   const handleImageClickOpenModal = (image) => {
     setSelectedImage(image);
@@ -120,8 +122,8 @@ const MyProfile = () => {
     dispatch(getByIdUsersAsync(id));
   }, [force, dispatch, userId]);
 
-  const User = profileData?.[0] ?? UserData;
-
+  const User = profileData ?? UserData;
+console.log("userrrr",User)
   const lastimg = User?.avatars.length - 1;
 
   if (!profileData) {
@@ -674,8 +676,8 @@ const MyProfile = () => {
                             src={
                               User?.mainAvatar
                                 ? `${BASE_URL}/assets/images/${User?.mainAvatar}`
-                                : User?.avatars?.[0]
-                                ? `${BASE_URL}/assets/images/${User?.avatars?.[0]}`
+                                : User?.avatars[0]
+                                ? `${BASE_URL}/assets/images/${User?.avatars[0]}`
                                 : userMale
                             }
                             style={{

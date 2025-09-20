@@ -28,7 +28,7 @@ const EventNotificationSchedule = ({
   // const {eventDatahandle}=useContext(eventnotifyData)
   const dispatch = useDispatch();
   const profileData = useSelector((state) => state.profile.userData);
-  const User = profileData[0];
+  const User = profileData;
 
   const datingId = localStorage.getItem("userData");
   const user_Data = JSON.parse(datingId);
@@ -78,13 +78,17 @@ const EventNotificationSchedule = ({
     e.preventDefault();
 
     const payload = {
-      senderUserId: User?._id || User?.id || "",
-      receiverUserId: selectedUser?._id || selectedUser?.id || "",
+      senderUserId: User?._id || User?.id || user_Data.data._id,
+      receiverUserId:
+        eventnotifyData?.selectUser?._id ||
+        eventnotifyData?.selectUser?.id ||
+        "",
       action_logs: "Scheduled via app",
       description: scheduledData?.description || "1st meet",
       note: scheduledData?.note || "User scheduled a date",
       mode: scheduledData?.mode || "68ad61f71130f0d24d4aff04",
     };
+
 
     try {
       const resultAction = await dispatch(createEvent(payload));
@@ -92,7 +96,7 @@ const EventNotificationSchedule = ({
       if (res.isSuccess === true) {
         dispatch(getEventsM(res?.data?.senderUserId));
         toast.success("Schedule date successfully updated");
-        hideModal(hideModal);
+        hideModal();
       } else {
         toast.error("Failed to schedule event");
       }
@@ -249,15 +253,15 @@ const EventNotificationSchedule = ({
           <div className="date-time-wrap">
             <p className="date-modal">
               <i class="fas fa-calendar-alt"></i>
-              {scheduledData?.date || ""}
+              {scheduledData?.date || "02-02-2026"}
             </p>
             <p className="time-modal">
               <i class="fas fa-clock"></i>
-              {scheduledData?.time || ""}
+              {scheduledData?.time || "05:00 PM"}
             </p>
             <p className="loc-modal">
               <i class="fas fa-map-marker-alt"></i>
-              {scheduledData?.venue || ""}
+              {scheduledData?.venue || "New York"}
             </p>
           </div>
 

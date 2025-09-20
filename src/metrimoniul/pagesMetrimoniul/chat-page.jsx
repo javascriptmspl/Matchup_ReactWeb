@@ -94,8 +94,8 @@ export default function Chat() {
 
   const handleShowVideoCall = () => setShowVideoCallModal(true);
   const handleHideVideoCall = () => setShowVideoCallModal(false);
-
-  const user = useSelector((state) => state.profile.userData[0]);
+  const user = user_Data.data;
+  // const user = useSelector((state) => state.profile.userData[0]);
   const userPic = user?.avatars.length - 1;
 
   const [socket, setSocket] = useState(null);
@@ -118,9 +118,8 @@ export default function Chat() {
   useEffect(() => {
     if (socket) {
       socket.on("newMessage", (message) => {
-        // Handle the new message received from the server
         setChatMessages((prevMessages) => [...prevMessages, message]);
-        scrollToBottom(); // Assuming you have a function to scroll to the bottom of the chat
+        scrollToBottom(); 
       });
     }
 

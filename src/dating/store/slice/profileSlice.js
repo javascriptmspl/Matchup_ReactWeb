@@ -15,8 +15,7 @@ export const uploadProfilePictureAsync = createAsyncThunk(
       const response = await uploadProfilePicture(imageData, userId);
       try {
         await thunkAPI.dispatch(getUserProfileAsync(userId));
-      } catch (_) {
-      }
+      } catch (_) {}
       return response;
     } catch (error) {
       throw error;
@@ -66,6 +65,7 @@ export const updateUserProfileAsync = createAsyncThunk(
     const { updatedUserData, userId } = Data;
     try {
       const response = await updateUserProfile(updatedUserData, userId);
+      console.log("ressmmm", response);
       return response;
     } catch (error) {
       throw error;
