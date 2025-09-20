@@ -13,7 +13,6 @@ import useOnlineStatus from "./component/nointernet/useOnlineStatus";
 import Search from "./metrimoniul/pagesMetrimoniul/search";
 import AstroPage from "./metrimoniul/pagesMetrimoniul/Astro-page";
 import PurchaseHistory from "./metrimoniul/pagesMetrimoniul/purchasehistory.jsx";
-import { createRequire } from 'module';
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { getUserProfileAsync } from "./dating/store/slice/profileSlice";
@@ -29,7 +28,6 @@ function AppInitializer() {
   return null;
 }
 
-const require = createRequire(import.meta.url);
 const App = () => {
   const isOnline = useOnlineStatus();
 
