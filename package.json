@@ -59,7 +59,7 @@
     "redux": "^4.2.1",
     "shebang-regex": "^4.0.0",
     "simple-react-calendar": "^2.2.8",
-    "socket.io-client": "^4.7.5",
+    "socket.io-client": "^4.8.1",
     "swiper": "^8.4.7",
     "timepicker-ui": "^2.6.1",
     "web-vitals": "^2.1.4",

@@ -63,7 +63,7 @@ const MetriSearchFilterModal = ({ showModal, hideModal, onSubmit }) => {
         minAge: selectAge.minAge,
         maxAge: selectAge.maxAge,
         distance: selectedDistance,
-        modeId: "68ad61f71130f0d24d4aff04",
+        modeId: "68d103ffaa4b176726e60424",
       };
 
       onSubmit(filterData);

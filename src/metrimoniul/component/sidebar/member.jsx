@@ -1,4 +1,4 @@
-import { Component, useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useParams } from "react-router-dom";
 import { metriGetAllUsersAsync } from "../../../service/MANAGE_SLICE/find-user-SLICE";
@@ -15,10 +15,7 @@ const ActiveMember = () => {
 
   const userByMode = LOCAL_USER_GENDER_METRI();
 
-  // Debug logs
-  console.log("ALL_USER_METRIMONIAL", ALL_USER_METRIMONIAL);
-  console.log("userByMode", userByMode);
-  console.log("selectedUserId", selectedUserId);
+  
 
   // Use _id for filtering
   const showuserByGender = ALL_USER_METRIMONIAL.filter(

@@ -86,9 +86,8 @@ const EventNotificationSchedule = ({
       action_logs: "Scheduled via app",
       description: scheduledData?.description || "1st meet",
       note: scheduledData?.note || "User scheduled a date",
-      mode: scheduledData?.mode || "68ad61f71130f0d24d4aff04",
+      mode: scheduledData?.mode || "68d103ffaa4b176726e60424",
     };
-
 
     try {
       const resultAction = await dispatch(createEvent(payload));
@@ -176,7 +175,7 @@ const EventNotificationSchedule = ({
                       />
                     </svg>
                   </span>
-                  {User?.address || ""}
+                  {User?.address || "New York"}
                 </p>
               </div>
               <div className="col-md-4 col-4 modal-imgg-wrap">

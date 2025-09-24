@@ -60,7 +60,7 @@ const EventNotificationSchedule = ({
       action_logs: "Scheduled via app",
       description: scheduledData?.description || "1st meet",
       note: scheduledData?.note || "User scheduled a date",
-      mode: scheduledData?.mode || "68ad621a1130f0d24d4aff06",
+      mode: scheduledData?.mode || "68d103d5aa4b176726e60421",
     };
 
     try {

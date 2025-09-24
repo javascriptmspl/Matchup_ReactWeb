@@ -994,3 +994,486 @@ export default function Chat() {
     </div>
   );
 }
+
+
+
+// import React, { useEffect, useRef, useState } from "react";
+// import {
+//   MDBContainer,
+//   MDBRow,
+//   MDBCol,
+//   MDBCard,
+//   MDBCardBody,
+//   MDBIcon,
+//   MDBTypography,
+//   MDBInputGroup,
+// } from "mdb-react-ui-kit";
+// import { Scrollbars } from "react-custom-scrollbars-2";
+// import HeaderFour from "../component/layout/HeaderFour";
+// import EmojiPicker from "emoji-picker-react";
+// import {
+//   messages,
+//   customMessages,
+// } from "../../dating/component/chat2-component/message";
+
+// //images
+// import img2 from "../../dating/assets/images/shop/dating/1.jpg";
+// import img1 from "../../dating/assets/images/shop/dating/2.jpg";
+// import img3 from "../../dating/assets/images/shop/dating/3.jpg";
+// import img4 from "../../dating/assets/images/shop/dating/4.jpg";
+// import img5 from "../../dating/assets/images/shop/dating/5.jpg";
+// import img6 from "../../dating/assets/images/shop/dating/6.jpg";
+// import img7 from "../../dating/assets/images/shop/dating/7.jpg";
+// import img8 from "../../dating/assets/images/shop/dating/8.jpg";
+// import img9 from "../../dating/assets/images/shop/dating/9.jpg";
+// import img10 from "../../dating/assets/images/shop/dating/10.png";
+// import img11 from "../../dating/assets/images/shop/dating/11.png";
+// import chatBG from "../assets/images/bg-img/marrage-chat-bg.jpg";
+// import dummyUserPic from "../../dating/assets/images/myCollection/user-male.jpg";
+// import { useSelector, useDispatch } from "react-redux";
+// import { Link } from "react-router-dom";
+// import CheckCompatibilityModalMetri from "../component/popUps/chat/checkCompatibilty";
+// import RelationshipMilestoneTrackerMetri from "../component/popUps/chat/MildStoneModal";
+// import BlockUserModalMetri from "../component/popUps/common-profile/block-user";
+// import ReportUserModalMetri from "../component/popUps/common-profile/reportUserModal";
+// import CalenderScheduleMetri from "../component/popUps/chat/calenderSchedule";
+// import NotificationScheduleMetri from "../component/popUps/chat/notificationSchedule";
+// import Lodder from "../component/layout/Lodder";
+// import LoaderChat from "../component/layout/loadderChat";
+// import EventCalenderScheduleModal from "../component/popUps/event/eventCalenderSchedule ";
+// import EventNotificationScheduleModal from "../component/popUps/event/eventNotificationSchedule ";
+// import { io } from "socket.io-client";
+// import { getBySenderUserIds } from "../../dating/store/slice/ActivitiesSlice";
+// import { MODE_METRI } from "../../utils";
+// import userMale from "../../dating/assets/images/myCollection/user-male.jpg";
+// import IncomingCallModal from "../component/popUps/incomingcalls/IncomingCallModal.jsx";
+// import VideoCallModal from "../component/popUps/incomingcalls/VideoCallModal.jsx";
+// import { BASE_URL } from "../../base";
+
+// export default function Chat() {
+//   const [inputMessage, setInputMessage] = useState("");
+//   const [chatMessages, setChatMessages] = useState([...customMessages]);
+//   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+//   const [selectedEmojis, setSelectedEmojis] = useState([]);
+//   const [SelectedFile, setSelectedFile] = useState(null);
+//   const scrollbarsRef = useRef(null);
+//   const [CheckCompatibility, setCheckCompatibility] = useState(false);
+//   const [NotificationSchedule, setNotificationSchedule] = useState(false);
+//   const [calenderSchedule, setCalenderSchedule] = useState(false);
+//   const [blocklUser, setBlockUser] = useState(false);
+//   const [reportUser, setReportUser] = useState(false);
+//   const [Milestone, setMilestone] = useState(false);
+//   const [selectedUser, setSelectedUser] = useState(null);
+//   const [isMobileView, setIsMobileView] = useState(false);
+//   const [searchQuery, setSearchQuery] = useState("");
+//   const [filteredItems, setFilteredItems] = useState([]);
+//   const [loading, setLoading] = useState(true);
+//   const [loadingChat, setLoadingChat] = useState(true);
+//   const dispatch = useDispatch();
+//   const datingId = localStorage.getItem("userData");
+//   const user_Data = JSON.parse(datingId);
+//   const Store = useSelector((state) => state);
+//   let matchUserList = useSelector(
+//     (state) => Store?.activies?.Activity?.data || []
+//   );
+
+//   const [showModal, setShowModal] = useState(false);
+//   const handleShow = () => setShowModal(true);
+//   const handleHide = () => setShowModal(false);
+
+//   const [showVideoCallModal, setShowVideoCallModal] = useState(false);
+//   const handleShowVideoCall = () => setShowVideoCallModal(true);
+//   const handleHideVideoCall = () => setShowVideoCallModal(false);
+
+//   const user = user_Data.data;
+//   const userPic = user?.avatars.length - 1;
+
+//   const [socket, setSocket] = useState(null);
+
+//   // ✅ socket connect
+//   useEffect(() => {
+//     const newSocket = io("https://liveapi.meander.software", {
+//       path: "/chat",
+//       transports: ["websocket"],
+//     });
+//     setSocket(newSocket);
+//     return () => {
+//       newSocket.disconnect();
+//     };
+//   }, []);
+
+//   // ✅ fetch users
+//   useEffect(() => {
+//     dispatch(
+//       getBySenderUserIds({ modeid: MODE_METRI, id: user_Data.data._id })
+//     );
+//   }, [user_Data.data._id]);
+
+//   // ✅ listen for new messages
+//   useEffect(() => {
+//     if (socket) {
+//       socket.on("newMessage", (message) => {
+//         setChatMessages((prevMessages) => [...prevMessages, message]);
+//         scrollToBottom();
+//       });
+//     }
+//     return () => {
+//       if (socket) socket.off("newMessage");
+//     };
+//   }, [socket]);
+
+//   const handleToggleEmojiPicker = () => {
+//     setShowEmojiPicker(!showEmojiPicker);
+//   };
+
+//   const handleSelectEmoji = (emojiObject) => {
+//     setInputMessage((prevMessage) => prevMessage + emojiObject.emoji);
+//   };
+
+//   const handleFileChange = (e) => {
+//     const files = e.target.files;
+//     if (files.length > 0) setSelectedFile(files[0]);
+//   };
+
+//   const handleUserSelect = (user) => {
+//     setTimeout(() => {
+//       setSelectedUser(user);
+//     }, 100);
+//   };
+
+//   const scrollToBottom = () => {
+//     if (scrollbarsRef.current) scrollbarsRef.current.scrollToBottom();
+//   };
+
+//   const handleSendMessage = () => {
+//     if (socket && inputMessage.trim() !== "") {
+//       const newMessage = {
+//         id: chatMessages.length + 1,
+//         avatar: user?.mainAvatar
+//           ? `${BASE_URL}/assets/images/${user?.mainAvatar}`
+//           : dummyUserPic,
+//         content: inputMessage,
+//         timestamp: new Date().toLocaleTimeString([], {
+//           hour: "2-digit",
+//           minute: "2-digit",
+//         }),
+//         backgroundColor: "#f24570",
+//         sent: true,
+//         emojis: selectedEmojis,
+//         file: SelectedFile,
+//       };
+
+//       socket.emit("sendMessage", newMessage);
+//       setChatMessages((prev) => [...prev, newMessage]);
+
+//       setInputMessage("");
+//       setSelectedEmojis([]);
+//       setSelectedFile(null);
+//       setShowEmojiPicker(false);
+//       scrollToBottom();
+//     }
+//   };
+
+//   const handleKeyDown = (e) => {
+//     if (e.key === "Enter") {
+//       e.preventDefault();
+//       handleSendMessage();
+//     }
+//   };
+
+//   const giftItems = [
+//     { id: 1, imgUrl: img1 },
+//     { id: 2, imgUrl: img2 },
+//     { id: 3, imgUrl: img3 },
+//     { id: 4, imgUrl: img4 },
+//     { id: 5, imgUrl: img5 },
+//     { id: 6, imgUrl: img6 },
+//     { id: 7, imgUrl: img7 },
+//     { id: 8, imgUrl: img8 },
+//     { id: 9, imgUrl: img9 },
+//     { id: 10, imgUrl: img10 },
+//     { id: 11, imgUrl: img11 },
+//   ];
+
+//   const handleSearch = (query) => {
+//     const filtered = messages.filter((item) =>
+//       item.name?.toLowerCase().includes(query?.toLowerCase())
+//     );
+//     setFilteredItems(filtered);
+//   };
+
+//   const handleChange = (event) => {
+//     const query = event.target.value;
+//     setSearchQuery(query);
+//     handleSearch(query);
+//   };
+
+//   // responsive check
+//   useEffect(() => {
+//     const handleResize = () => {
+//       setIsMobileView(window.innerWidth <= 768);
+//     };
+//     handleResize();
+//     window.addEventListener("resize", handleResize);
+//     return () => window.removeEventListener("resize", handleResize);
+//   }, []);
+
+//   // loader
+//   useEffect(() => {
+//     if (loading) {
+//       setTimeout(() => {
+//         setLoading(false);
+//       }, 500);
+//     }
+//   }, [loading]);
+
+//   useEffect(() => {
+//     if (loadingChat && selectedUser) {
+//       setTimeout(() => {
+//         setLoadingChat(false);
+//       }, 100);
+//     }
+//   }, [selectedUser]);
+
+//   // remove duplicate users
+//   const uniqueMatchUserList = Array.isArray(matchUserList)
+//     ? matchUserList.filter(
+//         (item, index, self) =>
+//           item?.receiverUserId?._id &&
+//           index ===
+//             self.findIndex(
+//               (m) => m?.receiverUserId?._id === item?.receiverUserId?._id
+//             )
+//       )
+//     : [];
+
+//   // render users list
+//   const renderChatUsersList = () => {
+//     return (
+//       <div>
+//         <MDBInputGroup className="rounded mb-3 px-lg-3">
+//           <input
+//             className="form-control headerChat"
+//             placeholder="Search"
+//             type="search"
+//             style={{ height: 50 }}
+//             onChange={handleChange}
+//           />
+//           <span
+//             className="input-group-text border-0 pointer"
+//             style={{ backgroundColor: "rgb(242, 69, 112)", color: "#FFFF" }}
+//           >
+//             <MDBIcon fas icon="search" />
+//           </span>
+//         </MDBInputGroup>
+
+//         <Scrollbars
+//           className="chat-list-wrap"
+//           autoHide
+//           style={{ position: "relative", height: "68vh", padding: "0 0 0 10px" }}
+//         >
+//           <MDBTypography listUnStyled className="mb-0 m-3">
+//             {uniqueMatchUserList.map((val, i) => (
+//               <li
+//                 key={i}
+//                 className="p-2 border-bottom"
+//                 onClick={() => handleUserSelect(val)}
+//               >
+//                 <a href="#!" className="d-flex justify-content-between">
+//                   <div
+//                     className="d-flex flex-row align-items-center"
+//                     style={{ gap: "15px" }}
+//                   >
+//                     <div style={{ width: "60px", height: "60px" }}>
+//                       <img
+//                         src={
+//                           val?.receiverUserId?.mainAvatar
+//                             ? `${BASE_URL}/assets/images/${val?.receiverUserId?.mainAvatar}`
+//                             : val?.receiverUserId?.avatars?.[0]
+//                             ? `${BASE_URL}/assets/images/${val?.receiverUserId?.avatars[0]}`
+//                             : userMale
+//                         }
+//                         alt="avatar"
+//                         className="d-flex align-self-center me-3 image21 chat-profile"
+//                         style={{
+//                           borderRadius: "50%",
+//                           objectFit: "cover",
+//                         }}
+//                       />
+//                       <span className="badge bg-success badge-dot"></span>
+//                     </div>
+
+//                     <div className="pt-1">
+//                       <p className="fw-bold mb-0">{val?.receiverUserId?.name}</p>
+//                       <p className="small text-muted">
+//                         {val?.receiverUserId?.content}
+//                       </p>
+//                     </div>
+//                   </div>
+//                 </a>
+//               </li>
+//             ))}
+//           </MDBTypography>
+//         </Scrollbars>
+//       </div>
+//     );
+//   };
+
+//   return (
+
+
+
+//     <MDBContainer fluid className="py-3">
+//       <MDBRow>
+//         <MDBCol md="4">{renderChatUsersList()}</MDBCol>
+//         <MDBCol md="8">
+//           <MDBCard>
+//             <MDBCardBody>
+//               {selectedUser ? (
+//                 <>
+//                   {/* chat header */}
+//                   {/* chat messages */}
+//                   <Scrollbars
+//                     autoHide
+//                     className="msg-wrap"
+//                     style={{ height: "65vh" }}
+//                     ref={scrollbarsRef}
+//                   >
+//                     {chatMessages.map((message) => (
+//                       <div
+//                         key={message.id}
+//                         className={`px-3 d-flex flex-row justify-content-${
+//                           message.sent ? "end" : "start"
+//                         }`}
+//                       >
+//                         {message.sent ? (
+//                           <>
+//                             <div style={{ maxWidth: "70%" }}>
+//                               <p
+//                                 className="small p-2 me-3 mb-1 rounded-3"
+//                                 style={{
+//                                   backgroundColor: "#f24570",
+//                                   color: "#ffffff",
+//                                 }}
+//                               >
+//                                 {message.content}
+//                               </p>
+//                               <p className="small me-3 mb-3 text-muted">
+//                                 {message?.timestamp}
+//                               </p>
+//                             </div>
+//                             <img
+//                               src={message.avatar}
+//                               alt="user"
+//                               style={{
+//                                 borderRadius: "50%",
+//                                 width: "45px",
+//                                 height: "45px",
+//                               }}
+//                             />
+//                           </>
+//                         ) : (
+//                           <>
+//                             <img
+//                               src={userMale}
+//                               alt="receiver"
+//                               style={{
+//                                 borderRadius: "50%",
+//                                 width: "45px",
+//                                 height: "45px",
+//                               }}
+//                             />
+//                             <div style={{ maxWidth: "70%" }}>
+//                               <p
+//                                 className="small p-2 ms-3 mb-1 rounded-3"
+//                                 style={{
+//                                   backgroundColor: "#f5f6f7",
+//                                   color: "#000",
+//                                 }}
+//                               >
+//                                 {message.content}
+//                               </p>
+//                               <p className="small ms-3 mb-3 text-muted float-end">
+//                                 {message.timestamp}
+//                               </p>
+//                             </div>
+//                           </>
+//                         )}
+//                       </div>
+//                     ))}
+//                   </Scrollbars>
+
+//                   {/* input */}
+//                   <div
+//                     className="inputChat text-muted d-flex align-items-center py-1 mt-4"
+//                     style={{ backgroundColor: "#e9ecef" }}
+//                   >
+//                     <div className="header__more px-3">
+//                       <span className="pointer" data-bs-toggle="dropdown">
+//                         <i className="fa fa-paperclip fs-5"></i>
+//                       </span>
+//                       <ul className="dropdown-menu">
+//                         <li>
+//                           <label className="dropdown-item py-2">
+//                             <i className="fa fa-picture-o me-2"></i> File
+//                             <input
+//                               type="file"
+//                               style={{ display: "none" }}
+//                               onChange={handleFileChange}
+//                               id="fileInput"
+//                             />
+//                           </label>
+//                         </li>
+//                       </ul>
+//                     </div>
+
+//                     <div className="header__more">
+//                       <span className="pointer" data-bs-toggle="dropdown">
+//                         <i className="fa-solid fa-gift fa-xl"></i>
+//                       </span>
+//                       <ul className="dropdown-menu p-3" style={{ width: "300px" }}>
+//                         {giftItems.map((item) => (
+//                           <li key={item.id} style={{ display: "inline" }}>
+//                             <img
+//                               className="m-1 pointer"
+//                               src={item.imgUrl}
+//                               alt="gift"
+//                               style={{ width: "80px", height: "80px" }}
+//                             />
+//                           </li>
+//                         ))}
+//                       </ul>
+//                     </div>
+
+//                     <div className="input-vox-chat flex-grow-1">
+//                       <input
+//                         type="text"
+//                         className="form-control form-control-lg message-input"
+//                         placeholder="Type a message..."
+//                         value={inputMessage}
+//                         onChange={(e) => setInputMessage(e.target.value)}
+//                         onKeyDown={handleKeyDown}
+//                       />
+//                     </div>
+
+//                     <button
+//                       className="btn btn-primary ms-2"
+//                       onClick={handleSendMessage}
+//                     >
+//                       <i className="fa fa-paper-plane"></i>
+//                     </button>
+//                   </div>
+//                 </>
+//               ) : (
+//                 <div>
+//                   <img src={chatBG} alt="chat bg" style={{ width: "100%" }} />
+//                 </div>
+//               )}
+//             </MDBCardBody>
+//           </MDBCard>
+//         </MDBCol>
+//       </MDBRow>
+//     </MDBContainer>
+//   );
+// }
+

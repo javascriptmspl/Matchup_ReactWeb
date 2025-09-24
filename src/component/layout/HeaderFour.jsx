@@ -376,7 +376,7 @@ const HeaderFour = () => {
                           cursor: "pointer",
                         }}
                       >
-                        4
+                       2
                       </Badge>
                     </span>
                     <ul

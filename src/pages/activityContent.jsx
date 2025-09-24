@@ -135,12 +135,6 @@
 
 // export default ActivityTimeline;
 
-
-
-
-
-
-
 // import React, { useEffect, useState } from "react";
 // import { BASE_URL } from "../base";
 // import userMale from "../dating/assets/images/myCollection/user-male.jpg";
@@ -160,7 +154,7 @@
 
 //       try {
 //         const response = await fetch(
-//           `${BASE_URL}/activitys/getBySenderUserId/${userId}?modeId=68ad621a1130f0d24d4aff06&page_number=1&page_size=10`
+//           `${BASE_URL}/activitys/getBySenderUserId/${userId}?modeId=68d103d5aa4b176726e60421&page_number=1&page_size=10`
 //         );
 
 //         if (!response.ok) {
@@ -168,7 +162,7 @@
 //         }
 
 //         const data = await response.json();
-//         setActivities(data?.data || []); 
+//         setActivities(data?.data || []);
 //       } catch (err) {
 //         setError(err.message);
 //       } finally {
@@ -213,7 +207,7 @@
 //             ))
 //           ) : (
 //             <p>No activities found</p>
-//           )}  
+//           )}
 //         </div>
 //       </div>
 //     </div>
@@ -221,9 +215,6 @@
 // };
 
 // export default ActivityTimeline;
-
-
-
 
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -234,7 +225,6 @@ import { Link } from "react-router-dom";
 import { BASE_URL } from "../base";
 import { fetchNotifications } from "../service/common-service/notificationslice";
 import TimeAgo from "../metrimoniul/component/popUps/setting/TimeAgo";
-
 
 const NotificationItem = ({ notification }) => {
   const avatar = notification.senderUserId?.mainAvatar
@@ -251,19 +241,15 @@ const NotificationItem = ({ notification }) => {
     >
       <div className="notification-content">
         <div className="notification-action">
-        <Link
-                              to={`/metrimonial/user-profile/${notification.senderUserId?._id}`}
-                          >
-
-
-                          
-       
-          <img
-            src={avatar}
-            className="profile-picture-notification"
-            alt={notification.senderUserId?.name || "User"}
-          />
-            </Link>
+          <Link
+            to={`/metrimonial/user-profile/${notification.senderUserId?._id}`}
+          >
+            <img
+              src={avatar}
+              className="profile-picture-notification"
+              alt={notification.senderUserId?.name || "User"}
+            />
+          </Link>
           <span>
             <strong>{notification.senderUserId?.name}</strong>{" "}
             {notification.message}
@@ -280,12 +266,13 @@ const NotificationItem = ({ notification }) => {
   );
 };
 
-
 const NotificationFullPage = () => {
   const dispatch = useDispatch();
-  const { list: notifications, loading, error } = useSelector(
-    (state) => state.notifications
-  );
+  const {
+    list: notifications,
+    loading,
+    error,
+  } = useSelector((state) => state.notifications);
 
   const datingId = localStorage.getItem("userData");
   const user_Data = JSON.parse(datingId);
@@ -299,22 +286,22 @@ const NotificationFullPage = () => {
 
   return (
     <>
-      
       <Container>
-       
-
         {loading && <p>Loading notifications...</p>}
         {error && <p style={{ color: "red" }}>Error: {error}</p>}
 
         <div className="notification-modal-page">
-  {notifications.length === 0 ? (
-    <p>No notifications found.</p>
-  ) : (
-    notifications.map((notification) => (
-      <NotificationItem key={notification._id} notification={notification} />
-    ))
-  )}
-</div>
+          {notifications.length === 0 ? (
+            <p>No notifications found.</p>
+          ) : (
+            notifications.map((notification) => (
+              <NotificationItem
+                key={notification._id}
+                notification={notification}
+              />
+            ))
+          )}
+        </div>
       </Container>
     </>
   );

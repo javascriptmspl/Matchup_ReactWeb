@@ -56,7 +56,7 @@ const ManageProfile = () => {
 
   const profileData = useSelector((state) => state.profile.userData);
   const dispatch = useDispatch();
-  const userData1 = profileData[0];
+  const userData1 = profileData;
   const userDatas = localStorage.getItem("userData");
   const userDataObj = JSON.parse(userDatas);
   const userId = userDataObj?.data?.data?._id || null;
@@ -203,7 +203,7 @@ const ManageProfile = () => {
                           <li>
                             <p className="info-name">Phone</p>
                             <p className="info-details">
-                              {userData1?.phoneNumber}
+                              {userData1?.phoneNumber || "Enter your Phone Number"}
                             </p>
                           </li>
                         </ul>
@@ -244,7 +244,7 @@ const ManageProfile = () => {
                           <li>
                             <p className="info-name">Birth Place</p>
                             <p className="info-details">
-                              {userData1?.birthPlace}
+                              {userData1?.birthPlace || "Enter your Birth Place"}
                             </p>
                           </li>
                           <li>

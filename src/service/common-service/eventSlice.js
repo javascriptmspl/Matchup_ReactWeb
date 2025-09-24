@@ -28,7 +28,7 @@ export const getEvents = createAsyncThunk(
   async (userId, { rejectWithValue }) => {
     try {
       const response = await axios.get(
-        `${BASE_URL}/events/getBySenderUserId/${userId}?modeId=68ad621a1130f0d24d4aff06&page_number=1&page_size=100`
+        `${BASE_URL}/events/getBySenderUserId/${userId}?modeId=68d103d5aa4b176726e60421&page_number=1&page_size=100`
       );
       return response.data.data || [];
     } catch (error) {
@@ -43,7 +43,7 @@ export const getEventsM = createAsyncThunk(
   async (userId, { rejectWithValue }) => {
     try {
       const response = await axios.get(
-        `${BASE_URL}/events/getBySenderUserId/${userId}?modeId=68ad61f71130f0d24d4aff04&page_number=1&page_size=100`
+        `${BASE_URL}/events/getBySenderUserId/${userId}?modeId=68d103ffaa4b176726e60424&page_number=1&page_size=100`
       );
       return response.data.data || [];
     } catch (error) {
@@ -62,16 +62,13 @@ export const deleteEvent = createAsyncThunk(
         `${BASE_URL}/events/deleteEvent/${eventId}`
       );
       toast.success("Event deleted successfully");
-      return eventId; 
+      return eventId;
     } catch (error) {
       toast.error("Failed to delete event");
       return rejectWithValue(error.response?.data || error.message);
     }
   }
 );
-
-
-
 
 const eventSlice = createSlice({
   name: "event",

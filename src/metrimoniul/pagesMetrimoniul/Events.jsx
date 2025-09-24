@@ -1,4 +1,4 @@
-import React, { useState, Fragment, useEffect, useContext } from "react";
+import React, { useState, Fragment, useEffect } from "react";
 import { Link } from "react-router-dom";
 import HeaderFour from "../component/layout/HeaderFour";
 import FooterFour from "../component/layout/footerFour";
@@ -10,7 +10,7 @@ import MemberPopsModal from "../component/popUps/event/memberpop";
 import EventHeader from "../component/layout/EventHeader";
 import EditEventViewSchedule from "../component/popUps/event/EditEventView";
 import EventViewSchedule from "../component/popUps/event/EventView";
-import userMale from "../../dating/assets/images/myCollection/user-male.jpg";
+// import userMale from "../../dating/assets/images/myCollection/user-male.jpg";
 import { BASE_URL } from "../../base";
 import {
   deleteEvent,
@@ -148,9 +148,7 @@ const Events = (e) => {
     }
   }; 
 
-  const handleResize = () => {
-    setIsMobile(window.innerWidth <= 768);
-  };
+ 
 
   useEffect(() => {
     const handleResize = () => {
@@ -228,32 +226,16 @@ const Events = (e) => {
                             }}
                           >
                             <img
-                              // src={(() => {
-                              //   const su = val?.selectUser;
-                              //   if (su && typeof su === "object") {
-                              //     if (
-                              //       su.mainAvatar &&
-                              //       typeof su.mainAvatar === "string" &&
-                              //       su.mainAvatar.trim() !== ""
-                              //     ) {
-                              //       return `${BASE_URL}/assets/images/${su.mainAvatar}`;
-                              //     }
-                              //     if (
-                              //       Array.isArray(su.avatars) &&
-                              //       su.avatars[0] &&
-                              //       typeof su.avatars[0] === "string" &&
-                              //       su.avatars[0].trim() !== ""
-                              //     ) {
-                              //       return `${BASE_URL}/assets/images/${su.avatars[0]}`;
-                              //     }
-                              //   }
-                              //   return userMale;
-                              // })()}
+                              
                               src={
                                 val?.receiverUserId?.avatars?.[0]
                                   ? `${BASE_URL}/assets/images/${val.receiverUserId.avatars[0]}`
-                                  : userMale
+                                  : val.receiverUserId?.avatars?.[0]
+                                  ?  val?.mainAvatar
+                                  :`${BASE_URL}/assets/images/${val.receiverUserId?.mainAvatar}`
                               }
+                              
+                                
                               alt={val?.receiverUserId?.name || "user"}
                             />
                           </Link>

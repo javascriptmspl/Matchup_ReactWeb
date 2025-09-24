@@ -96,7 +96,7 @@ const SelectInterest = () => {
     const myFun = async () => {
       const res = await dispatch(
         fetchInterests({
-          token: "68ad621a1130f0d24d4aff06",
+          token: "68d103d5aa4b176726e60421",
           page_no: 1,
           page_size: 1000,
         })
