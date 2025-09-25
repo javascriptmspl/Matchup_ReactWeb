@@ -172,7 +172,7 @@ const AddPhotos = () => {
   const [selectedFile, setSelectedFile] = useState(null); // real file for upload
 
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch();  
 
   const getUser = JSON.parse(localStorage.getItem("userData"));
   const userId = getUser?.data?._id;

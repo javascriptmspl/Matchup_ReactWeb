@@ -199,7 +199,6 @@ const AddPhotos = () => {
 
   const getUser = JSON.parse(localStorage.getItem("userData"));
   const userId = getUser?.data?._id;
-  console.log("getUser", userId);
 
   
   const handleImageClick = (index) => {
