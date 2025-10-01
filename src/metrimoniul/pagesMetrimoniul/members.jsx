@@ -19,6 +19,7 @@ import {
 } from "../../service/common-service/getuserbyGender";
 import { BASE_URL } from "../../base";
 import { fetchPotentialUsers } from "../../service/common-service/find-patner";
+import { log } from "handlebars";
 
 const MembersPage = () => {
   const dispatch = useDispatch();
@@ -34,6 +35,7 @@ const MembersPage = () => {
 
   const datingId = localStorage.getItem("userData");
   const user_Data = datingId ? JSON.parse(datingId) : null;
+  
   const userId = user_Data?.data?._id;
   const modeId = user_Data?.data?.mode;
 
@@ -109,7 +111,7 @@ const MembersPage = () => {
 
   return (
     <>
-      <HeaderFour />
+      <HeaderFour />  
       {loading ? (
         <Lodder />
       ) : (

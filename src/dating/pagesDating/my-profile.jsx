@@ -30,10 +30,7 @@ import imgfemale3 from "../assets/images/member/female/03.jpg";
 import imgfemale4 from "../assets/images/member/female/04.jpg";
 import imgfemale5 from "../assets/images/member/female/05.jpg";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  getUserProfileAsync,
-  uploadProfilePictureAsync,
-} from "../store/slice/profileSlice";
+
 import ActivityPage from "../pagesDating/activity";
 import ShareProfile from "../../pages/ShareUserProfileModal";
 import moment from "moment";
@@ -41,6 +38,8 @@ import ShowPhotoViewerModal from "../component/popUps/photoAlbum";
 import { getByIdUsersAsync } from "../store/slice/AuthSlice";
 import { USER_ID_LOGGEDIN } from "../../utils";
 import { BASE_URL } from "../../base";
+import { uploadMediaAsync } from "../../service/common-service/upload-images";
+import { getUserProfileAsync, uploadProfilePictureAsync } from "../store/slice/profileSlice";
 const activety = "Online";
 
 let MideaAll = [
@@ -101,30 +100,72 @@ const MyProfile = () => {
   const [selectedInterests, setSelectedInterests] = useState([]);
   const [showPhoto, setShowPhoto] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [visibleCountAll, setVisibleCountAll] = useState(9);
+  const [visibleCountAlbum, setVisibleCountAlbum] = useState(9);
+  const [visibleCountPhoto, setVisibleCountPhoto] = useState(9);
 
   const userId = USER_ID_LOGGEDIN;
   const UserData = data?.user[0];
 
+  const [mediaList, setMediaList] = useState([]);
+  const [pendingUploads, setPendingUploads] = useState([]);
   const getUser = JSON.parse(localStorage.getItem("userData"));
   const id = getUser?.data?._id;
-  
+  const userID = USER_ID_LOGGEDIN;
 
   const handleImageClickOpenModal = (image) => {
     setSelectedImage(image);
     setShowPhoto(true);
   };
 
+  const handleUpload = (e, type) => {
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+      const newPending = files.map((file, idx) => ({
+        id: Date.now() + idx,
+        imgUrl: URL.createObjectURL(file),
+        imgAlt: "uploaded",
+        type: type || "all",
+        temp: true,
+        name: file.name,
+      }));
+      setPendingUploads((prev) => [...newPending, ...prev]);
+      dispatch(uploadMediaAsync({ userId, files, type })).then(() => {
+        dispatch(getUserProfileAsync(userID)).then(() => {
+          forceUpdate((f) => !f);
+        });
+      });
+    }
+  };
+
   const [valuenew, setValueNew] = useState("");
   const dispatch = useDispatch();
+  const User = profileData ?? UserData;
+  console.log("userrrr", User)
+
+  // Build media list from user's avatars so thumbnails render
+  useEffect(() => {
+    if (User && Array.isArray(User.avatars)) {
+      setMediaList(
+        User.avatars.map((img, idx) => ({
+          id: idx,
+          imgUrl: `${BASE_URL}/assets/images/${img}`,
+          imgAlt: "uploaded",
+          type: "all",
+          name: typeof img === "string" ? img.split("/").pop() : undefined,
+        }))
+      );
+    } else {
+      setMediaList([]);
+    }
+  }, [User]);
 
   useEffect(() => {
     dispatch(getUserProfileAsync(userId));
     dispatch(getByIdUsersAsync(id));
   }, [force, dispatch, userId]);
 
-  const User = profileData ?? UserData;
-console.log("userrrr",User)
-  const lastimg = User?.avatars.length - 1;
+  const lastimg = (User?.avatars?.length ?? 0) - 1;
 
   if (!profileData) {
     return <div>Loading...</div>;
@@ -381,261 +422,272 @@ console.log("userrrr",User)
                         </div>
                       </div>
                     </div>
-
                     <div
-                      className="tab-pane fade show "
-                      id="gt3"
-                      role="tabpanel"
-                      aria-labelledby="gt3-tab"
-                    >
-                      <div className="group__bottom--body bg-white">
-                        <div className="group__bottom--allmedia">
-                          <div className="media-wrapper">
-                            <ul
-                              className="nav nav-tabs"
-                              id="myTab3"
-                              role="tablist"
-                            >
-                              <li className="nav-item" role="presentation">
-                                <button
-                                  className="nav-link active"
-                                  id="all-media-tab"
-                                  data-bs-toggle="tab"
-                                  data-bs-target="#all-media"
-                                  type="button"
-                                  role="tab"
-                                  aria-controls="all-media"
-                                  aria-selected="true"
+                          className="tab-pane fade show "
+                          id="gt3"
+                          role="tabpanel"
+                          aria-labelledby="gt3-tab"
+                        >
+                          <div className="group__bottom--body bg-white">
+                            <div className="group__bottom--allmedia">
+                              <div className="media-wrapper">
+                                <ul
+                                  className="nav nav-tabs"
+                                  id="myTab3"
+                                  role="tablist"
                                 >
-                                  <i className="fa-solid fa-table-cells-large"></i>{" "}
-                                  All <span>12</span>
-                                </button>
-                              </li>
-                              <li className="nav-item" role="presentation">
-                                <button
-                                  className="nav-link"
-                                  id="album-tab"
-                                  data-bs-toggle="tab"
-                                  data-bs-target="#album"
-                                  type="button"
-                                  role="tab"
-                                  aria-controls="album"
-                                  aria-selected="false"
-                                >
-                                  <i className="fa-solid fa-camera"></i> Albums{" "}
-                                  <span>4</span>
-                                </button>
-                              </li>
-                              <li className="nav-item" role="presentation">
-                                <button
-                                  className="nav-link"
-                                  id="photos-media-tab"
-                                  data-bs-toggle="tab"
-                                  data-bs-target="#photos-media"
-                                  type="button"
-                                  role="tab"
-                                  aria-controls="photos-media"
-                                  aria-selected="false"
-                                >
-                                  <i className="fa-solid fa-image"></i> Photos{" "}
-                                  <span>4</span>
-                                </button>
-                              </li>
-                            </ul>
-
-                            <div className="tab-content" id="myTabContent3">
-                              {/* midea all images show on modal  */}
-                              <div
-                                className="tab-pane fade show active"
-                                id="all-media"
-                                role="tabpanel"
-                                aria-labelledby="all-media-tab"
-                              >
-                                <div className="media-content">
-                                  <ul className="media-upload">
-                                    <li className="upload-now">
-                                      <div className="custom-upload">
-                                        <div className="file-btn">
-                                          <i className="fa-solid fa-upload"></i>{" "}
-                                          Upload
-                                        </div>
-                                        <input type="file" />
-                                      </div>
-                                    </li>
-                                  </ul>
-                                  <div className="row row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xl-3 g-3">
-                                    <ShowPhotoViewerModal
-                                      showModal={showPhoto}
-                                      hideModal={() => setShowPhoto(false)}
-                                      selectedImage={selectedImage}
-                                    />
-                                    {MideaAll.map((item) => (
-                                      <div
-                                        className="col"
-                                        key={item.id}
-                                        onClick={() =>
-                                          handleImageClickOpenModal(item)
+                                  <li className="nav-item" role="presentation">
+                                    <button
+                                      className="nav-link active"
+                                      id="all-media-tab"
+                                      data-bs-toggle="tab"
+                                      data-bs-target="#all-media"
+                                      type="button"
+                                      role="tab"
+                                      aria-controls="all-media"
+                                      aria-selected="true"
+                                    >
+                                      <i className="fa-solid fa-table-cells-large"></i>{" "}
+                                      All{" "}
+                                      <span>
+                                        {" "}
+                                        {
+                                          [...pendingUploads, ...mediaList]
+                                            .length
+                                        }{" "}
+                                      </span>
+                                    </button>
+                                  </li>
+                                  <li className="nav-item" role="presentation">
+                                    <button
+                                      className="nav-link"
+                                      id="album-tab"
+                                      data-bs-toggle="tab"
+                                      data-bs-target="#album"
+                                      type="button"
+                                      role="tab"
+                                      aria-controls="album"
+                                      aria-selected="false"
+                                    >
+                                      <i className="fa-solid fa-camera"></i>{" "}
+                                      Albums{" "}
+                                      <span>
+                                        {" "}
+                                        {
+                                          [...pendingUploads, ...mediaList]
+                                            .length
                                         }
-                                      >
-                                        <div className="media-thumb video-thumb pointer">
-                                          <img
-                                            src={item.imgUrl}
-                                            alt={item.imgAlt}
-                                          />
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                  <div className="text-center mt-5">
-                                    <a href="#" className="default-btn">
-                                      <i className="fa-solid fa-spinner"></i>{" "}
-                                      Load More
-                                    </a>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* midea album images show on modal */}
-                              <div
-                                className="tab-pane fade"
-                                id="album"
-                                role="tabpanel"
-                                aria-labelledby="album-tab"
-                              >
-                                <div className="media-content">
-                                  <ul className="media-upload">
-                                    <li className="upload-now">
-                                      <div className="custom-upload">
-                                        <div className="file-btn">
-                                          <i className="fa-solid fa-upload"></i>{" "}
-                                          Upload
-                                        </div>
-                                        <input type="file" />
-                                      </div>
-                                    </li>
-                                  </ul>
-                                  <div className="row row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xl-3 g-3">
-                                    <div className="col">
-                                      <div className="media-thumb albam-thumb">
-                                        <img
-                                          src="../assets/images/allmedia/02.jpg"
-                                          alt="dating thumb"
-                                        />
-                                        <a
-                                          href="../assets/images/allmedia/02.jpg"
-                                          target="_blank"
-                                          className="icon"
-                                        >
-                                          <i className="fa-solid fa-camera"></i>
-                                        </a>
-                                      </div>
-                                    </div>
-                                    <div className="col">
-                                      <div className="media-thumb albam-thumb">
-                                        <img
-                                          src="../assets/images/allmedia/06.jpg"
-                                          alt="dating thumb"
-                                        />
-                                        <a
-                                          href="../assets/images/allmedia/06.jpg"
-                                          target="_blank"
-                                          className="icon"
-                                        >
-                                          <i className="fa-solid fa-camera"></i>
-                                        </a>
-                                      </div>
-                                    </div>
-                                    <div className="col">
-                                      <div className="media-thumb albam-thumb">
-                                        <img
-                                          src="../assets/images/allmedia/10.jpg"
-                                          alt="dating thumb"
-                                        />
-                                        <a
-                                          href="../assets/images/allmedia/10.jpg"
-                                          target="_blank"
-                                          className="icon"
-                                        >
-                                          <i className="fa-solid fa-camera"></i>
-                                        </a>
-                                      </div>
-                                    </div>
-                                    <div className="col">
-                                      <div className="media-thumb albam-thumb">
-                                        <img
-                                          src="../assets/images/allmedia/12.jpg"
-                                          alt="dating thumb"
-                                        />
-                                        <a
-                                          href="../assets/images/allmedia/12.jpg"
-                                          target="_blank"
-                                          className="icon"
-                                        >
-                                          <i className="fa-solid fa-camera"></i>
-                                        </a>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <div className="text-center mt-5">
-                                    <a href="#" className="default-btn">
-                                      <i className="fa-solid fa-spinner"></i>{" "}
-                                      Load More
-                                    </a>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* midea photos images show on modal */}
-                              <div
-                                className="tab-pane fade"
-                                id="photos-media"
-                                role="tabpanel"
-                                aria-labelledby="photos-media-tab"
-                              >
-                                <div className="media-content">
-                                  <ul className="media-upload">
-                                    <li className="upload-now">
-                                      <div className="custom-upload">
-                                        <div className="file-btn">
-                                          <i className="fa-solid fa-upload"></i>{" "}
-                                          Upload
-                                        </div>
-                                        <input type="file" />
-                                      </div>
-                                    </li>
-                                  </ul>
-                                  <div className="row row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xl-3 g-3">
-                                    {MideaAll.map((item) => (
-                                      <div
-                                        className="col"
-                                        key={item.id}
-                                        onClick={() =>
-                                          handleImageClickOpenModal(item)
+                                      </span>
+                                    </button>
+                                  </li>
+                                  <li className="nav-item" role="presentation">
+                                    <button
+                                      className="nav-link"
+                                      id="photos-media-tab"
+                                      data-bs-toggle="tab"
+                                      data-bs-target="#photos-media"
+                                      type="button"
+                                      role="tab"
+                                      aria-controls="photos-media"
+                                      aria-selected="false"
+                                    >
+                                      <i className="fa-solid fa-image"></i>{" "}
+                                      Photos{" "}
+                                      <span>
+                                        {" "}
+                                        {
+                                          [...pendingUploads, ...mediaList]
+                                            .length
                                         }
-                                      >
-                                        <div className="media-thumb video-thumb pointer">
-                                          <img
-                                            src={item.imgUrl}
-                                            alt={item.imgAlt}
-                                          />
-                                        </div>
+                                      </span>
+                                    </button>
+                                  </li>
+                                </ul>
+
+                                <div className="tab-content" id="myTabContent3">
+                                  <div
+                                    className="tab-pane fade show active"
+                                    id="all-media"
+                                    role="tabpanel"
+                                    aria-labelledby="all-media-tab"
+                                  >
+                                    <div className="media-content">
+                                      <ul className="media-upload">
+                                        <li className="upload-now">
+                                          <div className="custom-upload">
+                                            <div className="file-btn">
+                                              <i className="fa-solid fa-upload"></i>{" "}
+                                              Upload
+                                            </div>
+                                            <input
+                                              type="file"
+                                              onChange={(e) => handleUpload(e)}
+                                            />
+                                          </div>
+                                        </li>
+                                      </ul>
+                                      <div className="row row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xl-3 g-3">
+                                        <ShowPhotoViewerModal
+                                          showModal={showPhoto}
+                                          hideModal={() => setShowPhoto(false)}
+                                          selectedImage={selectedImage}
+                                        />
+
+                                        {[...mediaList]
+                                          .slice(0, visibleCountAll)
+                                          .map((item) => (
+                                            <div className="col" key={item.id}>
+                                              <div className="media-thumb video-thumb pointer">
+                                                <img
+                                                  src={item.imgUrl}
+                                                  alt={
+                                                    item.imgAlt || "uploaded"
+                                                  }
+                                                />
+                                              </div>
+                                            </div>
+                                          ))}
                                       </div>
-                                    ))}
+                                      <div className="text-center mt-5">
+                                        {[...pendingUploads, ...mediaList]
+                                          .length > visibleCountAll && (
+                                          <button
+                                            className="default-btn"
+                                            onClick={() =>
+                                              setVisibleCountAll(
+                                                [
+                                                  ...pendingUploads,
+                                                  ...mediaList,
+                                                ].length
+                                              )
+                                            }
+                                          >
+                                            <i className="fa-solid fa-spinner"></i>{" "}
+                                            Load More
+                                          </button>
+                                        )}
+                                      </div>
+                                    </div>
                                   </div>
-                                  <div className="text-center mt-5">
-                                    <a href="#" className="default-btn">
-                                      <i className="fa-solid fa-spinner"></i>{" "}
-                                      Load More
-                                    </a>
+
+                                  {/* midea album images show on modal */}
+                                  <div
+                                    className="tab-pane fade"
+                                    id="album"
+                                    role="tabpanel"
+                                    aria-labelledby="album-tab"
+                                  >
+                                    <div className="media-content">
+                                      <ul className="media-upload">
+                                        <li className="upload-now">
+                                          <div className="custom-upload">
+                                            <div className="file-btn">
+                                              <i className="fa-solid fa-upload"></i>{" "}
+                                              Upload
+                                            </div>
+                                            <input
+                                              type="file"
+                                              onChange={(e) => handleUpload(e)}
+                                            />
+                                          </div>
+                                        </li>
+                                      </ul>
+                                      <div className="row row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xl-3 g-3">
+                                        {[...mediaList]
+                                          .slice(0, visibleCountAlbum)
+                                          .map((item) => (
+                                            <div className="col" key={item.id}>
+                                              <div className="media-thumb albam-thumb">
+                                                <img
+                                                  src={item.imgUrl}
+                                                  alt={
+                                                    item.imgAlt || "uploaded"
+                                                  }
+                                                />
+                                              </div>
+                                            </div>
+                                          ))}
+                                      </div>
+
+                                      <div className="text-center mt-5">
+                                        <button
+                                          className="default-btn"
+                                          onClick={() =>
+                                            setVisibleCountAlbum(
+                                              [...pendingUploads, ...mediaList]
+                                                .length
+                                            )
+                                          }
+                                        >
+                                          <i className="fa-solid fa-spinner"></i>{" "}
+                                          Load More
+                                        </button>
+                                      </div>
+                                    </div>
                                   </div>
+
+                                  <div
+                                    className="tab-pane fade"
+                                    id="photos-media"
+                                    role="tabpanel"
+                                    aria-labelledby="photos-media-tab"
+                                  >
+                                    <div className="media-content">
+                                      <ul className="media-upload">
+                                        <li className="upload-now">
+                                          <div className="custom-upload">
+                                            <div className="file-btn">
+                                              <i className="fa-solid fa-upload"></i>{" "}
+                                              Upload
+                                            </div>
+                                            <input
+                                              type="file"
+                                              onChange={(e) =>
+                                                handleUpload(e, "photo")
+                                              }
+                                            />
+                                          </div>
+                                        </li>
+                                      </ul>
+                                      <div className="row row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xl-3 g-3">
+                                        {[...mediaList]
+                                          .slice(0, visibleCountPhoto)
+                                          .map((item) => (
+                                            <div className="col" key={item.id}>
+                                              <div className="media-thumb video-thumb pointer">
+                                                <img
+                                                  src={item.imgUrl}
+                                                  alt={
+                                                    item.imgAlt || "uploaded"
+                                                  }
+                                                />
+                                              </div>
+                                            </div>
+                                          ))}
+                                      </div>
+                                      <div className="text-center mt-5">
+                                        <button
+                                          className="default-btn"
+                                          onClick={() =>
+                                            setVisibleCountPhoto(
+                                              [...pendingUploads, ...mediaList]
+                                                .length
+                                            )
+                                          }
+                                        >
+                                          <i className="fa-solid fa-spinner"></i>{" "}
+                                          Load More
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* // share profile */}
                                 </div>
                               </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
 
                     <div
                       className="tab-pane fade show "
@@ -676,8 +728,8 @@ console.log("userrrr",User)
                             src={
                               User?.mainAvatar
                                 ? `${BASE_URL}/assets/images/${User?.mainAvatar}`
-                                : User?.avatars[0]
-                                ? `${BASE_URL}/assets/images/${User?.avatars[0]}`
+                                : User?.avatars?.[0]
+                                ? `${BASE_URL}/assets/images/${User?.avatars?.[0]}`
                                 : userMale
                             }
                             style={{
@@ -700,8 +752,7 @@ console.log("userrrr",User)
                               style={{ color: "#11e415" }}
                             />{" "}
                             {activety}
-                            {/* <i className="fa-solid fa-clock"></i> */}
-                            {/* <i class=" fa-solid fa-location-dot fa-2xl" style={{margin:"10px",float:"right",fontSize:"x-large",cursor:"pointer"}}/> */}
+                       
                           </p>
                         </div>
                         <div className="story__content--author pb-2"></div>
@@ -709,7 +760,7 @@ console.log("userrrr",User)
                       <div className="">
                         <h4>Interests</h4>
                         <div className="row">
-                          {User?.interest.map((interest, index) => (
+                          {User?.interest?.map((interest, index) => (
                             <div
                               key={index}
                               style={{

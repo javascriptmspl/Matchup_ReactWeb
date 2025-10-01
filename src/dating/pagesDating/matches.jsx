@@ -149,6 +149,8 @@ const MatchPage = () => {
 const SuperLikes = matchUserList
   ? matchUserList.filter((i) => i.activityType === "superlike")
   : [];
+  console.log("Likes",Likes);
+  console.log("SuperLikes",SuperLikes);
   
 
   return (
@@ -334,8 +336,8 @@ const SuperLikes = matchUserList
                       </Link>
                       <div>
                         <p>
-                          <span>{val.education || "Not Found"}</span> ||{" "}
-                          <span>{val.age || "Not Found"}</span>
+                          <span>{val?.receiverUserId?.education || "Not Found"}</span> ||{" "}
+                          <span>{val?.receiverUserId?.age || "Not Found"}</span>
                         </p>
                         <div>
                           <p>
@@ -344,7 +346,7 @@ const SuperLikes = matchUserList
                               style={{ color: "#f24570" }}
                               aria-hidden="true"
                             ></i>{" "}
-                            {val.address || "Not Found"}
+                            {val?.receiverUserId?.address || "Not Found"}
                           </p>
                         </div>
                       </div>
@@ -354,7 +356,7 @@ const SuperLikes = matchUserList
                       <div className="col ">
                         <Link
                           className="fs-3 ms-4"
-                          to={`/dating/user-profile/${val._id}`}
+                          to={`/metrimonial/user-profile/${val?.receiverUserId?._id}`}
                         >
                           <i
                             class="fa fa-user"

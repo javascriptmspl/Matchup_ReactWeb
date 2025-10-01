@@ -12,7 +12,7 @@ const PersonalDetalsInput = ({ userData, onUpdateProfile }) => {
   const validationSchema = Yup.object({
     Religion: Yup.string().required("Religion is required"),
     Caste: Yup.string().required("Caste is required"),
-    birthPlace: Yup.string().required("Birth Place is required"),
+    address: Yup.string().required("Address is required"),
     Height: Yup.string().required("Height is required"),
     DietPreferences: Yup.string().required("Diet is required"),
   });
@@ -21,7 +21,7 @@ const PersonalDetalsInput = ({ userData, onUpdateProfile }) => {
     initialValues: {
       Religion: userData?.Religion || "",
       Caste: userData?.Caste || "",
-      birthPlace: userData?.birthPlace || "",
+      address: userData?.address || "",
       Height: userData?.Height || "",
       DietPreferences: userData?.DietPreferences || "",
     },
@@ -103,31 +103,28 @@ const PersonalDetalsInput = ({ userData, onUpdateProfile }) => {
                   </div>
 
                   <div className="form-group">
-                    <label>Birth Place*</label>
-                    <select
-                      name="birthPlace"
+                    <label>Address*</label>
+                    <input 
+                      type="text" 
+                      name="address"
+                      placeholder="Enter Your Address"
+                      value={formik.values.address}
                       className={`my-form-control ${
-                        formik.touched.birthPlace && formik.errors.birthPlace
+                        formik.touched.address && formik.errors.address
                           ? "error"
                           : ""
                       }`}
-                      value={formik.values.birthPlace}
                       onChange={formik.handleChange}
-                      onBlur={formik.handleBlur}
-                    >
-                      <option value="" label="Select Birth Place" />
-                      <option value="City1" label="City 1" />
-                      <option value="City2" label="City 2" />
-                      <option value="City3" label="City 3" />
-                      {/* Add more birthplace options as needed */}
-                    </select>
+                      onBlur={formik.handleBlur} 
+                    />
 
-                    {formik.touched.birthPlace && formik.errors.birthPlace ? (
+                    {formik.touched.address && formik.errors.address ? (
                       <div className="error-message">
-                        {formik.errors.birthPlace}
+                        {formik.errors.address}
                       </div>
                     ) : null}
                   </div>
+                  
 
                   <div className="form-group">
                     <label>Height*</label>

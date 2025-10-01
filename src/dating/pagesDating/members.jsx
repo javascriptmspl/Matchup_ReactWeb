@@ -22,36 +22,80 @@ const MembersPage = () => {
   const [sessionInteractedUsers, setSessionInteractedUsers] = useState([]);
 
   const userByMode = LOCAL_USER_GENDER();
+  console.log("userByMode:", userByMode);
+  console.log("modeId:", modeId);
+  console.log("isAuthenction:", isAuthenction);
 
   const showUserByGender = members.filter(
     (member) => member.iAm !== userByMode
   );
+  console.log("showUserByGender:", showUserByGender);
 
   const tempRemoveUsers = showUserByGender.filter(
     (member) => !sessionInteractedUsers.includes(member._id)
   );
+  console.log("tempRemoveUsers:", tempRemoveUsers);
 
   const getAllUsers = useCallback(async () => {
     try {
-      const response = await axios.get(
-        `${BASE_URL}/User/getall/${modeId}?page_no=$1&page_size=100`
-      );
-      console.log("loggg", response);
-      setMembers(response.data.data.splice(0, 15));
+      console.log("modeId:", modeId);
+      console.log("BASE_URL:", BASE_URL);
+      
+      // Get token from localStorage for authentication
+      const token = localStorage.getItem("token");
+      const headers = {};
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+        console.log("Using token for authentication");
+      } else {
+        console.warn("No token found in localStorage");
+      }
+      
+      const apiUrl = `${BASE_URL}/User/getall/${modeId}?page_no=1&page_size=100`;
+      console.log("API URL:", apiUrl);
+      console.log("Headers:", headers);
+      
+      const response = await axios.get(apiUrl, { headers });
+      console.log("Full API Response:", response);
+      console.log("Response data:", response.data);
+      console.log("Response data.data:", response.data.data);
+      
+      if (response.data && response.data.data && Array.isArray(response.data.data)) {
+        console.log("Setting members:", response.data.data.slice(0, 15));
+        setMembers(response.data.data.slice(0, 15));
+      } else {
+        console.warn("Unexpected API response structure:", response.data);
+        setMembers([]);
+      }
       setLoading(false);
     } catch (error) {
       console.error("Error fetching members:", error);
+      console.error("Error response:", error.response);
+      console.error("Error message:", error.message);
+      console.error("Error status:", error.response?.status);
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
+  useEffect(() => { 
     setMembersbygender(tempRemoveUsers);
   }, [sessionInteractedUsers, tempRemoveUsers]);
 
   useEffect(() => {
-    getAllUsers();
-  }, []);
+    // Check if user is authenticated before making API call
+    const userData = localStorage.getItem("userData");
+    const token = localStorage.getItem("token");
+    
+    console.log("User data from localStorage:", userData);
+    console.log("Token from localStorage:", token);
+    
+    if (userData && token) {
+      getAllUsers();
+    } else {
+      console.warn("User not authenticated - skipping API call");
+      setLoading(false);
+    }
+  }, [getAllUsers]);
 
   const toastLove = (_id) => {
     setSessionInteractedUsers((prevUsers) => [...prevUsers, _id]);

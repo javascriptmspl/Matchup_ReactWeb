@@ -20,7 +20,7 @@ const Memberpop = ({
   let matchUserList = useSelector(
     (state) => Store?.activies?.Activity?.data || []
   );
-  // const [favoriteContentList] = useState(UserData.slice(0, 18));
+  
   useEffect(() => {
     dispatch(
       getBySenderUserIds({ modeid: MODE_METRI, id: user_Data.data._id })
@@ -93,7 +93,7 @@ const Memberpop = ({
                   <div className="col">
                     <Link
                       className="fs-3 ms-4"
-                      to={`/dating/user-profile?userID=${val._id}`}
+                      to={`/metrimonial/user-profile/${val.receiverUserId?._id}`}
                     >
                       <i
                         className="fa fa-user"

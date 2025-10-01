@@ -312,7 +312,7 @@ const userInterests = showUserByGender[currentIndex]?.interest ?? dummyInterests
                         className="photo-swiper"
                         style={{
                           ...photoStyle,
-                          background: `url(${BASE_URL}/assets/images/${showUserByGender[currentIndex]?.avatars[0]})`,
+                          background: `url(${BASE_URL}/assets/images/${showUserByGender[currentIndex]?.mainAvatar})`,
                           backgroundSize: "cover",
                           backgroundRepeat: "no-repeat",
                         }}

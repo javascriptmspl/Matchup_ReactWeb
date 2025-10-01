@@ -11,17 +11,19 @@ import { BASE_URL } from "../../base";
 const Memberpop = ({ showModal, hideModal, calenderScheduleDAte, userInfoDate, setSelectedData  }) => {
 
 const [user, setuser] = useState([])
+console.log("user",user);
+
+
   // const [favoriteContentList] = useState(UserData.slice(0, 18));
   const dispatch = useDispatch();
 const UserData = JSON.parse(localStorage.getItem("userData"));
 
 
 
-// Get users from Redux store
+
 const { users, loading, error } = useSelector((state) => state.datingApi);
 
 
-  // Fetch users based on gender and userId (can be from props)
   useEffect(() => {
     const Mydata = async () => {
       try {
@@ -36,7 +38,6 @@ const { users, loading, error } = useSelector((state) => state.datingApi);
     }
     Mydata()
   }, [])
-//  console.log("userInfoDate===>",userInfoDate);
  
 
   return (
@@ -54,7 +55,7 @@ const { users, loading, error } = useSelector((state) => state.datingApi);
           </div>
         </div>
 
-        <div className="row g-0 justify-content-center mx-12-none">
+        <div className="row g-0 justify-content-center mx-12-none h-100">
           {user.map((val, i) => (
             <div className="member__item" key={i}>
               <div className="member__inner member__inner-sized-hover react-main" onClick={ ()=>{
@@ -65,7 +66,7 @@ const { users, loading, error } = useSelector((state) => state.datingApi);
                   {/* <img width="25" alt="" /> */}
                 </div>
                 <div className="member__thumbmember_thumb">
-                < img className="image23" src={`${BASE_URL}/assets/images/${val.avatars[0] || "/default-avatar.png"} `} alt={val.imgAlt || "user"}  />
+                < img className="image23" src={`${BASE_URL}/assets/images/${val.mainAvatar || "/default-avatar.png"} `} alt={val.imgAlt || "user"}  />
                   <span className={val.className}></span>
                 </div>
                 <div className="member__content">
@@ -75,14 +76,14 @@ const { users, loading, error } = useSelector((state) => state.datingApi);
                     <h5 >{val.name}</h5>
                   </Link>
                   <p>
-                    <span>{val.occupation}</span> || <span>{val.age}</span>
+                    <span>{val.occupation}</span> <br /> || <span>{val.age}</span>
                   </p>
                   <p>{val.address}</p>
                 </div>
 
                 <div className="row mt-2 match-icon-main">
                   <div className="col">
-                    <Link className="fs-3 ms-4" to={`/dating/user-profile?userID=${val?._id}`}>
+                    <Link className="fs-3 ms-4" to={`/dating/user-profile/${val?._id}`}>
                       <i className="fa fa-user" aria-hidden="true" title="Profile"></i>
                     </Link>
                   </div>

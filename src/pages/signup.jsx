@@ -58,12 +58,14 @@ const SignUp = (selectedProfile) => {
       confirmPassword: "",
 
       dob: "",
-      iAm: "Male",
-      looking: "Female",
+      iAm: "",
+      looking: "",
       marital: "Single",
       city: "",
 
       createdProfileFor: selectedForWhome,
+      gender: "",
+      lookingFor: "",
       DietPreferences: "",
       Height: "",
       motherTongue: "",
@@ -300,7 +302,7 @@ const SignUp = (selectedProfile) => {
 
                       <div className="form-group">
                         <label>
-                          Password<span>*</span>
+                            <span>*</span>
                         </label>
                         <input
                           type="password"
@@ -489,6 +491,63 @@ const SignUp = (selectedProfile) => {
                             <span>Back</span>
                           </button>
                         </h4>
+
+                        <div className="form-group">
+                          <label>Gender</label>
+                          <select
+                            name="gender"
+                            value={formik.values.gender}
+                            onChange={(e) => {
+                              formik.handleChange(e);
+                              // Update iAm field when gender is selected
+                              formik.setFieldValue("iAm", e.target.value);
+                            }}
+                            onBlur={formik.handleBlur}
+                            className="my-form-control"
+                          >
+                            <option value="" label="Select Gender" disabled />
+                            <option value="Male" label="Male" />
+                            <option value="Female" label="Female" />
+                            <option value="Other" label="Other" />
+                          </select>
+                          {formik.touched.gender &&
+                          formik.errors.gender ? (
+                            <div
+                              className="error-message"
+                              style={{ color: "red" }}
+                            >
+                              {formik.errors.gender}
+                            </div>
+                          ) : null}
+                        </div>
+
+                        <div className="form-group">
+                          <label>Looking for</label>
+                          <select
+                            name="lookingFor"
+                            value={formik.values.lookingFor}
+                            onChange={(e) => {
+                              formik.handleChange(e);
+                              // Update looking field when looking for gender is selected
+                              formik.setFieldValue("looking", e.target.value);
+                            }}
+                            onBlur={formik.handleBlur}
+                            className="my-form-control"
+                          >
+                            <option value="" label="Select Gender" disabled />
+                            <option value="Male" label="Male" />
+                            <option value="Female" label="Female" />
+                          </select>
+                          {formik.touched.lookingFor &&
+                          formik.errors.lookingFor ? (
+                            <div
+                              className="error-message"
+                              style={{ color: "red" }}
+                            >
+                              {formik.errors.lookingFor}
+                            </div>
+                          ) : null}
+                        </div>
 
                         <div className="form-group">
                           <label>Diet</label>

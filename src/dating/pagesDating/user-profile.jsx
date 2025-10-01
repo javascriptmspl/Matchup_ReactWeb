@@ -32,8 +32,10 @@ const [mildStone, setMildStone] = useState(false);
   const dispatch = useDispatch();
 
   const USER_GET_BY_ID = useSelector((state) => state?.userCreate?.user);
+  console.log("userrrprofilesss",USER_GET_BY_ID)
   
-  const USER_PROFILE = USER_GET_BY_ID && USER_GET_BY_ID[0];
+  const USER_PROFILE = USER_GET_BY_ID;
+  console.log("userrrprofile",USER_PROFILE)
 
   const calculatedAge = (dob) => {
     const today = new Date();
@@ -897,7 +899,7 @@ const [mildStone, setMildStone] = useState(false);
                             <img
                               src={
                                 USER_PROFILE?.avatars
-                                  ? `${BASE_URL}/assets/images/${USER_PROFILE?.avatars[0]}`
+                                  ? `${BASE_URL}/assets/images/${USER_PROFILE?.mainAvatar}`
                                   : userMale
                               }
                               alt="matrimonial thumb"

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import FooterFour from "../component/layout/footerFour";
 import SelectProduct from "../component/select/selectproduct";
@@ -9,6 +9,7 @@ import HeaderFour from "../component/layout/HeaderFour";
 import { useDispatch, useSelector } from "react-redux";
 import Lodder from "../component/layout/Lodder";
 import { BASE_URL } from "../../base";
+import io from "socket.io-client";
 
 import userMale from "../../dating/assets/images/myCollection/user-male.jpg";
 import astro from "../assets/images/icons/Astro.png";
@@ -16,6 +17,9 @@ import {
   createActivity,
   getActivitiesBySenderUserId,
 } from "../../service/common-service/getuserbyGender";
+
+
+const SOCKET_URL = "http://38.242.230.126:4457";
 
 const MatchPage = () => {
   const loading = useSelector((state) => state.getAllUser.loading);
@@ -25,12 +29,68 @@ const MatchPage = () => {
   const handleAstroClick = () => navigate("/metrimonial/astro");
 
   const datingId = localStorage.getItem("userData");
-
   const user_Data = JSON.parse(datingId);
   const userId = user_Data.data._id;
   const modeId = user_Data.data.mode;
 
   const [matches, setMatches] = useState([]);
+  const [isCreatingRoom, setIsCreatingRoom] = useState(false);
+  
+  const socketRef = useRef(null);
+
+  useEffect(() => {
+    if (!userId) return;
+
+    socketRef.current = io(SOCKET_URL, {
+      query: { userId: userId },
+    });
+
+    socketRef.current.on("connect", () => {
+      console.log("Connected to chat server from match page");
+    });
+
+    socketRef.current.on("disconnect", () => {
+      console.log("Disconnected from chat server");
+    });
+
+    socketRef.current.on("room_created", (data) => {
+      console.log("Room created from match page:", data);
+      setIsCreatingRoom(false);
+      
+      const handleRoomsListOnce = (rooms) => {
+        console.log("rooms_list after creation:", rooms);
+        socketRef.current.off("rooms_list", handleRoomsListOnce);
+        navigate("/metrimonial/chat");
+      };
+
+      socketRef.current.on("rooms_list", handleRoomsListOnce);
+      socketRef.current.emit("get_my_rooms", { userId: userId });
+    });
+
+    socketRef.current.on("error", (error) => {
+      console.error("Socket error:", error);
+      setIsCreatingRoom(false);
+      
+      if (error.message && error.message.includes("E11000 duplicate key error")) {
+   
+        const handleRoomsListOnce = (rooms) => {
+         
+          socketRef.current.off("rooms_list", handleRoomsListOnce);
+          navigate("/metrimonial/chat");
+        };
+        socketRef.current.on("rooms_list", handleRoomsListOnce);
+        socketRef.current.emit("get_my_rooms", { userId: userId });
+      } else {
+        toast.error("Failed to create chat room. Please try again.");
+      }
+    });
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+      }
+    };
+  }, [userId, navigate]);
 
   useEffect(() => {
     const Mydata = async () => {
@@ -82,6 +142,74 @@ const MatchPage = () => {
       console.error("Activity error:", err);
       toast.error("Failed to perform action");
     }
+  };
+
+  const handleChatClick = (receiverUserId) => {
+    if (isCreatingRoom) {
+      toast("Creating room, please wait...");
+      return;
+    }
+
+    if (!socketRef.current) {
+      toast.error("Connection not available. Please refresh the page.");
+      return;
+    }
+
+ 
+
+    setIsCreatingRoom(true);
+    toast("Checking for chat room...");
+
+    const handleRoomsList = (rooms = []) => {
+     
+      
+      const existingRoom = rooms.find((r) => {
+        if (r?.otherUser?._id === receiverUserId) return true;
+        
+        if (Array.isArray(r?.users)) {
+          return r.users.some(u => u?._id === receiverUserId || u === receiverUserId);
+        }
+        
+        if (Array.isArray(r?.participants)) {
+          return r.participants.some(p => p?._id === receiverUserId || p === receiverUserId);
+        }
+        
+        return false;
+      });
+
+      socketRef.current.off("room_list", handleRoomsList);
+      socketRef.current.off("rooms_list", handleRoomsList);
+
+      if (existingRoom) {
+        console.log("✅ Found existing room, navigating to chat");
+        toast.success("Room found! Opening chat...");
+        setIsCreatingRoom(false);
+        navigate("/metrimonial/chat");
+      } else {
+       
+        toast("Creating new chat room...");
+        
+        const handleRoomCreated = (roomData) => {
+          console.log("🎉 Room created:", roomData);
+          socketRef.current.off("room_created", handleRoomCreated);
+          toast.success("Chat room created!");
+          setIsCreatingRoom(false);
+          navigate("/metrimonial/chat");
+        };
+        
+        socketRef.current.on("room_created", handleRoomCreated);
+        
+        socketRef.current.emit("create_room", {
+          toUserId: receiverUserId,
+          userId: userId,
+        });
+      }
+    };
+
+    socketRef.current.on("room_list", handleRoomsList);
+    socketRef.current.on("rooms_list", handleRoomsList);
+    
+    socketRef.current.emit("get_my_rooms", { userId: userId });
   };
 
   const Likes = matches ? matches.filter((i) => i.activityType === "like") : [];
@@ -223,16 +351,17 @@ const MatchPage = () => {
                             </div>
 
                             <div className="col">
-                              <Link
+                              <span
                                 className="fs-3 ms-3"
-                                to="/metrimonial/chat"
+                                style={{ cursor: "pointer", color: isCreatingRoom ? "#ccc" : "#f24570" }}
+                                onClick={() => handleChatClick(val?.receiverUserId?._id)}
+                                title={isCreatingRoom ? "Creating room..." : "Message"}
                               >
                                 <i
                                   class="fa fa-comment"
                                   aria-hidden="true"
-                                  title="Message"
                                 ></i>
-                              </Link>
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -332,16 +461,17 @@ const MatchPage = () => {
                             </div>
 
                             <div className="col">
-                              <Link
+                              <span
                                 className="fs-3 ms-3"
-                                to="/metrimonial/chat"
+                                style={{ cursor: "pointer", color: isCreatingRoom ? "#ccc" : "#f24570" }}
+                                onClick={() => handleChatClick(val?.receiverUserId?._id)}
+                                title={isCreatingRoom ? "Creating room..." : "Message"}
                               >
                                 <i
                                   class="fa fa-comment"
                                   aria-hidden="true"
-                                  title="Meassage"
                                 ></i>
-                              </Link>
+                              </span>
                             </div>
                           </div>
                         </div>

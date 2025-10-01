@@ -92,7 +92,7 @@ const ActivityTimeline = () => {
   const profileData = useSelector((state) => state.profile.userData);
 
 
-  const User = profileData[0];
+  const User = profileData;
 
   return (
     // <div className="activity-timeline">
@@ -128,6 +128,8 @@ const ActivityTimeline = () => {
                             src={
                               User?.mainAvatar
                                 ? `${BASE_URL}/assets/images/${User?.mainAvatar}`
+                                : User?.avatars?.[0]
+                                ? `${BASE_URL}/assets/images/${User?.avatars?.[0]}`
                                 : userMale
                             }
                             alt="dating thumb"
