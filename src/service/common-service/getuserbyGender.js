@@ -57,7 +57,6 @@ export const createActivity = createAsyncThunk(
   }
 );
 
-// 🔹 Get activities by senderUserId
 export const getActivitiesBySenderUserId = createAsyncThunk(
   "dating/getActivitiesBySenderUserId",
   async (
