@@ -409,12 +409,17 @@ const BannerOne = () => {
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check if user is logged in
     const hasToken = Boolean(localStorage.getItem("token"));
-    if (!(isAuthenction || hasToken)) {
-      toast.error("Please login to find matches");
+    const hasUserData = Boolean(localStorage.getItem("userData"));
+    
+    if (!hasToken || !hasUserData || !isAuthenction) {
+      toast.error("Please login to find your partner");
       navigate("/login");
       return;
     }
+    
     try {
       const res = await dispatch(
         fetchUsersByGender({
@@ -425,10 +430,13 @@ const BannerOne = () => {
       if (res.isSuccess === true && userData) {
         navigate("/dating/members");
       } else {
+        toast.error("Failed to load members");
         navigate("/login");
       }
     } catch (error) {
-      toast.error("Failed to fetch users: " + error.message);
+      console.error("Error fetching users:", error);
+      toast.error("Please login to continue");
+      navigate("/login");
     }
   };
 

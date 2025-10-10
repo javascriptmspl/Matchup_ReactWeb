@@ -101,23 +101,23 @@ function DatingRoutes() {
             <Route path="notification" element={<NotificationPage />} />
             <Route path="termsconditions" element={<Termsconditions />} />
             <Route path="faq" element={<FAQ />} />
-            <Route path="notifications" element={<NotificationFullPage />} />
-            <Route path="messenger-page" element={<MessengerPage />} />
-            <Route path="manage-profile" element={<ManageProfile />} />
-            <Route path="contactdetail" element={<ContactDetail />} />
-            <Route path="aboutinfo" element={<Aboutdetail />} />
-            <Route path="profile" element={<MyProfile />} />
-            <Route path="match-page" element={<MatchPage />} />
+            <Route path="notifications" element={<ProtectedRoutes><NotificationFullPage /></ProtectedRoutes>} />
+            <Route path="messenger-page" element={<ProtectedRoutes><MessengerPage /></ProtectedRoutes>} />
+            <Route path="manage-profile" element={<ProtectedRoutes><ManageProfile /></ProtectedRoutes>} />
+            <Route path="contactdetail" element={<ProtectedRoutes><ContactDetail /></ProtectedRoutes>} />
+            <Route path="aboutinfo" element={<ProtectedRoutes><Aboutdetail /></ProtectedRoutes>} />
+            <Route path="profile" element={<ProtectedRoutes><MyProfile /></ProtectedRoutes>} />
+            {/* Duplicate match-page route removed - already protected above on line 77 */}
             {/* <Route path="user-profile" element={<UserProfile />} /> */}
-            <Route path="interest" element={<SelectInterest />} />
-            <Route path="add-photos" element={<AddPhotos />} />
-            <Route path="settings" element={<Settings />} />
+            <Route path="interest" element={<ProtectedRoutes><SelectInterest /></ProtectedRoutes>} />
+            <Route path="add-photos" element={<ProtectedRoutes><AddPhotos /></ProtectedRoutes>} />
+            <Route path="settings" element={<ProtectedRoutes><Settings /></ProtectedRoutes>} />
             {/* <Route path="testimonial" element={<Testimonial />} /> */}
             <Route path="safety-security" element={<Safetysecurity />} />
             <Route path="quick-start-guide" element={<Quickstartguide />} />
             {/* <Route path="membership" element={<Membershippage />} /> */}
             {/* <Route path="find-friend-new" element={<FindFriendPageNew />} /> */}
-            <Route path="members" element={<FindFriendPageNew />} />
+            <Route path="members" element={<ProtectedRoutes><FindFriendPageNew /></ProtectedRoutes>} />
 
             
           </Route>

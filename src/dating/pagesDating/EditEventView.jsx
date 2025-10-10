@@ -66,10 +66,12 @@ const EditEventViewSchedule = ({
   selectData,
 }) => {
   const [storeData, setStoreData] = useState([]);
+  
+  // Define displayUser to handle both ViewUser and selectedUser
+  const displayUser = ViewUser || selectedUser;
 
   useEffect(() => {
     const data = localStorage.getItem("dataEvent");
-    console.log(JSON.parse(data));
     setStoreData(data ? [JSON.parse(data)] : []);
   }, []);
 
@@ -80,7 +82,6 @@ const EditEventViewSchedule = ({
     const parsedDataEvent = dataEvent ? JSON.parse(dataEvent) : null;
     const parsedDatanotifyEvent = datanotifyEvent ? JSON.parse(datanotifyEvent) : null;
   
-    console.log(parsedDataEvent, parsedDatanotifyEvent);
   
     // Assuming setStoreData is a function that updates the state
     setStoreData(parsedDataEvent && parsedDatanotifyEvent ? [parsedDataEvent, parsedDatanotifyEvent] : []);
@@ -107,7 +108,6 @@ const EditEventViewSchedule = ({
     }
   };
 
-  console.log("<<<<<<<<<<<<<ViewUser",ViewUser);
 
   return (
     <Modal show={showModal} onHide={hideModal} centered>
@@ -174,7 +174,7 @@ const EditEventViewSchedule = ({
                       />
                     </svg>
                   </span>
-                  {User?.address || "New York, USA"}
+                        {displayUser?.receiverUserId?.address || User?.address || "New York, USA"}
                 </p>
               </div>
               <div className="col-md-4 col-4 modal-imgg-wrap">
@@ -211,17 +211,22 @@ const EditEventViewSchedule = ({
                   <div className="col-md-4 col-4 modal-imgg-wrap">
                     <img
                       className="img2 rounded-50"
-                      // src={ViewUser?.selectUser?.avatar}
-                      src={`${BASE_URL}/assets/images/${ViewUser?.receiverUserId?.avatars[0] }`}
-                      alt={ViewUser?.selectUser?.avatar}
+                      src={
+                        displayUser?.receiverUserId?.mainAvatar
+                        ? `${BASE_URL}/assets/images/${displayUser.receiverUserId.mainAvatar}`
+                        : displayUser?.receiverUserId?.avatars?.[0]
+                        ? `${BASE_URL}/assets/images/${displayUser.receiverUserId.avatars[0]}`
+                        : userMale
+                      }
+                      alt={displayUser?.receiverUserId?.name || "user"}
                     />
                   </div>
                   <div className="col-md-8 mod-person-rt col-8">
                     <p className="fs-4 text-muted fw-600 per-txt">
-                      {ViewUser?.receiverUserId?.name}
+                      {displayUser?.receiverUserId?.name}
                     </p>
                     <p className="fs-4 text-muted fw-600 per-dest">
-                      {ViewUser?.receiverUserId?.occupation}
+                      {displayUser?.receiverUserId?.occupation}
                     </p>
                     <p className="fs-4 text-muted fw-600 location">
                       <span className="location2">
@@ -278,7 +283,7 @@ const EditEventViewSchedule = ({
                   xmlns="http://www.w3.org/2000/svg"
                   width="11"
                   height="11"
-                  viewBox="0 0 19 19"
+                  viewBox="0 0 19 19" 
                   fill="none"
                 >
                   <g clip-path="url(#clip0_2149_148)">

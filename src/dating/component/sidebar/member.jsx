@@ -27,6 +27,18 @@ const ActiveMember = () => {
     <div className="active-member bg-white pt-4 mb-4">
 
       <div className="modal-header">
+
+
+
+
+
+
+
+
+
+
+
+      
         <h6>{title}</h6>
         <ul className="nav nav-tabs" id="myTab" role="tablist">
           <li className="nav-item" role="presentation">
@@ -47,7 +59,8 @@ const ActiveMember = () => {
                         <div className="member__thumb">
                           <img
                             src={
-                             `${BASE_URL}/assets/images/${val?.avatars[0]}`
+                             `${BASE_URL}/assets/images/${val?.mainAvatar
+                             }`
                             }
                             style={{
                               height: "51px",

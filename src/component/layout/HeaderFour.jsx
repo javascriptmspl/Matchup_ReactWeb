@@ -51,6 +51,7 @@ const HeaderFour = () => {
   const [userData, setUserData] = useState(localStorage.getItem("userData"));
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const [logoutStatus, setLogoutStatus] = useState(null);
+  const [notificationCount, setNotificationCount] = useState(0);
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -107,6 +108,27 @@ const HeaderFour = () => {
   useEffect(() => {
     dispatch(getUserProfileAsync(userId));
   }, [dispatch, userId]);
+
+  useEffect(() => {
+    const fetchNotificationCount = async () => {
+      if (userId) {
+        try {
+          const response = await fetch(
+            `${BASE_URL}/notifications/user/${userId}?page=1&limit=100`
+          );
+          const data = await response.json();
+          setNotificationCount(data.length);
+        } catch (error) {
+          console.error("Error fetching notification count:", error);
+        }
+      }
+    };
+
+    fetchNotificationCount();
+    // Refresh notification count every 30 seconds
+    const interval = setInterval(fetchNotificationCount, 30000);
+    return () => clearInterval(interval);
+  }, [userId]);
 
   const handleLogoutApi = async () => {
     try {
@@ -366,18 +388,20 @@ const HeaderFour = () => {
                       <Link>
                         <i className="fa fa-bell-o fs-5" aria-hidden="true"></i>
                       </Link>
-                      <Badge
-                        className="notification-badge"
-                        bg="danger"
-                        style={{
-                          position: "absolute",
-                          top: "-13px",
-                          left: "12px",
-                          cursor: "pointer",
-                        }}
-                      >
-                       2
-                      </Badge>
+                      {notificationCount > 0 && (
+                        <Badge
+                          className="notification-badge"
+                          bg="danger"
+                          style={{
+                            position: "absolute",
+                            top: "-13px",
+                            left: "12px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          {notificationCount}
+                        </Badge>
+                      )}
                     </span>
                     <ul
                       className="dropdown-menu dropdown-menu-notification"

@@ -7,6 +7,7 @@ const ManageProfileAboutInput = ({ userData, onUpdateProfile, editMode }) => {
   const [userDataEdit, setUserDataEdit] = useState({
     email: userData?.email || "",
     phone: userData?.phoneNumber || "",
+    description: userData?.description || "",
   });
 
   const [buttonClass, setButtonClass] = useState("default-btn reverse");
@@ -14,16 +15,17 @@ const ManageProfileAboutInput = ({ userData, onUpdateProfile, editMode }) => {
   const userDatas = localStorage.getItem("userData");
   const userDataObj = JSON.parse(userDatas);
 
-  const userId = userDataObj?.data?.data?._id || null;
+  // Fix: Get userId from correct path (data._id not data.data._id)
+  const userId = userDataObj?.data?._id || userDataObj?._id || null;
 
   useEffect(() => {
-    // Update userDataEdit when editMode is true
-    if (editMode) {
-      setUserDataEdit({
-        description: userData?.description || "",
-      });
-    }
-  }, [editMode, userData]);
+    // Update userDataEdit when userData changes
+    setUserDataEdit({
+      email: userData?.email || "",
+      phone: userData?.phoneNumber || "",
+      description: userData?.description || "",
+    });
+  }, [userData]);
   const handleChange = (e) => {
     const { name, value, type } = e.target;
 
@@ -42,16 +44,42 @@ const ManageProfileAboutInput = ({ userData, onUpdateProfile, editMode }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const updatedUserData = userDataEdit;
-      await dispatch(updateUserProfileAsync({ updatedUserData, userId }));
+    
+    // Validate userId
+    if (!userId) {
+      toast.error("User ID not found. Please log in again.");
+      return;
+    }
 
-      onUpdateProfile();
+    // Validate description
+    if (!userDataEdit.description || userDataEdit.description.trim() === "") {
+      toast.error("Description cannot be empty");
+      return;
+    }
+
+    try {
+      const updatedUserData = {
+        description: userDataEdit.description.trim()
+      };
+      
+      console.log("Updating profile with:", { updatedUserData, userId });
+      
+      const result = await dispatch(updateUserProfileAsync({ updatedUserData, userId }));
+      
+      if (result.error) {
+        throw new Error(result.error.message || "Update failed");
+      }
+
+      // Call the callback to refresh parent component
+      if (onUpdateProfile) {
+        onUpdateProfile();
+      }
+      
       toast.success("About info successfully updated");
       setButtonClass("default-btn reverse");
     } catch (error) {
-      console.error("Error updating Contact profile:", error);
-      toast.error("Failed to update Contact info");
+      console.error("Error updating About profile:", error);
+      toast.error(error.message || "Failed to update About info");
     }
   };
 
@@ -70,13 +98,14 @@ const ManageProfileAboutInput = ({ userData, onUpdateProfile, editMode }) => {
 
                     <div className="form-group">
                       <label>Description*</label>
-                      <input
-                        type="text"
+                      <textarea
                         name="description"
                         placeholder="Enter Description"
                         value={userDataEdit.description}
                         onChange={handleChange}
                         className="my-form-control"
+                        rows="4"
+                        style={{ minHeight: "100px", resize: "vertical" }}
                       />
                     </div>
                     <button

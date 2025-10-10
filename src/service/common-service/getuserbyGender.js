@@ -76,6 +76,24 @@ export const getActivitiesBySenderUserId = createAsyncThunk(
   }
 );
 
+// 🔹 Check mutual likes/favorites between two users
+export const checkMutualActivities = createAsyncThunk(
+  "dating/checkMutualActivities",
+  async (
+    { userId1, userId2, modeId },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await axios.get(
+        `${BASE_URL}/activitys/checkMutual/${userId1}/${userId2}?modeId=${modeId}`
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
 
 // New thunk for Interests
 
@@ -141,6 +159,7 @@ const datingApiSlice = createSlice({
     error: null,
     activity: null,
     activities: [],
+    mutualActivities: null,
   },
   reducers: {},
   extraReducers: (builder) => {
@@ -183,6 +202,20 @@ const datingApiSlice = createSlice({
         state.activities = action.payload;
       })
       .addCase(getActivitiesBySenderUserId.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // checkMutualActivities
+      .addCase(checkMutualActivities.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(checkMutualActivities.fulfilled, (state, action) => {
+        state.loading = false;
+        state.mutualActivities = action.payload;
+      })
+      .addCase(checkMutualActivities.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

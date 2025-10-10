@@ -11,6 +11,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { UserData } from "../../assets/DummyData/userData";
 import { createActivity, fetchUsersByGender, getActivitiesBySenderUserId } from "../../service/common-service/getuserbyGender";
 import { BASE_URL } from "../../base";
+import { fetchChatRoomsAsync } from "../../service/MANAGE_SLICE/chatSlice";
 
 const MatchPage = () => {
   const [favoriteContentList, setFavoriteContentList] = useState([]);
@@ -26,6 +27,23 @@ const MatchPage = () => {
   const modeId = User?.data?.mode;
   
   const dispatch = useDispatch()
+  const navigate = useNavigate()
+  const chatStatus = useSelector((state) => state.chat?.status)
+  
+  // Handle chat icon click
+  const handleChatClick = async (toUserId) => {
+    try {
+      await dispatch(fetchChatRoomsAsync({ 
+        userId: userId, 
+        toUserId: toUserId 
+      })).unwrap()
+      navigate('/dating/chat-page2')
+    } catch (error) {
+      console.error('Failed to fetch chat rooms:', error)
+      toast.error('Failed to load chat rooms')
+    }
+  }
+  
   // const handleClick = (id, userName, user) => {
   //   setLoveImageStatus((prevLoveImageStatus) => {
   //     const isLiked = prevLoveImageStatus[id] === loveRed;
@@ -265,10 +283,10 @@ const SuperLikes = matchUserList
                               </Link>
                             </div>
  
-                            <div className="col">
+                            {/* <div className="col">
                               <Link
                                 className="fs-3 ms-3"
-                                to="/metrimonial/chat"
+                                to="/dating/chat-page2"
                               >
                                 <i
                                   class="fa fa-comment"
@@ -276,7 +294,23 @@ const SuperLikes = matchUserList
                                   title="Meassage"
                                 ></i>
                               </Link>
-                            </div>
+                            </div> */}
+                            
+                      <div className="col">
+                        <button 
+                          className="fs-3 ms-3 border-0 bg-transparent" 
+                          onClick={() => handleChatClick(val?.receiverUserId?._id)}
+                          disabled={chatStatus === 'loading'}
+                          style={{ color: chatStatus === 'loading' ? '#ccc' : 'inherit' }}
+                        >
+                          <i
+                            className="fa fa-comment"
+                            aria-hidden="true"
+                            title="Message"
+                          ></i>
+                          {chatStatus === 'loading' && <span className="ms-1">...</span>}
+                        </button>
+                      </div>
                           </div>
                         </div>
                       </div>
@@ -287,7 +321,7 @@ const SuperLikes = matchUserList
                         "Favorite List are not available{" "}
                         <a href="/dating/members">
                           <strong>
-                            <u>Find Your Matche </u>
+                            <u>Find Your Matches </u>
                           </strong>
                         </a>{" "}
                         now!"
@@ -367,13 +401,19 @@ const SuperLikes = matchUserList
                       </div>
 
                       <div className="col">
-                        <Link className="fs-3 ms-3" to="/dating/chat-page2">
+                        <button 
+                          className="fs-3 ms-3 border-0 bg-transparent" 
+                          onClick={() => handleChatClick(val?.receiverUserId?._id)}
+                          disabled={chatStatus === 'loading'}
+                          style={{ color: chatStatus === 'loading' ? '#ccc' : 'inherit' }}
+                        >
                           <i
-                            class="fa fa-comment"
+                            className="fa fa-comment"
                             aria-hidden="true"
-                            title="Meassage"
+                            title="Message"
                           ></i>
-                        </Link>
+                          {chatStatus === 'loading' && <span className="ms-1">...</span>}
+                        </button>
                       </div>
                     </div>
                   </div>

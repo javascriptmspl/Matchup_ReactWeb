@@ -190,7 +190,7 @@ const EventNotificationSchedule = ({
                   src={
                     selectedUser?.avatars
                       ? `${BASE_URL}/assets/images/${selectedUser?.avatars[0]}`
-                      : userMale
+                      : selectedUser?.mainAvatar
                       ? `${BASE_URL}/assets/images/${selectedUser?.mainAvatar}`
                       : userMale
                   }
@@ -199,7 +199,7 @@ const EventNotificationSchedule = ({
               </div>
               <div className="col-md-8 mod-person-rt col-8">
                 <p className="fs-4 text-muted fw-600 per-txt">
-                  {selectedUser?.name || ""}
+                  {selectedUser?.name || "name"}
                 </p>
                 <p className="fs-4 text-muted fw-600 per-dest">
                   {selectedUser?.occupation || ""}

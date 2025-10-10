@@ -158,8 +158,14 @@ const EventViewSchedule = ({
                     <img
                       className="img2 rounded-50"
                       // src={`${ViewUser?.selectUser?.avatar}`}
-                      src={`${BASE_URL}/assets/images/${ViewUser?.receiverUserId?.avatars[0]}`}
-                      alt={ViewUser?.selectUser?.avatar}
+                      src={
+                        ViewUser?.receiverUserId?.mainAvatar
+                          ? `${BASE_URL}/assets/images/${ViewUser?.receiverUserId.mainAvatar}`
+                          : ViewUser?.receiverUserId?.avatars?.[0]
+                          ? `${BASE_URL}/assets/images/${ViewUser?.receiverUserId.avatars[0]}`
+                          : userMale
+                      }
+                      alt={ViewUser?.receiverUserId?.name || "user"}
                     />
                   </div>
                   <div className="col-md-8 mod-person-rt col-8">

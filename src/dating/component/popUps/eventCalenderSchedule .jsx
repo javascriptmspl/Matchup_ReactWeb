@@ -8,10 +8,12 @@ import DatePicker from 'react-datepicker';
 import Timer from './Timer'
 import VenuePicker from './Venue'
 import { Link } from "react-router-dom";
+import { BASE_URL } from "../../../base";
+import userMale from "../../../dating/assets/images/myCollection/user-male.jpg";
 
 
 
-const EventCalenderSchedule = ({showModal,hideModal,NotifyScheduleData}) => {
+const EventCalenderSchedule = ({showModal,hideModal,NotifyScheduleData,selectedUser}) => {
   const [showClock, setShowClock] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
@@ -90,6 +92,25 @@ const EventCalenderSchedule = ({showModal,hideModal,NotifyScheduleData}) => {
             </span>
 
             <div className="Data-1 cstm-modal">
+              <div className="user-info text-center mb-3">
+                {selectedUser && (
+                  <>
+                    <img
+                      src={
+                        selectedUser?.receiverUserId?.mainAvatar
+                          ? `${BASE_URL}/assets/images/${selectedUser.receiverUserId.mainAvatar}`
+                          : selectedUser?.receiverUserId?.avatars?.[0]
+                          ? `${BASE_URL}/assets/images/${selectedUser.receiverUserId.avatars[0]}`
+                          : userMale
+                      }
+                      alt="User"
+                      className="rounded-circle mb-2"
+                      style={{ width: "60px", height: "60px", objectFit: "cover" }}
+                    />
+                    <h6 className="text-muted">{selectedUser?.receiverUserId?.name || "User"}</h6>
+                  </>
+                )}
+              </div>
               <h5 className="fs-4 text-muted fw-700">
                 Schedule Your Virtual Date for Meaningful Connections!
               </h5>

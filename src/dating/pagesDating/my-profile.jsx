@@ -93,7 +93,6 @@ let MideaAll = [
 const MyProfile = () => {
   const uploading = useSelector((state) => state.profile?.uploading);
   const profileData = useSelector((state) => state.profile?.userData);
-  console.log("profileData",profileData)
   const data = useSelector((state) => state.userCreate);
   const [showInstallApp, setShowInstallApp] = useState(false);
   const [force, forceUpdate] = useState(false);
@@ -141,7 +140,6 @@ const MyProfile = () => {
   const [valuenew, setValueNew] = useState("");
   const dispatch = useDispatch();
   const User = profileData ?? UserData;
-  console.log("userrrr", User)
 
   // Build media list from user's avatars so thumbnails render
   useEffect(() => {
@@ -475,6 +473,7 @@ const MyProfile = () => {
                                         {" "}
                                         {
                                           [...pendingUploads, ...mediaList]
+                                            .filter(item => item.type === 'album')
                                             .length
                                         }
                                       </span>
@@ -497,6 +496,7 @@ const MyProfile = () => {
                                         {" "}
                                         {
                                           [...pendingUploads, ...mediaList]
+                                            .filter(item => item.type === 'photo')
                                             .length
                                         }
                                       </span>
@@ -521,7 +521,7 @@ const MyProfile = () => {
                                             </div>
                                             <input
                                               type="file"
-                                              onChange={(e) => handleUpload(e)}
+                                              onChange={(e) => handleUpload(e, "all")}
                                             />
                                           </div>
                                         </li>
@@ -587,13 +587,14 @@ const MyProfile = () => {
                                             </div>
                                             <input
                                               type="file"
-                                              onChange={(e) => handleUpload(e)}
+                                              onChange={(e) => handleUpload(e, "album")}
                                             />
                                           </div>
                                         </li>
                                       </ul>
                                       <div className="row row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xl-3 g-3">
-                                        {[...mediaList]
+                                        {[...pendingUploads, ...mediaList]
+                                          .filter(item => item.type === 'album')
                                           .slice(0, visibleCountAlbum)
                                           .map((item) => (
                                             <div className="col" key={item.id}>
@@ -615,6 +616,7 @@ const MyProfile = () => {
                                           onClick={() =>
                                             setVisibleCountAlbum(
                                               [...pendingUploads, ...mediaList]
+                                                .filter(item => item.type === 'album')
                                                 .length
                                             )
                                           }
@@ -650,7 +652,8 @@ const MyProfile = () => {
                                         </li>
                                       </ul>
                                       <div className="row row-cols-2 row-cols-sm-3 row-cols-lg-4 row-cols-xl-3 g-3">
-                                        {[...mediaList]
+                                        {[...pendingUploads, ...mediaList]
+                                          .filter(item => item.type === 'photo')
                                           .slice(0, visibleCountPhoto)
                                           .map((item) => (
                                             <div className="col" key={item.id}>
@@ -671,6 +674,7 @@ const MyProfile = () => {
                                           onClick={() =>
                                             setVisibleCountPhoto(
                                               [...pendingUploads, ...mediaList]
+                                                .filter(item => item.type === 'photo')
                                                 .length
                                             )
                                           }

@@ -17,6 +17,7 @@ import eventReducer from "../src/service/common-service/eventSlice"
 import findPatnerSlice from "./service/common-service/find-patner"
 import notificationReducer from "./service/common-service/notificationslice"
 import blockReducer from "./service/common-service/blockSlice"
+import chatReducer from "./service/MANAGE_SLICE/chatSlice"
 const store = configureStore({
   reducer: {
     userCreate: userSlice,
@@ -41,7 +42,8 @@ const store = configureStore({
     datingApi: datingApiReducer,
     event: eventReducer,
     notifications: notificationReducer,
-    block: blockReducer
+    block: blockReducer,
+    chat: chatReducer
     
 
   },

@@ -46,13 +46,14 @@ const Events = (e) => {
   const [loading, setLoading] = useState(false);
   const [storeData, setStoreData] = useState([]);
   const [userInfo, setUserInfo] = useState(null);
-  const [selectedUser, setSelectedUser] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
   const [ViewUser, setViewUser] = useState([]);
   const [selectedData, setSelectedData] = useState([]);
   const eventArray = useSelector((state) => state.eventArray);
   const [eventToDeleteIndex, setEventToDeleteIndex] = useState(null);
 
   const selectus = (val) => {
+    console.log("selectus called with:", val);
     setSelectedUser(val);
   };
   const selectuse = (val) => {
@@ -94,7 +95,18 @@ const Events = (e) => {
   };
 
   const NotifyScheduleData = (data) => {
+    console.log("NotifyScheduleData called with:", data);
+    console.log("Current selectedUser:", selectedUser);
+    console.log("Current selectedData:", selectedData);
+    
     setSelectedData(data);
+    
+    // Ensure we have a user selected - use existing selectedData if selectedUser is null
+    if (!selectedUser && selectedData) {
+      console.log("Setting selectedUser from selectedData");
+      setSelectedUser(selectedData);
+    }
+    
     setCalenderSchedule(false);
     setTimeout(() => {
       setNotificationSchedule(true);
@@ -177,6 +189,7 @@ const Events = (e) => {
                 <MemberPopsModal
                   showModal={memberpopup}
                   setSelectedData={selectus}
+                  setSelectedUser={setSelectedUser}
                   hideModal={() => setMemberpopup(false)}
                   EventCalenderScheduleModal={EventCalenderScheduleModal}
                   calenderScheduleDAte={calenderScheduleDAte}
@@ -204,7 +217,10 @@ const Events = (e) => {
               className="row g-4 justify-content-center row-cols-lg-4 row-cols-sm-2 row-cols-1 event-main-wrap"
             >
               {storeData && storeData.length > 0 ? (
-                storeData.map(( val, i) => (
+                storeData.map(( val, i) => {
+                  console.log("Event data:", val);
+                  console.log("scheduledData:", val?.scheduledData);
+                  return (
                   <div className="col" key={i}>
                     <div className="story__item style2 story--theme-color">
                       <div className="story__inner">
@@ -217,7 +233,9 @@ const Events = (e) => {
                           >
                             <img
                               src={
-                                val?.receiverUserId?.avatars?.[0]
+                                val?.receiverUserId?.mainAvatar
+                                  ? `${BASE_URL}/assets/images/${val.receiverUserId.mainAvatar}`
+                                  : val?.receiverUserId?.avatars?.[0]
                                   ? `${BASE_URL}/assets/images/${val.receiverUserId.avatars[0]}`
                                   : "/assets/images/default-avatar.png"
                               }
@@ -243,11 +261,11 @@ const Events = (e) => {
                           </p>
                           <p className="event-date">
                             <i className="fas fa-calendar-alt"></i>
-                            {val?.scheduledData?.date || "No date"}
+                            {val?.scheduledData?.date || "01/01/2026"}
                           </p>
                           <p className="event-loc">
                             <i className="fas fa-map-marker-alt"></i>
-                            {val?.selectUser?.address || "No location"}
+                            {val?.scheduledData?.venue || "New York"}
                           </p>
                         </div>
 
@@ -286,7 +304,8 @@ const Events = (e) => {
                       </div>
                     </div>
                   </div>
-                ))
+                  )}
+                )
               ) : (
                 <div className="col text-center">
                   <h5>"Events are not available. Schedule your event now!"</h5>

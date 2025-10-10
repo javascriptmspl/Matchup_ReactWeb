@@ -8,10 +8,9 @@ import { fetchUsersByGender } from "../../service/common-service/getuserbyGender
 import toast from "react-hot-toast";
 import { BASE_URL } from "../../base";
 
-const Memberpop = ({ showModal, hideModal, calenderScheduleDAte, userInfoDate, setSelectedData  }) => {
+const Memberpop = ({ showModal, hideModal, calenderScheduleDAte, userInfoDate, setSelectedData, setSelectedUser  }) => {
 
 const [user, setuser] = useState([])
-console.log("user",user);
 
 
   // const [favoriteContentList] = useState(UserData.slice(0, 18));
@@ -60,6 +59,7 @@ const { users, loading, error } = useSelector((state) => state.datingApi);
             <div className="member__item" key={i}>
               <div className="member__inner member__inner-sized-hover react-main" onClick={ ()=>{
                     setSelectedData(val)
+                    setSelectedUser(val)
                     calenderScheduleDAte()} }>
                 <div className="react">
                   {/* Add your logic here */}
@@ -83,7 +83,7 @@ const { users, loading, error } = useSelector((state) => state.datingApi);
 
                 <div className="row mt-2 match-icon-main">
                   <div className="col">
-                    <Link className="fs-3 ms-4" to={`/dating/user-profile/${val?._id}`}>
+                    <Link className="fs-3 ms-4" to={`/metrimonial/user-profile/${val?._id}`}>
                       <i className="fa fa-user" aria-hidden="true" title="Profile"></i>
                     </Link>
                   </div>
