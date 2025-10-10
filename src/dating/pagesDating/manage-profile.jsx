@@ -46,7 +46,6 @@ const ManageProfile = () => {
   const profileData = useSelector((state) => state.profile?.userData);
   const dispatch = useDispatch();
   const userData1 = profileData;
-  console.log("usssmsmmsm", userData1);
   const userDatas = localStorage.getItem("userData");
   const userDataObj = userDatas ? JSON.parse(userDatas) : null;
   const userId = userDataObj?.data?._id || null;

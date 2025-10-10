@@ -37,19 +37,12 @@ const EventViewSchedule = ({
     setStoreData([...parsedDataEvent, ...parsedDatanotifyEvent]);
   }, [datanotifyEvent, dataEvent]);
 
-  // useEffect(() => {
-  //   const data = localStorage.getItem("dataEvent");
-  //   console.log(JSON.parse(data));
-  //   setStoreData(data ? [JSON.parse(data)] : []);
-  // }, []);
-
   const handleSubmit = (e) => {
     e.preventDefault();
     try {
       toast.success("schedule date successfully updated");
       //  setButtonClass("default-btn reverse");
       hideModal(hideModal);
-      console.log("checking  ato");
     } catch (error) {
       console.error("Error updating Contact profile:", error);
       toast.error("Failed to update Contact info");

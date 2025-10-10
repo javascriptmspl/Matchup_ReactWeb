@@ -32,10 +32,8 @@ const [mildStone, setMildStone] = useState(false);
   const dispatch = useDispatch();
 
   const USER_GET_BY_ID = useSelector((state) => state?.userCreate?.user);
-  console.log("userrrprofilesss",USER_GET_BY_ID)
   
   const USER_PROFILE = USER_GET_BY_ID;
-  console.log("userrrprofile",USER_PROFILE)
 
   const calculatedAge = (dob) => {
     const today = new Date();

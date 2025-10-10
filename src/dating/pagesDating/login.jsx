@@ -44,7 +44,6 @@ const LogIn = () => {
         },
       });
 
-      console.log(result);
     } catch (error) {
       console.error(error);
     }

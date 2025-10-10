@@ -24,7 +24,6 @@ const {eventDatahandle}=useContext(MyContext)
     selectUser:selectedUser,
     scheduledData:scheduledData,
   }
-  console.log(eventData,"PROFILE");
 
   const handleSubmitnotification =  (e) => {
     

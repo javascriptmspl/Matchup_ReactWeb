@@ -11,7 +11,6 @@ const ShopCart = () => {
     const dispatch = useDispatch();
     const cartItems = useSelector((state) => state.cart.items);
     const cartItem = cartItems.length
-    console.log('daaaaa', cartItem)
     
 
     const handleRemoveFromCart = (index) => {

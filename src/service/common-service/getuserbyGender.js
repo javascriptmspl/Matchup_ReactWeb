@@ -68,7 +68,6 @@ export const getActivitiesBySenderUserId = createAsyncThunk(
       const response = await axios.get(
         `${BASE_URL}/activitys/getBySenderUserId/${senderUserId}?modeId=${modeId}&page_number=${page_number}&page_size=${page_size}`
       );
-      // console.log("1111111111111111111",response)
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);

@@ -167,8 +167,7 @@ const MatchPage = () => {
 const SuperLikes = matchUserList
   ? matchUserList.filter((i) => i.activityType === "superlike")
   : [];
-  console.log("Likes",Likes);
-  console.log("SuperLikes",SuperLikes);
+  
   
 
   return (

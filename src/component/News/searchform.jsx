@@ -6,32 +6,27 @@ const ItemSearchForm = () => {
   const [keywords, setKeywords] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
 
-  // Handler for basic search form submission
+ 
   const handleSubmit = (event) => {
     event.preventDefault();
-    // Perform search action without redirecting
-    console.log('Search submitted with:', { year, keywords });
-    // Implement search logic here, such as updating state or making API calls
+    
   };
 
-  // Handler for year select change
+
   const handleYearChange = (event) => {
     setYear(event.target.value);
   };
 
-  // Handler for keywords input change
   const handleKeywordsChange = (event) => {
     setKeywords(event.target.value);
   };
 
-  // Toggle advanced search visibility
   const toggleAdvancedSearch = () => {
     setShowAdvanced(!showAdvanced);
   };
 
   return (
     <div className="search_form_wrap">
-      {/* Basic Search Form */}
       <form
         name="item_basic_search_20295"
         onSubmit={handleSubmit} // No action attribute

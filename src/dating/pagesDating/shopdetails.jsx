@@ -212,7 +212,6 @@ const ShopDetails = () => {
   const handleAddToCart = async () => {
     try {
       await dispatch(addToCartAsync(product));
-      console.log(`Product added to cart! ${product.imgAlt}`);
       toast.success(`${product.title} added to cart!`);
     } catch (error) {
       console.error("Failed to add product to cart:", error);
@@ -227,7 +226,6 @@ const ShopDetails = () => {
       (item) => item.id === productId
     );
 
-    console.log(filteredProducts);
     if (filteredProducts.length > 0) {
       setOneProduct(filteredProducts);
       setProduct(filteredProducts[0]);

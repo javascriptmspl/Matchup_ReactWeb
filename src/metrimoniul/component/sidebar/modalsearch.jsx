@@ -20,13 +20,7 @@ const ModalSearch = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     // Handle the form submission logic here
-    console.log("Form submitted with the following data:", {
-      selectedGender,
-      selectedLookingFor,
-      selectedMinAge,
-      selectedMaxAge,
-      selectedCountry,
-    });
+    
   };
 
   return (

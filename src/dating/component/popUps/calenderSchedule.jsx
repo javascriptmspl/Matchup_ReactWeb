@@ -26,12 +26,10 @@ const CalenderSchedule = ({
   const handleClockClick = () => {
     setShowClock(!showClock);
     setShowCalendar(!showCalendar);
-    console.log("checktime", setShowClock);
   };
 
   const handleCalendarClick = () => {
     setShowCalendar(!showCalendar);
-    console.log(setSelectedDate);
   };
 
   const handleDateChange = (date) => {
@@ -51,7 +49,6 @@ const CalenderSchedule = ({
   const handleSubmit = (e) => {
     e.preventDefault();
     try {
-      // Gather the data you want to store
       const scheduledData = {
         date: selectedDate.toLocaleDateString(),
         time: selectedTime.toLocaleTimeString(),

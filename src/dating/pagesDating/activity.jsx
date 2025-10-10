@@ -82,7 +82,6 @@ let ActivityPageContentList = [
 const ActivityPage = () => {
   const dispatch = useDispatch();
   const state = useSelector((state) => state.activies);
-//   console.log(state.activies);
   useEffect(() => {
     dispatch(getAllActivies());
   }, [dispatch]);

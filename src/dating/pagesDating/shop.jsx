@@ -123,7 +123,6 @@ const ShopPage = () => {
     const handleAddToCart = (product) => {  
         dispatch(addToCartAsync(product))
             .then(() => {
-                console.log(`Product added to cart!${product.imgAlt}`);
                 toast.success(`${product.title} added to cart!`)
             })
             .catch((error) => {

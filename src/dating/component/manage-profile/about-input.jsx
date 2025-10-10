@@ -62,7 +62,6 @@ const ManageProfileAboutInput = ({ userData, onUpdateProfile, editMode }) => {
         description: userDataEdit.description.trim()
       };
       
-      console.log("Updating profile with:", { updatedUserData, userId });
       
       const result = await dispatch(updateUserProfileAsync({ updatedUserData, userId }));
       

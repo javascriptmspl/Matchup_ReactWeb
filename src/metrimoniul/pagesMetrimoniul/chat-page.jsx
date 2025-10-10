@@ -87,7 +87,6 @@ export default function App() {
   const handleShowVideoCall = () => setShowVideoCallModal(true);
   const handleHideVideoCall = () => setShowVideoCallModal(false);
 
-  console.log("roomMessages", roomMessages);
 
   const user = useSelector((state) => state.profile.userData[0])
   const userPic = user?.avatars.length - 1
@@ -212,7 +211,6 @@ export default function App() {
   // Fetch messages for a specific room
   const fetchRoomMessages = async (roomId) => {
     if (!roomId) return;
-    console.log("roomId=====>>>", roomId)
     const userId = user?._id || storedUserId;
     if (!userId) return;
 
@@ -405,10 +403,7 @@ export default function App() {
       return;
     }
 
-    console.log("editedContent", editedContent)
-    console.log("editingMessageId", editingMessageId)
-    console.log("userId", userId)
-
+  
     try {
       const response = await editMessage(editingMessageId, userId, editedContent.trim());
 
@@ -460,7 +455,6 @@ export default function App() {
       return;
     }
 
-    console.log("Deleting message:", messageId, "for user:", userId);
 
     try {
       const response = await deleteMessage(messageId, userId);
@@ -834,10 +828,7 @@ export default function App() {
                   ref={scrollbarsRef}
                 >
                   {(() => {
-                    // console.log("🎨 RENDERING MESSAGES");
-                    // console.log("📊 Loading:", loadingMessages);
-                    // console.log("📊 Messages count:", roomMessages.length);
-                    // console.log("📊 Messages array:", roomMessages);
+                   
                     return null;
                   })()}
 

@@ -74,19 +74,12 @@ export default function App() {
   const [editedContent, setEditedContent] = useState('');
   const [replyingToMessage, setReplyingToMessage] = useState(null);
 
-  // Debug: Watch roomMessages changes
-  // useEffect(() => {
-  //   console.log("🔔 ROOM MESSAGES STATE CHANGED");
-  //   console.log("📊 New count:", roomMessages.length);
-  //   console.log("📋 Messages:", roomMessages);
-  // }, [roomMessages]);
-console.log("11111111111111",roomMessages);
+
 
 
   const user = useSelector((state) => state.profile.userData[0])
   const userPic = user?.avatars.length - 1
 
-  // Get userId from localStorage as fallback using useMemo to prevent recalculation
   const storedUserId = useMemo(() => {
     try {
       const userData = localStorage.getItem('userData');
@@ -206,7 +199,6 @@ console.log("11111111111111",roomMessages);
   // Fetch messages for a specific room
   const fetchRoomMessages = async (roomId) => {
     if (!roomId) return;
-console.log("roomId=====>>>11111", roomId)
     const userId = user?._id || storedUserId;
     if (!userId) return;
 
@@ -412,10 +404,7 @@ console.log("roomId=====>>>11111", roomId)
       return;
     }
 
-    console.log("editedContent", editedContent)
-    console.log("editingMessageId", editingMessageId)
-    console.log("userId", userId)
-
+ 
     try {
       const response = await editMessage(editingMessageId, userId, editedContent.trim());
 
@@ -467,7 +456,6 @@ console.log("roomId=====>>>11111", roomId)
       return;
     }
 
-    console.log("Deleting message:", messageId, "for user:", userId);
 
     try {
       const response = await deleteMessage(messageId, userId);
@@ -840,10 +828,7 @@ console.log("roomId=====>>>11111", roomId)
                   ref={scrollbarsRef}
                 >
                   {(() => {
-                    // console.log("🎨 RENDERING MESSAGES");
-                    // console.log("📊 Loading:", loadingMessages);
-                    // console.log("📊 Messages count:", roomMessages.length);
-                    // console.log("📊 Messages array:", roomMessages);
+                 
                     return null;
                   })()}
 

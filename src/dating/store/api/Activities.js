@@ -2,7 +2,6 @@ import axios from "axios";
 import { BASE_URL } from '../../../base';
 
 export const createActivity =async(Data) => {
-  console.log(Data);
   try {
     const response = await axios.post(`${BASE_URL}/activitys/createActivity`,Data);
     return response.data;
@@ -81,7 +80,6 @@ export const updateActivity = async (data) => {
       options
     );
     const dataaa = await response.json()
-    console.log(dataaa)
 
     return  dataaa; // Fixed the variable name here
   } catch (error) {
@@ -110,7 +108,6 @@ export const searchUser = async (name) => {
     }
 
     const responseData = await response.json();
-    console.log(responseData);
     
     return responseData; // Assuming the response is already JSON, no need to stringify.
   } catch (error) {
@@ -137,7 +134,6 @@ export const searchActivity = async (name) => {
     }
 
     const responseData = await response.json();
-    console.log(responseData);
     
     return responseData; // Assuming the response is already JSON, no need to stringify.
   } catch (error) {
@@ -160,7 +156,6 @@ export const sortActivity =async(sort)=>{
       options
     );
     const responseData = await response.json();
-    console.log(responseData);
     
     return responseData; 
   } catch (error) {

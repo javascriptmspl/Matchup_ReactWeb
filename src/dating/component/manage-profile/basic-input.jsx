@@ -67,8 +67,7 @@ const ManageProfileBasicInput = ({ userData, onUpdateProfile }) => {
           : userDataEdit.dob,
       };
 
-      console.log("Sending update data:", updatedUserData);
-      console.log("User ID:", userId);
+   
 
       await dispatch(updateUserProfileAsync({ updatedUserData, userId }));
 

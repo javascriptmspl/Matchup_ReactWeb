@@ -53,7 +53,6 @@ const Events = (e) => {
   const [eventToDeleteIndex, setEventToDeleteIndex] = useState(null);
 
   const selectus = (val) => {
-    console.log("selectus called with:", val);
     setSelectedUser(val);
   };
   const selectuse = (val) => {
@@ -95,15 +94,11 @@ const Events = (e) => {
   };
 
   const NotifyScheduleData = (data) => {
-    console.log("NotifyScheduleData called with:", data);
-    console.log("Current selectedUser:", selectedUser);
-    console.log("Current selectedData:", selectedData);
-    
+   
     setSelectedData(data);
     
     // Ensure we have a user selected - use existing selectedData if selectedUser is null
     if (!selectedUser && selectedData) {
-      console.log("Setting selectedUser from selectedData");
       setSelectedUser(selectedData);
     }
     
@@ -218,8 +213,7 @@ const Events = (e) => {
             >
               {storeData && storeData.length > 0 ? (
                 storeData.map(( val, i) => {
-                  console.log("Event data:", val);
-                  console.log("scheduledData:", val?.scheduledData);
+
                   return (
                   <div className="col" key={i}>
                     <div className="story__item style2 story--theme-color">

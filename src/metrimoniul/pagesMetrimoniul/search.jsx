@@ -27,7 +27,6 @@ const PromotionalOffersScreen = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(searchCriteria);
   };
 
   return (

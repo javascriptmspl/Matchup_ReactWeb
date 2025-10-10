@@ -33,9 +33,7 @@ const UserProfile = () => {
   
 
   const USER_GET_BY_ID = useSelector((state) => state?.userCreate?.Viewuser);
-  console.log("userrrprofilesss",USER_GET_BY_ID)
   const USER_PROFILE = USER_GET_BY_ID;
-  console.log("userrrprofi",USER_PROFILE)
 
   const calculatedAge = (dob) => {
     const today = new Date();

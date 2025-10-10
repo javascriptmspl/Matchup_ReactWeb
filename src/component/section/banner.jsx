@@ -386,26 +386,6 @@ const BannerOne = () => {
     return ageOptions1;
   };
 
-  // const handleFormSubmit = (e) => {
-  //   e.preventDefault();
-
-  //   // Log all form data to console
-  //   console.log("Form Data:", {
-  //     gender: formData.gender,
-  //     partnerGender: formData.partnerGender,
-  //     ageRange: `${formData.minAge}-${formData.maxAge}`,
-  //     distance: `${formData.distance} km`,
-  //     location: formData.country
-  //   });
-
-  //   // if (!isAuthenction) {
-  //   //   setLoginModalOpen(true);
-  //   //   return;
-  //   // }
-
-  //   // Navigate with query params
-  //   navigate(isAuthenction ? "/dating/members" : "/login");
-  // };
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();

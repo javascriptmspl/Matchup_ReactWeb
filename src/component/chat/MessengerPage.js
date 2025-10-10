@@ -55,7 +55,6 @@ const MessengerPage = () => {
   const handleBackClick = () => {
     setShowProfileList(true);
   };
-  console.log(activeUser);
   return (
     <div className="container-fluid message-page">
       <HeaderFour />
