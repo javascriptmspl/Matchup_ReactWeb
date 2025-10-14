@@ -8,6 +8,8 @@ import toast from "react-hot-toast";
 import { addToEventAsync } from "../../store/slice/shop/EventSlice";
 import MyContext from "../../store/context/UseContext";
 import { BASE_URL } from "../../../base";
+import { createEvent, getEvents } from "../../../service/common-service/eventSlice";
+import { unwrapResult } from "@reduxjs/toolkit";
 // import { UserData } from "../../assets/DummyData/userData";
 
 
@@ -17,7 +19,7 @@ const {eventDatahandle}=useContext(MyContext)
   const dispatch=useDispatch()
 
   const profileData = useSelector((state) => state.profile.userData);
-  const User = profileData[0];
+  const User = profileData;   
 
   const eventData={
     user:User,
@@ -25,22 +27,31 @@ const {eventDatahandle}=useContext(MyContext)
     scheduledData:scheduledData,
   }
 
-  const handleSubmitnotification =  (e) => {
-    
-    eventDatahandle(eventData)
-    
-    const dataEvent = localStorage.getItem("dataEvent") || "[]";
-    
-    localStorage.setItem("dataEvent",JSON.stringify([...JSON.parse(dataEvent),eventData]))
+  const handleSubmitnotification = async (e) => {
     e.preventDefault();
+
+    const payload = {
+      senderUserId: User?._id || User?.id || "",
+      receiverUserId: selectedUser?._id || selectedUser?.id || "",
+      action_logs: "Scheduled via chat",
+      description: scheduledData?.description || "1st meet",
+      note: scheduledData?.note || "User scheduled a date from chat",
+      mode: scheduledData?.mode || "68d103d5aa4b176726e60421",
+    };
+
     try {
-      toast.success("schedule date successfully updated");
-      //  setButtonClass("default-btn reverse");
-      hideModal(hideModal)
-      
+      const resultAction = await dispatch(createEvent(payload));
+      const res = unwrapResult(resultAction);
+      if (res.isSuccess === true) {
+        dispatch(getEvents(res?.data?.senderUserId));
+        toast.success("Schedule date successfully updated");
+        hideModal(hideModal);
+      } else {
+        toast.error("Failed to schedule event");
+      }
     } catch (error) {
-      console.error("Error updating Contact profile:", error);
-      toast.error("Failed to update Contact info");
+      console.error("Promise error during createEvent:", error);
+      toast.error("Failed to schedule event");
     }
   };
  
@@ -94,7 +105,7 @@ const {eventDatahandle}=useContext(MyContext)
                       />
                     </svg>
                   </span>
-                  {User?.address || ""}
+                  {User?.address || "Mumbai, India"}
                 </p>
               </div>
               <div className="col-md-4 col-4 modal-imgg-wrap">
@@ -137,7 +148,7 @@ const {eventDatahandle}=useContext(MyContext)
               </div>
               <div className="col-md-8 mod-person-rt col-8">
                 <p className="fs-4 text-muted fw-600 per-txt">{selectedUser?.name||""}</p>
-                <p className="fs-4 text-muted fw-600 per-dest">{selectedUser?.profession||""}</p>
+                <p className="fs-4 text-muted fw-600 per-dest">{selectedUser?.occupation||""}</p>
                 <p className="fs-4 text-muted fw-600 location">
                   <span className="location2">
                     <svg
@@ -153,7 +164,7 @@ const {eventDatahandle}=useContext(MyContext)
                       />
                     </svg>
                   </span>
-                  {selectedUser?.location||""}
+                  {selectedUser?.address||"Mumbai, India"}
                 </p>
               </div>
             </div>

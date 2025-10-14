@@ -65,7 +65,6 @@ export const updateUserProfileAsync = createAsyncThunk(
     const { updatedUserData, userId } = Data;
     try {
       const response = await updateUserProfile(updatedUserData, userId);
-      console.log("ressmmm", response);
       return response;
     } catch (error) {
       throw error;

@@ -144,6 +144,24 @@ export const getFilteredUsers = createAsyncThunk(
   }
 );
 
+// 🔹 Fetch friends list
+export const fetchFriends = createAsyncThunk(
+  "dating/fetchFriends",
+  async (userId, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(
+        `${BASE_URL}/chat/friends?userId=${userId}`
+      );
+      if (response.data && response.data.isSuccess) {
+        return response.data;
+      }
+      return { isSuccess: false, data: [], message: "No friends found" };
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
 
 // ---------------------
 // Slice
@@ -158,6 +176,9 @@ const datingApiSlice = createSlice({
     activity: null,
     activities: [],
     mutualActivities: null,
+    friends: [],
+    friendsLoading: false,
+    friendsError: null,
   },
   reducers: {},
   extraReducers: (builder) => {
@@ -244,6 +265,20 @@ const datingApiSlice = createSlice({
       .addCase(fetchInterests.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+
+      // Friends
+      .addCase(fetchFriends.pending, (state) => {
+        state.friendsLoading = true;
+        state.friendsError = null;
+      })
+      .addCase(fetchFriends.fulfilled, (state, action) => {
+        state.friendsLoading = false;
+        state.friends = action.payload.data || [];
+      })
+      .addCase(fetchFriends.rejected, (state, action) => {
+        state.friendsLoading = false;
+        state.friendsError = action.payload;
       });
   },
 });

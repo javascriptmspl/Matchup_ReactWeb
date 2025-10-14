@@ -17,7 +17,7 @@ const CalenderSchedule = ({
   const [showClock, setShowClock] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
-  const [selectedTime, setSelectedTime] = useState(new Date());
+  const [selectedTime, setSelectedTime] = useState("10:00");
   const [NotificationSchedule, setNotificationSchedule] = useState(false);
   const [selectedVenue, setSelectedVenue] = useState("");
   const [selectData, setSelectedData] = useState([])
@@ -39,7 +39,6 @@ const CalenderSchedule = ({
 
   const handleTimeChange = (time) => {
     setSelectedTime(time);
-    setShowClock(false);
   };
 
   const handleVenueChange = (venue) => {
@@ -51,8 +50,11 @@ const CalenderSchedule = ({
     try {
       const scheduledData = {
         date: selectedDate.toLocaleDateString(),
-        time: selectedTime.toLocaleTimeString(),
+        time: selectedTime,
         venue: selectedVenue,
+        description: "1st meet",
+        note: `Scheduled date at ${selectedVenue} on ${selectedDate.toLocaleDateString()} at ${selectedTime}`,
+        mode: "68d103d5aa4b176726e60421", // Dating mode ID
       };
       NotifyScheduleData(scheduledData);
 
@@ -97,7 +99,7 @@ const CalenderSchedule = ({
                 Schedule Your Virtual Date for Meaningful Connections!
               </h5>
               <div className="settime">
-                <Timer />
+                <Timer value={selectedTime} onChange={handleTimeChange} />
                 <span className="clock-icon" onClick={() => onClick(value)}>
                   <i
                     className="fa-solid fa-clock fa-xl"

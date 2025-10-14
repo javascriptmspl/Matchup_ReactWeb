@@ -38,14 +38,18 @@ import img11 from "../../dating/assets/images/shop/dating/11.png";
 import chatBG from "../../dating/assets/images/chat/ChatBG.jpg"
 import chatBG2 from "../../dating/assets/images/chat/chatbg2.jpg"
 import dummyUserPic from "../../dating/assets/images/myCollection/user-male.jpg"
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { BASE_URL } from "../../base";
 import { getChatRooms, getRoomById, getRoomMessages, sendMessage, createChatRoom, editMessage, deleteMessage } from "../../service/MANAGE_API/chat-API";
+import { getBlockedUsers, checkIfBlockedBy } from "../../service/common-service/blockSlice";
+import VideoCallModal from "../../metrimoniul/component/popUps/incomingcalls/VideoCallModal";
+import IncomingCallModal from "../../metrimoniul/component/popUps/incomingcalls/IncomingCallModal";
 
 
 
 export default function App() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [inputMessage, setInputMessage] = useState("");
   const [chatMessages, setChatMessages] = useState([...customMessages]);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -73,12 +77,20 @@ export default function App() {
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editedContent, setEditedContent] = useState('');
   const [replyingToMessage, setReplyingToMessage] = useState(null);
+  const [isSelectedUserBlocked, setIsSelectedUserBlocked] = useState(false);
+  const [isBlockedBySelectedUser, setIsBlockedBySelectedUser] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [showVideoCallModal, setShowVideoCallModal] = useState(false);
 
-
+  const handleShow = () => setShowModal(true);
+  const handleHide = () => setShowModal(false);
+  const handleShowVideoCall = () => setShowVideoCallModal(true);
+  const handleHideVideoCall = () => setShowVideoCallModal(false);
 
 
   const user = useSelector((state) => state.profile.userData[0])
   const userPic = user?.avatars.length - 1
+  const blockedUsers = useSelector((state) => state.block.blockedUsers)
 
   const storedUserId = useMemo(() => {
     try {
@@ -163,7 +175,43 @@ export default function App() {
 
       // Then fetch messages
       await fetchRoomMessages(room.roomId);
+
+      // Check blocking status after selecting user
+      await checkBlockingStatus(room.otherUser?._id);
     }, 100);
+  };
+
+  // Function to check if selected user is blocked or has blocked current user
+  const checkBlockingStatus = async (targetUserId) => {
+    if (!targetUserId) return;
+    
+    const currentUserId = user?._id || storedUserId;
+    if (!currentUserId) return;
+
+    try {
+      // Fetch blocked users list if not already loaded
+      if (blockedUsers.length === 0) {
+        await dispatch(getBlockedUsers(currentUserId)).unwrap();
+      }
+
+      // Check if current user has blocked the selected user
+      const isBlocked = blockedUsers.some(blockedUser => {
+        const blockedId = blockedUser?.blocked?._id || blockedUser?._id || blockedUser?.id;
+        return blockedId === targetUserId;
+      });
+      setIsSelectedUserBlocked(isBlocked);
+
+      // Check if current user is blocked by the selected user
+      const blockedByResult = await dispatch(checkIfBlockedBy({ 
+        currentUserId, 
+        targetUserId 
+      })).unwrap();
+      
+      setIsBlockedBySelectedUser(blockedByResult?.isBlocked || false);
+      
+    } catch (error) {
+      console.error("Error checking blocking status:", error);
+    }
   };
 
   // Fetch room details first
@@ -218,20 +266,7 @@ export default function App() {
           return;
         }
 
-        // Transform API messages to component format
-        // const transformedMessages = messagesArray.map((msg, index) => ({
-        //   id: msg._id || index,
-        //   content: msg.content || msg.message,
-        //   timestamp: new Date(msg.createdAt).toLocaleTimeString([], {
-        //     hour: "2-digit",
-        //     minute: "2-digit",
-        //   }),
-        //   sent: msg.userId === userId,
-        //   avatar: msg.userId === userId 
-        //     ? (user?.mainAvatar ? `${BASE_URL}/assets/images/${user.mainAvatar}` : dummyUserPic)
-        //     : (selectedUser?.avatar || dummyUserPic),
-        //   messageType: msg.messageType || 'text'
-        // }));
+     
         const transformedMessages = messagesArray.map((msg, index) => ({
           ...msg, // keep all original fields
           id: msg._id || index, // optional unique id for UI
@@ -572,7 +607,20 @@ export default function App() {
     };
 
     fetchRooms();
-  }, [user?._id, storedUserId]);
+
+    // Fetch blocked users on component mount
+    const userId = user?._id || storedUserId;
+    if (userId) {
+      dispatch(getBlockedUsers(userId));
+    }
+  }, [user?._id, storedUserId, dispatch]);
+
+  // Re-check blocking status when blockedUsers changes
+  useEffect(() => {
+    if (selectedUser?._id) {
+      checkBlockingStatus(selectedUser._id);
+    }
+  }, [blockedUsers, selectedUser?._id]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -786,7 +834,7 @@ export default function App() {
                             class="fa fa-ban me-3"
                             aria-hidden="true"
                           ></i>{" "}
-                          Block
+                          {isSelectedUserBlocked ? "Unblock" : "Block"}
                         </Link>
                       </li>
                       <li>
@@ -803,16 +851,19 @@ export default function App() {
                     </ul>
                   </Link>
 
-                  <Link className="float-end fs-4 text-muted my-2">
+                  <Link className="float-end fs-4 text-muted my-2"  onClick={handleShow}>
                     <i class="fa fa-phone" aria-hidden="true"></i>
                   </Link>
+                  <IncomingCallModal show={showModal} onHide={handleHide} />
 
                   <Link className="float-end fs-4 text-muted my-2">
                     <i
                       class="fa fa-video-camera"
                       aria-hidden="true"
+                      onClick={handleShowVideoCall}
                     ></i>
                   </Link>
+                       <VideoCallModal show={showVideoCallModal} onHide={handleHideVideoCall} />
 
 
                 </div>
@@ -843,13 +894,14 @@ export default function App() {
                       <p>No messages yet. Start the conversation!</p>
                     </div>
                   ) : (
-                    roomMessages.map((message) => {
-                      return (
-                        <div
-                          key={message.id}
-                          className={`px-3 px-md-5 d-flex flex-row chat-solo justify-content-${message.sent ? "end" : "start"
-                            }`}
-                        >
+                    <>
+                      {roomMessages.map((message) => {
+                        return (
+                          <div
+                            key={message.id}
+                            className={`px-3 px-md-5 d-flex flex-row chat-solo justify-content-${message.sent ? "end" : "start"
+                              }`}
+                          >
                           {message.sent ? (
                             <>
 
@@ -1105,9 +1157,52 @@ export default function App() {
                             </>
 
                           )}
+                          </div>
+                        )
+                      })}
+                      
+                      {/* Unblock button at the end of messages (Instagram style) */}
+                      {isSelectedUserBlocked && (
+                        <div className="text-center py-3 px-3">
+                          <button
+                            className="btn btn-outline-success"
+                            onClick={() => setBlockUser(true)}
+                            style={{
+                              borderRadius: "25px",
+                              padding: "10px 25px",
+                              fontSize: "14px",
+                              fontWeight: "500",
+                              borderWidth: "2px",
+                              borderColor: "rgb(242, 69, 112)",
+                              color: "rgb(242, 69, 112)",
+                              transition: "all 0.3s ease"
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.backgroundColor = "rgb(242, 69, 112)";
+                              e.target.style.color = "white";
+                              // Make icon white on hover
+                              const icon = e.target.querySelector('i');
+                              if (icon) {
+                                icon.style.color = "white";
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.backgroundColor = "transparent";
+                              e.target.style.color = "rgb(242, 69, 112)";
+                              // Make icon pink again when not hovering
+                              const icon = e.target.querySelector('i');
+                              if (icon) {
+                                icon.style.color = "rgb(242, 69, 112)";
+                              }
+                            }}
+                            >
+                              <i className="fa fa-unlock me-2" aria-hidden="true" style={{ color: "rgb(242, 69, 112)" }}></i>
+                              Unblock {selectedUser?.name}
+                            </button>
                         </div>
-                      )
-                    }))}
+                      )}
+                    </>
+                  )}
                 </Scrollbars> : <div>
                   <img
                     src={chatBG}
@@ -1160,15 +1255,48 @@ export default function App() {
               </div>
             )}
 
-            {/* <div  className=" "> */}
-            <div
-              className=" inputChat text-muted d-flex  align-items-center  py-1 mt-4"
-              style={{
-
-                float: "right",
-                backgroundColor: "#e9ecef",
-              }}
-            >
+            {/* Show block message if blocked or being blocked */}
+            {(isSelectedUserBlocked || isBlockedBySelectedUser) ? (
+              <div 
+                className="text-center py-4 mt-4"
+                style={{
+                  backgroundColor: "#f8d7da",
+                  color: "#721c24",
+                  borderRadius: "8px",
+                  margin: "0 20px"
+                }}
+              >
+                <i className="fa fa-ban me-2" aria-hidden="true"></i>
+                <div className="mb-3">
+                  {isSelectedUserBlocked 
+                    ? "You have blocked this user. Chat is disabled."
+                    : "This user has blocked you. Chat is disabled."}
+                </div>
+                {/* Unblock button for when current user has blocked the other user */}
+                {isSelectedUserBlocked && (
+                  <button
+                    className="btn btn-success"
+                    onClick={() => setBlockUser(true)}
+                    style={{
+                      borderRadius: "20px",
+                      padding: "8px 20px",
+                      fontSize: "14px",
+                      fontWeight: "500"
+                    }}
+                  >
+                    <i className="fa fa-unlock me-2" aria-hidden="true"></i>
+                    Unblock
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div
+                className=" inputChat text-muted d-flex  align-items-center  py-1 mt-4"
+                style={{
+                  float: "right",
+                  backgroundColor: "#e9ecef",
+                }}
+              >
               <div className="header__more px-3">
                 <span
                   to="#"
@@ -1290,6 +1418,7 @@ export default function App() {
                 <MDBIcon fas icon="paper-plane" />
               </button>
             </div>
+            )}
           </div>) : (
           <div className="chat-banner">
             <img
@@ -1356,7 +1485,8 @@ export default function App() {
           showModal={blocklUser}
           hideModal={() => setBlockUser(false)}
           selectedUser={selectedUser}
-
+          isBlocked={isSelectedUserBlocked}
+          onBlockStatusChange={() => checkBlockingStatus(selectedUser?._id)}
         />
         <ReportUserModal
           showModal={reportUser}
