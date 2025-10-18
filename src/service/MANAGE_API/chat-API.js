@@ -82,7 +82,6 @@ export const editMessage = async (messageId, userId, newContent) => {
       userId: userId,
       newContent: newContent
     });
-    console.log("response",response)
     return response.data;
   } catch (error) {
     throw error;
@@ -97,9 +96,9 @@ export const deleteMessage = async (messageId, userId) => {
         userId: userId
       }
     });
-    console.log("response11111111111111111111111",response)
     return response.data;
   } catch (error) {
     throw error;
   }
 };
+

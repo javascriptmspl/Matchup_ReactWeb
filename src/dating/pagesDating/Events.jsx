@@ -69,7 +69,14 @@ const Events = (e) => {
       setStoreData(res.payload);
     };
     getEvent();
-  }, []);
+  }, [dispatch, Userid]);
+
+  // Update local state when Redux store changes
+  useEffect(() => {
+    if (eventArray && eventArray.length > 0) {
+      setStoreData(eventArray);
+    }
+  }, [eventArray]);
 
   const clockTime = () => {
     setCalenderSchedule(false);

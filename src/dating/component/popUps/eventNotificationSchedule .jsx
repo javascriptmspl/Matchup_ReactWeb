@@ -22,6 +22,7 @@ const EventNotificationSchedule = ({
   selectUseriNFO,
   scheduledData,
 }) => {
+ 
   const { eventDatahandle } = useContext(MyContext);
   const dispatch = useDispatch();
   const profileData = useSelector((state) => state.profile.userData);
@@ -32,6 +33,19 @@ const EventNotificationSchedule = ({
     selectUser: selectedUser,
     scheduledData: scheduledData,
   };
+
+  // Debug: Log image URLs
+  useEffect(() => {
+    
+    
+    if (User?.mainAvatar) {
+      console.log("User image URL:", `${BASE_URL}/assets/images/${User.mainAvatar}`);
+    }
+    if (selectedUser?.mainAvatar) {
+      console.log("Selected user image URL:", `${BASE_URL}/assets/images/${selectedUser.mainAvatar}`);
+    }
+  }, [User, selectedUser]);
+
 
   // const handleSubmitnotification = (e) => {
   //   eventDatahandle(eventnotifyData)
@@ -67,7 +81,8 @@ const EventNotificationSchedule = ({
       const resultAction = await dispatch(createEvent(payload));
       const res = unwrapResult(resultAction);
       if (res.isSuccess === true) {
-        dispatch(getEvents(res?.data?.senderUserId));
+        // Refresh events list for the current user
+        dispatch(getEvents(User?._id || User?.id));
         toast.success("Schedule date successfully updated");
         hideModal(hideModal);
       } else {
@@ -188,13 +203,17 @@ const EventNotificationSchedule = ({
                   className="img2 rounded-50"
                   // src={selectedUser?.avatar}
                   src={
-                    selectedUser?.avatars
+                    selectedUser?.avatars?.[0]
                       ? `${BASE_URL}/assets/images/${selectedUser?.avatars[0]}`
                       : selectedUser?.mainAvatar
                       ? `${BASE_URL}/assets/images/${selectedUser?.mainAvatar}`
                       : userMale
                   }
                   alt=""
+                  onError={(e) => {
+                    console.error("Failed to load selectedUser image:", e.target.src);
+                    e.target.src = userMale;
+                  }}
                 />
               </div>
               <div className="col-md-8 mod-person-rt col-8">

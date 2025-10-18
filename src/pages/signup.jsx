@@ -301,7 +301,7 @@ const SignUp = (selectedProfile) => {
                       {/* password  */}
 
                       <div className="form-group">
-                        <label>
+                        <label>Password
                             <span>*</span>
                         </label>
                         <input

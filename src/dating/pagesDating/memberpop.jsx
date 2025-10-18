@@ -213,7 +213,7 @@ const { users, loading, error, friends: friendsData, friendsLoading, friendsErro
 
                     <div className="row mt-2 match-icon-main">
                       <div className="col">
-                        <Link className="fs-3 ms-4" to={`/dating/user-profile/${friend.friendId}`}>
+                        <Link className="fs-3 ms-4" to={`/metrimonial/user-profile/${friend.friendId}`}>
                           <i className="fa fa-user" aria-hidden="true" title="Profile"></i>
                         </Link>
                       </div>
@@ -235,47 +235,47 @@ const { users, loading, error, friends: friendsData, friendsLoading, friendsErro
           ) : (
             // Show regular users/matches
             user.map((val, i) => (
-              <div className="member__item" key={i}>
+            <div className="member__item" key={i}>
                 <div className="member__inner member__inner-sized-hover react-main" onClick={() => {
                   setSelectedData(val);
                   setSelectedUser(val);
                   calenderScheduleDAte();
                 }}>
-                  <div className="react">
-                    {/* Add your logic here */}
-                    {/* <img width="25" alt="" /> */}
-                  </div>
-                  <div className="member__thumbmember_thumb">
+                <div className="react">
+                  {/* Add your logic here */}
+                  {/* <img width="25" alt="" /> */}
+                </div>
+                <div className="member__thumbmember_thumb">
                     <img className="image23" src={`${BASE_URL}/assets/images/${val.mainAvatar || "/default-avatar.png"}`} alt={val.imgAlt || "user"} />
-                    <span className={val.className}></span>
-                  </div>
-                  <div className="member__content">
-                    {/* <Link to={`/dating/user-profile?userID=${val.id}`}>
-                    </Link> */}
+                  <span className={val.className}></span>
+                </div>
+                <div className="member__content">
+                  {/* <Link to={`/dating/user-profile?userID=${val.id}`}>
+                  </Link> */}
                     <Link>
                       <h5>{val.name}</h5>
+                  </Link>
+                  <p>
+                    <span>{val.occupation}</span> <br /> || <span>{val.age}</span>
+                  </p>
+                  <p>{val.address}</p>
+                </div>
+
+                <div className="row mt-2 match-icon-main">
+                  <div className="col">
+                    <Link className="fs-3 ms-4" to={`/metrimonial/user-profile/${val?._id}`}>
+                      <i className="fa fa-user" aria-hidden="true" title="Profile"></i>
                     </Link>
-                    <p>
-                      <span>{val.occupation}</span> <br /> || <span>{val.age}</span>
-                    </p>
-                    <p>{val.address}</p>
                   </div>
 
-                  <div className="row mt-2 match-icon-main">
-                    <div className="col">
-                      <Link className="fs-3 ms-4" to={`/metrimonial/user-profile/${val?._id}`}>
-                        <i className="fa fa-user" aria-hidden="true" title="Profile"></i>
-                      </Link>
-                    </div>
-
-                    <div className="col">
-                      <Link className="fs-3 ms-3" to="/dating/chat-page2">
-                        <i className="fa fa-comment" aria-hidden="true" title="Message"></i>
-                      </Link>
-                    </div>
+                  <div className="col">
+                    <Link className="fs-3 ms-3" to="/dating/chat-page2">
+                      <i className="fa fa-comment" aria-hidden="true" title="Message"></i>
+                    </Link>
                   </div>
                 </div>
               </div>
+            </div>
             ))
           )}
         </div>

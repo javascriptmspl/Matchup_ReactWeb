@@ -9,10 +9,13 @@ import {
   MDBTypography,
   MDBInputGroup,
 } from "mdb-react-ui-kit";
+import { Modal, Button } from 'react-bootstrap';
 import { Scrollbars } from "react-custom-scrollbars-2";
 import HeaderFour from "../../component/layout/HeaderFour";
 import EmojiPicker from "emoji-picker-react";
 import { Link, useNavigate } from "react-router-dom";
+import toast, { Toaster } from "react-hot-toast";
+import axios from 'axios';
 import CheckCompatibilityModal from "../component/popUps/checkCompatibilty";
 import NotificationScheduleModal from "../component/popUps/notificationSchedule";
 import CalenderScheduleModal from "../component/popUps/calenderSchedule";
@@ -55,6 +58,8 @@ export default function App() {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [selectedEmojis, setSelectedEmojis] = useState([]);
   const [SelectedFile, setSelectedFile] = useState(null);
+  const [filePreview, setFilePreview] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
   const scrollbarsRef = useRef(null);
   const [CheckCompatibility, setCheckCompatibility] = useState(false);
   const [NotificationSchedule, setNotificationSchedule] = useState(false);
@@ -81,11 +86,97 @@ export default function App() {
   const [isBlockedBySelectedUser, setIsBlockedBySelectedUser] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showVideoCallModal, setShowVideoCallModal] = useState(false);
+  const [incomingCall, setIncomingCall] = useState(null);
+  const [showIncomingCallModal, setShowIncomingCallModal] = useState(false);
+  const [callHistory, setCallHistory] = useState([]);
+  const [showCallHistory, setShowCallHistory] = useState(false);
 
   const handleShow = () => setShowModal(true);
   const handleHide = () => setShowModal(false);
   const handleShowVideoCall = () => setShowVideoCallModal(true);
   const handleHideVideoCall = () => setShowVideoCallModal(false);
+
+  const checkForIncomingCalls = async () => {
+    const userId = user?._id || storedUserId;
+    if (!userId) return;
+
+    try {
+      const response = await axios.get(`${BASE_URL}/chat/calls/history?page=1&limit=5&userId=${userId}`);
+      
+      if (response.data.isSuccess && response.data.data.calls) {
+        const calls = response.data.data.calls;
+        setCallHistory(calls); // Update call history
+        
+        const incomingCall = calls.find(call => 
+          call.calleeId._id === userId && 
+          call.status === 'ringing'
+        );
+
+        const declinedCalls = calls.filter(call => 
+          call.callerId._id === userId && 
+          call.status === 'declined'
+        );
+
+        if (declinedCalls.length > 0 && showModal) {
+          setShowModal(false);
+        }
+
+        if (incomingCall && !showIncomingCallModal) {
+          // Check if we've already shown notification for this call
+          const notificationKey = `call_notification_${incomingCall._id}`;
+          const alreadyNotified = sessionStorage.getItem(notificationKey);
+          
+          if (!alreadyNotified) {
+            // Show notification only once per call
+            toast(`📞 Incoming call from ${incomingCall.callerId.name}!`, {
+              duration: 2000,
+              position: 'top-center',
+              style: {
+                background: '#ffc107',
+                color: '#000',
+                fontWeight: 'bold',
+                fontSize: '16px',
+              },
+              icon: '📞',
+            });
+
+            if (Notification.permission === 'granted') {
+              new Notification('📞 Incoming Call', {
+                body: `${incomingCall.callerId.name} is calling you`,
+                icon: '/favicon.ico',
+                tag: 'incoming-call',
+                requireInteraction: true
+              });
+            }
+
+            // Mark this call as notified
+            sessionStorage.setItem(notificationKey, 'true');
+          }
+
+          setIncomingCall(incomingCall);
+          setShowIncomingCallModal(true);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking for incoming calls:', error);
+    }
+  };
+
+  // Function to fetch call history
+  const fetchCallHistory = async () => {
+    const userId = user?._id || storedUserId;
+    if (!userId) return;
+
+    try {
+      const response = await axios.get(`${BASE_URL}/chat/calls/history?page=1&limit=20&userId=${userId}`);
+      
+      if (response.data.isSuccess && response.data.data.calls) {
+        setCallHistory(response.data.data.calls);
+      }
+    } catch (error) {
+      console.error('Error fetching call history:', error);
+    }
+  };
 
 
   const user = useSelector((state) => state.profile.userData[0])
@@ -147,6 +238,8 @@ export default function App() {
     const { emoji } = emojiObject;
     // Use emoji Unicode character directly
     setInputMessage((prevMessage) => prevMessage + emoji);
+    // Close emoji picker after selection
+    setShowEmojiPicker(false);
   };
 
   const handleAttachFile = () => {
@@ -167,7 +260,6 @@ export default function App() {
   const handleUserSelect = async (room) => {
     setTimeout(async () => {
 
-      // Set selected room ID
       setSelectedRoomId(room.roomId);
 
       // First, get room details
@@ -419,6 +511,11 @@ export default function App() {
       e.preventDefault();
       handleSendMessage();
     }
+    // Open emoji picker with Ctrl+E
+    if (e.ctrlKey && e.key === "e") {
+      e.preventDefault();
+      setShowEmojiPicker(!showEmojiPicker);
+    }
   };
 
   const handleStartEdit = (message) => {
@@ -538,6 +635,108 @@ export default function App() {
     setReplyingToMessage(null);
   };
 
+  // Handle gift sending with membership check
+  const handleGiftClick = (giftItem) => {
+    // Check if user has active subscription/membership
+    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+    const hasMembership = userData?.data?.membershipStatus === 'active' || 
+                         userData?.membershipStatus === 'active' ||
+                         userData?.data?.isPremium === true ||
+                         userData?.isPremium === true;
+
+    if (!hasMembership) {
+      // Show toast notification and redirect to membership page
+      toast.error('You need a premium membership to send gifts!', {
+        duration: 3000,
+        position: 'top-center',
+        style: {
+          background: '#f24570',
+          color: '#fff',
+          fontWeight: '500',
+        },
+        icon: '💎',
+      });
+      
+      // Redirect after a short delay to let user see the toast
+      setTimeout(() => {
+        navigate('/dating/membership');
+      }, 1500);
+      return;
+    }
+
+    sendGift(giftItem);
+  };
+
+  const sendGift = async (giftItem) => {
+    if (!selectedRoomId) {
+      console.error("No room selected");
+      return;
+    }
+
+    const userId = user?._id || storedUserId;
+    if (!userId) {
+      console.error("No user ID available");
+      return;
+    }
+
+    try {
+      const giftMessage = `🎁 Sent a gift: ${giftItem.name}`;
+      
+      const response = await sendMessage(
+        selectedRoomId,
+        userId,
+        giftMessage,
+        'gift',
+        null,
+        null
+      );
+
+      if (response?.isSuccess) {
+        const giftMessageObj = {
+          id: response.data._id || Date.now(),
+          content: giftMessage,
+          timestamp: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          sent: true,
+          avatar: user?.mainAvatar
+            ? `${BASE_URL}/assets/images/${user.mainAvatar}`
+            : dummyUserPic,
+          messageType: 'gift',
+          giftData: giftItem
+        };
+
+        setRoomMessages(prevMessages => [...prevMessages, giftMessageObj]);
+        setTimeout(scrollToBottom, 100);
+        
+        // Show success toast
+        toast.success(`Gift "${giftItem.name}" sent successfully!`, {
+          duration: 2000,
+          position: 'top-center',
+          style: {
+            background: '#28a745',
+            color: '#fff',
+            fontWeight: '500',
+          },
+          icon: '🎁',
+        });
+      }
+    } catch (error) {
+      console.error("Error sending gift:", error);
+      toast.error("Failed to send gift. Please try again.", {
+        duration: 3000,
+        position: 'top-center',
+        style: {
+          background: '#dc3545',
+          color: '#fff',
+          fontWeight: '500',
+        },
+        icon: '❌',
+      });
+    }
+  };
+
   const [isDropdownOpen, setDropdownOpen] = useState(false);
 
   const toggleDropdown = () => {
@@ -615,12 +814,12 @@ export default function App() {
     }
   }, [user?._id, storedUserId, dispatch]);
 
-  // Re-check blocking status when blockedUsers changes
+  // Re-check blocking status when selectedUser changes
   useEffect(() => {
     if (selectedUser?._id) {
       checkBlockingStatus(selectedUser._id);
     }
-  }, [blockedUsers, selectedUser?._id]);
+  }, [selectedUser?._id]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -635,6 +834,39 @@ export default function App() {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
+
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showEmojiPicker && !event.target.closest('.emoji-picker-container') && !event.target.closest('.smile-message-input')) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showEmojiPicker]);
+
+  // Request notification permission on component mount
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  // Poll for incoming calls every 1 second for faster response
+  useEffect(() => {
+    const userId = user?._id || storedUserId;
+    if (!userId) return;
+
+    const pollForCalls = setInterval(() => {
+      checkForIncomingCalls();
+    }, 1000); // Check every 1 second for faster notifications
+
+    return () => clearInterval(pollForCalls);
+  }, [user?._id, storedUserId]);
 
   const renderChatUsersList = () => {
     return (
@@ -848,13 +1080,33 @@ export default function App() {
                           Report
                         </Link>
                       </li>
+                      <li>
+                        <Link className="dropdown-item py-2"
+                          onClick={() => {
+                            setShowCallHistory(true);
+                            fetchCallHistory();
+                          }}
+                        >
+                          <i
+                            class="fa fa-history me-3"
+                            aria-hidden="true"
+                          ></i>{" "}
+                          Call History
+                        </Link>
+                      </li>
                     </ul>
                   </Link>
 
                   <Link className="float-end fs-4 text-muted my-2"  onClick={handleShow}>
                     <i class="fa fa-phone" aria-hidden="true"></i>
                   </Link>
-                  <IncomingCallModal show={showModal} onHide={handleHide} />
+                  <IncomingCallModal 
+                    show={showModal} 
+                    onHide={handleHide}
+                    selectedUser={selectedUser}
+                    currentUserId={user?._id || storedUserId}
+                    selectedRoomId={selectedRoomId}
+                  />
 
                   <Link className="float-end fs-4 text-muted my-2">
                     <i
@@ -915,6 +1167,28 @@ export default function App() {
                                       maxWidth: "55px",
                                     }}
                                   />
+                                ) : message.messageType === 'gift' ? (
+                                  <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
+                                    <div
+                                      className="small p-3 me-3 mb-1 rounded-3"
+                                      style={{
+                                        backgroundColor: "#f24570",
+                                        color: "#ffffff",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "10px",
+                                        border: "2px solid #ffd700"
+                                      }}
+                                    >
+                                      <span style={{ fontSize: "20px" }}>🎁</span>
+                                      <div>
+                                        <div style={{ fontWeight: "600" }}>Gift Sent!</div>
+                                        <div style={{ fontSize: "12px", opacity: 0.9 }}>
+                                          {message.content}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
                                 ) : (
                                   <>
                                     <div className="dropdown" style={{ marginRight: "8px" }}>
@@ -998,6 +1272,9 @@ export default function App() {
                                               backgroundColor: "#f24570",
                                               color: "#ffffff",
                                               display: "inline-block",
+                                              fontSize: "14px",
+                                              lineHeight: "1.4",
+                                              wordBreak: "break-word"
                                             }}
                                           >
                                             {/* Reply Information */}
@@ -1081,6 +1358,29 @@ export default function App() {
                                         borderRadius: "8px",
                                       }}
                                     />
+                                  ) : message.messageType === 'gift' ? (
+                                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+                                      <div
+                                        className="small p-3 mb-1 rounded-3"
+                                        style={{
+                                          backgroundColor: "#f5f6f7",
+                                          color: "#000",
+                                          marginRight: "8px",
+                                          display: "flex",
+                                          alignItems: "center",
+                                          gap: "10px",
+                                          border: "2px solid #ffd700"
+                                        }}
+                                      >
+                                        <span style={{ fontSize: "20px" }}>🎁</span>
+                                        <div>
+                                          <div style={{ fontWeight: "600", color: "#f24570" }}>Gift Received!</div>
+                                          <div style={{ fontSize: "12px", color: "#6c757d" }}>
+                                            {message.content}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
                                   ) : (
                                     <>
                                       <div
@@ -1090,6 +1390,9 @@ export default function App() {
                                           color: "#000",
                                           marginRight: "8px",
                                           display: "inline-block",
+                                          fontSize: "14px",
+                                          lineHeight: "1.4",
+                                          wordBreak: "break-word"
                                         }}
                                       >
                                         {/* Reply Information */}
@@ -1339,7 +1642,7 @@ export default function App() {
                 </ul>
               </div>
 
-              <div className="header__more" >
+              <div className="header__more dropup" >
                 <span
                   to="#"
                   className="pointer"
@@ -1354,25 +1657,63 @@ export default function App() {
                   ></i>{" "}
                 </span>
                 <ul className="dropdown-menu p-3" style={{
-                  width: "300px"
+                  width: "400px"
                 }}>
-                  {giftItems.map((item) => (
-                    <li key={item.id} style={{ display: "inline" }}>
-                      <span
-                        role="img"
-                        aria-label="gift icon"
-                        aria-hidden="true"
-                      >
-                        <img
-                          className="m-1 pointer"
-                          src={item.imgUrl}
-                          alt={item.name}
-                          style={{ width: "80px", height: "80px", }}
-                        />
-                      </span>
-                      {item.name}
-                    </li>
-                  ))}
+                  <div style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(4, 1fr)",
+                    gap: "10px",
+                    listStyle: "none",
+                    padding: 0,
+                    margin: 0
+                  }}>
+                    {giftItems.map((item) => (
+                      <li key={item.id} style={{ 
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        cursor: "pointer"
+                      }}>
+                        <span
+                          role="img"
+                          aria-label="gift icon"
+                          aria-hidden="true"
+                          onClick={() => handleGiftClick(item)}
+                          style={{ cursor: "pointer" }}
+                        >
+                          <img
+                            className="m-1 pointer"
+                            src={item.imgUrl}
+                            alt={item.name}
+                            style={{ 
+                              width: "60px", 
+                              height: "60px",
+                              transition: "transform 0.2s ease",
+                              borderRadius: "8px",
+                              objectFit: "cover"
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.transform = "scale(1.1)";
+                              e.target.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.transform = "scale(1)";
+                              e.target.style.boxShadow = "none";
+                            }}
+                          />
+                        </span>
+                        <div style={{ 
+                          fontSize: "10px", 
+                          textAlign: "center", 
+                          marginTop: "5px",
+                          fontWeight: "500",
+                          color: "#666"
+                        }}>
+                          {item.name}
+                        </div>
+                      </li>
+                    ))}
+                  </div>
                 </ul>
               </div>
 
@@ -1391,21 +1732,30 @@ export default function App() {
                   onKeyDown={handleKeyDown}
                 />
                 <div className="smile-message-input">
-                  {/* <span
+                  
+                  <span
                     className="pointer"
                     style={{
                       fontWeight: "600",
+                      cursor: "pointer",
+                      padding: "8px",
+                      borderRadius: "50%",
+                      transition: "background-color 0.2s"
                     }}
-                    data-bs-toggle="dropdown"
                     onClick={handleToggleEmojiPicker}
+                    onMouseEnter={(e) => {
+                      e.target.style.backgroundColor = "#f0f0f0";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.backgroundColor = "transparent";
+                    }}
+                    title="Emoji Picker (Ctrl+E)"
                   >
                     <i
-                      class="fa-solid fa-face-smile fa-xl"
-                    ></i>{" "}
-                  </span> */}
-                  <div className="dropdown-menu">
-                    <EmojiPicker onEmojiClick={handleSelectEmoji} />
-                  </div>
+                      className="fa-solid fa-face-smile fa-xl"
+                      style={{ color: showEmojiPicker ? "#f24570" : "#6c757d" }}
+                    ></i>
+                  </span>
                 </div>
               </div>
 
@@ -1413,10 +1763,48 @@ export default function App() {
               <button
                 className="send-btn fs-4"
                 onClick={handleSendMessage}
-                onk
+                disabled={isUploading}
+                style={{
+                  opacity: isUploading ? 0.6 : 1,
+                  cursor: isUploading ? 'not-allowed' : 'pointer'
+                }}
               >
-                <MDBIcon fas icon="paper-plane" />
+                {isUploading ? (
+                  <div className="spinner-border spinner-border-sm" role="status">
+                    <span className="sr-only">Sending...</span>
+                  </div>
+                ) : (
+                  <MDBIcon fas icon="paper-plane" />
+                )}
               </button>
+
+              {/* Emoji Picker */}
+              {showEmojiPicker && (
+                <div
+                  className="emoji-picker-container"
+                  style={{
+                    position: "absolute",
+                    bottom: "70px",
+                    right: "20px",
+                    zIndex: 1000,
+                    backgroundColor: "white",
+                    borderRadius: "12px",
+                    boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                    border: "1px solid #e0e0e0"
+                  }}
+                >
+                  <EmojiPicker 
+                    onEmojiClick={handleSelectEmoji}
+                    width={350}
+                    height={400}
+                    searchDisabled={false}
+                    skinTonesDisabled={false}
+                    previewConfig={{
+                      showPreview: true
+                    }}
+                  />
+                </div>
+              )}
             </div>
             )}
           </div>) : (
@@ -1499,7 +1887,109 @@ export default function App() {
           selectedUser={selectedUser}
         />
 
+        {/* Incoming Call Modal */}
+        {incomingCall && (
+          <IncomingCallModal 
+            show={showIncomingCallModal} 
+            onHide={() => {
+              // Clear notification flag when modal is closed
+              if (incomingCall) {
+                const notificationKey = `call_notification_${incomingCall._id}`;
+                sessionStorage.removeItem(notificationKey);
+              }
+              setShowIncomingCallModal(false);
+              setIncomingCall(null);
+            }}
+            selectedUser={{
+              _id: incomingCall.callerId._id,
+              name: incomingCall.callerId.name,
+              avatar: `${BASE_URL}/assets/images/${incomingCall.callerId.mainAvatar}`
+            }}
+            currentUserId={user?._id || storedUserId}
+            selectedRoomId={incomingCall.roomId}
+            callId={incomingCall._id}
+            isIncomingCall={true}
+            callerName={incomingCall.callerId.name}
+          />
+        )}
+
+        {/* Call History Modal */}
+        <Modal show={showCallHistory} onHide={() => setShowCallHistory(false)} size="lg" centered>
+          <Modal.Header closeButton>
+            <Modal.Title>Call History</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+              {callHistory.length === 0 ? (
+                <div className="text-center text-muted p-4">
+                  <p>No call history available</p>
+                </div>
+              ) : (
+                callHistory.map((call) => {
+                  const isIncoming = call.calleeId._id === (user?._id || storedUserId);
+                  const otherUser = isIncoming ? call.callerId : call.calleeId;
+                  const statusColor = {
+                    'connected': '#28a745',
+                    'declined': '#dc3545',
+                    'ringing': '#ffc107'
+                  };
+
+                  return (
+                    <div key={call._id} className="d-flex align-items-center p-3 border-bottom">
+                      <img
+                        src={`${BASE_URL}/assets/images/${otherUser.mainAvatar}`}
+                        alt={otherUser.name}
+                        style={{
+                          width: '50px',
+                          height: '50px',
+                          borderRadius: '50%',
+                          objectFit: 'cover',
+                          marginRight: '15px'
+                        }}
+                        onError={(e) => {
+                          e.target.src = dummyUserPic;
+                        }}
+                      />
+                      <div className="flex-grow-1">
+                        <div className="d-flex justify-content-between align-items-center">
+                          <div>
+                            <h6 className="mb-1">{otherUser.name}</h6>
+                            <small className="text-muted">
+                              {isIncoming ? 'Incoming' : 'Outgoing'} • {call.callType} call
+                            </small>
+                          </div>
+                          <div className="text-end">
+                            <span
+                              className="badge"
+                              style={{
+                                backgroundColor: statusColor[call.status] || '#6c757d',
+                                color: 'white'
+                              }}
+                            >
+                              {call.status === 'connected' ? 'Call Accepted' : call.status}
+                            </span>
+                            <br />
+                            <small className="text-muted">
+                              {new Date(call.startTime).toLocaleString()}
+                            </small>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowCallHistory(false)}>
+              Close
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
       </MDBContainer>
+      <Toaster position="top-center" />
     </div>
   );
 }

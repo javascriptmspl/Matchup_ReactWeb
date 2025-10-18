@@ -84,22 +84,7 @@ const Memberpop = ({
               <h3 className="heading">
                 {showFriends ? "Here's Your Friends, Schedule Your Event's" : "Here's Your Matches, Schedule Your Event's"}
               </h3>
-              {/* <div className="btn-group" role="group">
-                <button 
-                  type="button" 
-                  className={`btn ${!showFriends ? 'btn-primary' : 'btn-outline-primary'}`}
-                  onClick={() => setShowFriends(false)}
-                >
-                  Matches
-                </button>
-                <button 
-                  type="button" 
-                  className={`btn ${showFriends ? 'btn-primary' : 'btn-outline-primary'}`}
-                  onClick={() => setShowFriends(true)}
-                >
-                  Friends
-                </button>
-              </div> */}
+             
 
 <div className="btn-group" role="group">
   <button
