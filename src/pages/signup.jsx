@@ -52,6 +52,7 @@ const SignUp = (selectedProfile) => {
   const formik = useFormik({
     initialValues: {
       name: "",
+      userName: "",
       mode: MODE_DATING,
       email: "",
       password: "",
@@ -82,6 +83,7 @@ const SignUp = (selectedProfile) => {
     validationSchema: Yup.object().shape({
       mode: Yup.string().required("Please select a mode"),
       name: Yup.string().required("Please enter your full name"),
+      userName: Yup.string().required("Please enter your username"),
       dob: Yup.date()
         .required("Please enter your birthday")
         .max(
@@ -101,7 +103,7 @@ const SignUp = (selectedProfile) => {
     onSubmit: async (values) => {
       const action = await createUserAsync(values);
       const { isSuccess, message, error } = action;
-      if (isSuccess && modeChange === "datiing") {
+      if (isSuccess && modeChange === "dating") {
         navigate("/dating/interest");
         toast.success(`Account created successfully: ${message}`);
       } else if (isSuccess && modeChange === "matrimonial") {
@@ -119,6 +121,7 @@ const SignUp = (selectedProfile) => {
       if (
         formik.values.mode &&
         formik.values.name &&
+        formik.values.userName &&
         formik.values.email &&
         formik.values.password &&
         formik.values.confirmPassword
@@ -242,6 +245,30 @@ const SignUp = (selectedProfile) => {
                             style={{ color: "red" }}
                           >
                             {formik.errors.name}
+                          </div>
+                        ) : null}
+                      </div>
+
+                      {/* userName  */}
+                      <div className="form-group">
+                        <label>
+                          Username<span>*</span>
+                        </label>
+                        <input
+                          type="text"
+                          name="userName"
+                          value={formik.values.userName}
+                          onChange={formik.handleChange}
+                          onBlur={formik.handleBlur}
+                          placeholder="Enter Your Username"
+                          className="my-form-control"
+                        />
+                        {formik.touched.userName && formik.errors.userName ? (
+                          <div
+                            className="error-message"
+                            style={{ color: "red" }}
+                          >
+                            {formik.errors.userName}
                           </div>
                         ) : null}
                       </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import HeaderFour from "../component/layout/HeaderFour";
 import FooterFour from "../component/layout/footerFour";
 import { getPaymentHistory } from '../../service/MANAGE_API/paymentService';
+import { getUserCoins } from '../../service/MANAGE_API/gift-API';
 import toast from 'react-hot-toast';
 
 const PurchaseHistory = () => {
@@ -15,10 +16,52 @@ const PurchaseHistory = () => {
     pageSize: 10
   });
   const [userInfo, setUserInfo] = useState(null);
+  const [coinBalance, setCoinBalance] = useState(0);
+  const [loadingBalance, setLoadingBalance] = useState(false);
 
   useEffect(() => {
     fetchPurchaseHistory(1);
+
+    const handleCoinBalanceUpdate = (event) => {
+      const { newBalance } = event.detail || {};
+      if (typeof newBalance === 'number') {
+        setCoinBalance(newBalance);
+      }
+    };
+
+    window.addEventListener('coinBalanceUpdated', handleCoinBalanceUpdate);
+    return () => window.removeEventListener('coinBalanceUpdated', handleCoinBalanceUpdate);
   }, []);
+
+  const fetchCurrentCoinBalance = async () => {
+    setLoadingBalance(true);
+    try {
+      const userData = JSON.parse(localStorage.getItem("userData"));
+      const userId = userData?.data?._id;
+      if (!userId) return;
+      const response = await getUserCoins(userId);
+      if (response.isSuccess) {
+        const coins = response.data?.coins || response.data?.balance || 0;
+        setCoinBalance(coins);
+      } else {
+        calculateBalanceFromPurchases();
+      }
+    } catch (error) {
+      calculateBalanceFromPurchases();
+    } finally {
+      setLoadingBalance(false);
+    }
+  };
+
+  const calculateBalanceFromPurchases = () => {
+    const totalCoins = purchases.reduce((sum, purchase) => {
+      const status = (purchase.paymentStatus || '').toLowerCase();
+      const credited = status === 'succeeded' || status === 'active';
+      const coins = credited ? (purchase.coinsAwarded || 0) : 0;
+      return sum + coins;
+    }, 0);
+    setCoinBalance(totalCoins);
+  };
 
   const fetchPurchaseHistory = async (pageNo = 1) => {
     setLoading(true);
@@ -39,6 +82,11 @@ const PurchaseHistory = () => {
       if (response.isSuccess && response.data) {
         const payments = response.data.payments || [];
         setPurchases(payments);
+        // Calculate from purchases first, then try live balance
+        calculateBalanceFromPurchases();
+        setTimeout(() => {
+          fetchCurrentCoinBalance();
+        }, 400);
         
         // Set user info from first payment if available
         if (payments.length > 0 && payments[0].userId) {
@@ -122,6 +170,24 @@ const PurchaseHistory = () => {
               </span>
             )}
           </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '12px' }}>
+            <span style={{ fontSize: '14px', color: '#333', fontWeight: 600 }}>
+              Coin Balance:
+            </span>
+            <span style={{
+              backgroundColor: '#ffc107',
+              color: '#fff',
+              padding: '4px 12px',
+              borderRadius: '20px',
+              fontSize: '14px',
+              fontWeight: 'bold'
+            }}>
+              {loadingBalance ? 'Loading...' : `${coinBalance} coins`}
+            </span>
+            <button className="btn btn-sm btn-outline-secondary" onClick={fetchCurrentCoinBalance} disabled={loadingBalance}>
+              {loadingBalance ? 'Refreshing...' : 'Refresh'}
+            </button>
+          </div>
         </div>
 
         {loading ? (

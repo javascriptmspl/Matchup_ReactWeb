@@ -22,23 +22,13 @@ import axios from 'axios';
 import { messages as staticMessages, customMessages } from "../../dating/component/chat2-component/message";
 
 //images
-import img2 from "../../dating/assets/images/shop/dating/1.jpg";
-import img1 from "../../dating/assets/images/shop/dating/2.jpg";
-import img3 from "../../dating/assets/images/shop/dating/3.jpg";
-import img4 from "../../dating/assets/images/shop/dating/4.jpg";
-import img5 from "../../dating/assets/images/shop/dating/5.jpg";
-import img6 from "../../dating/assets/images/shop/dating/6.jpg";
-import img7 from "../../dating/assets/images/shop/dating/7.jpg";
-import img8 from "../../dating/assets/images/shop/dating/8.jpg";
-import img9 from "../../dating/assets/images/shop/dating/9.jpg";
-import img10 from "../../dating/assets/images/shop/dating/10.png";
-import img11 from "../../dating/assets/images/shop/dating/11.png";
 import chatBG from "../assets/images/bg-img/marrage-chat-bg.jpg";
 import chatBG2 from "../../dating/assets/images/chat/chatbg2.jpg"
 import dummyUserPic from "../../dating/assets/images/myCollection/user-male.jpg";
 import { useSelector, useDispatch } from "react-redux";
 import { BASE_URL } from "../../base";
 import { getChatRooms, getRoomById, getRoomMessages, sendMessage, createChatRoom, editMessage, deleteMessage } from "../../service/MANAGE_API/chat-API";
+import { getAllGifts, getUserCoins, sendGift as sendGiftApi } from "../../service/MANAGE_API/gift-API";
 import { getBlockedUsers, checkIfBlockedBy } from "../../service/common-service/blockSlice";
 
 // Matrimonial specific modals
@@ -94,6 +84,10 @@ export default function App() {
   const [showIncomingCallModal, setShowIncomingCallModal] = useState(false);
   const [callHistory, setCallHistory] = useState([]);
   const [showCallHistory, setShowCallHistory] = useState(false);
+  const [gifts, setGifts] = useState([]);
+  const [loadingGifts, setLoadingGifts] = useState(false);
+  const [showGiftModal, setShowGiftModal] = useState(false);
+  const [sendingGift, setSendingGift] = useState(false);
 
   const handleShow = () => setShowModal(true);
   const handleHide = () => setShowModal(false);
@@ -684,17 +678,106 @@ export default function App() {
   };
 
   // Handle gift sending with membership check
-  const handleGiftClick = (giftItem) => {
-    // Check if user has active subscription/membership
-    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-    const hasMembership = userData?.data?.membershipStatus === 'active' || 
-                         userData?.membershipStatus === 'active' ||
-                         userData?.data?.isPremium === true ||
-                         userData?.isPremium === true;
+  const [userCoins, setUserCoins] = useState(0);
+  const [updatingCoins, setUpdatingCoins] = useState(false);
 
-    if (!hasMembership) {
-      // Show toast notification and redirect to membership page
-      toast.error('You need a premium membership to send gifts!', {
+  // Fetch gifts from API
+  const fetchGifts = async () => {
+    setLoadingGifts(true);
+    try {
+      const response = await getAllGifts(1, 11);
+      if (response.isSuccess) {
+        setGifts(response.data.gifts);
+      }
+    } catch (error) {
+      console.error('Error fetching gifts:', error);
+      toast.error('Failed to load gifts. Please try again.', {
+        duration: 3000,
+        position: 'top-center',
+        style: {
+          background: '#dc3545',
+          color: '#fff',
+          fontWeight: '500',
+        },
+        icon: '❌',
+      });
+    } finally {
+      setLoadingGifts(false);
+    }
+  };
+
+  // Fetch user coins
+  const fetchUserCoins = async () => {
+    const userId = user?._id || storedUserId;
+    if (!userId) return;
+
+    try {
+      const response = await getUserCoins(userId);
+      
+      if (response.isSuccess) {
+        const coins = response.data?.coins || response.data?.balance || 0;
+        setUserCoins(coins);
+      } else {
+        calculateCoinsFromLocalStorage();
+      }
+    } catch (error) {
+      calculateCoinsFromLocalStorage();
+    }
+  };
+
+  const calculateCoinsFromLocalStorage = () => {
+    try {
+      const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+      const storedCoins = userData?.data?.coins || userData?.coins || 0;
+      
+      if (storedCoins > 0) {
+        setUserCoins(storedCoins);
+      } else {
+        setUserCoins(550);
+      }
+    } catch (error) {
+      setUserCoins(550);
+    }
+  };
+
+  useEffect(() => {
+    const initCoins = async () => {
+      try {
+        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+        const userId = userData?.data?._id || user?._id || storedUserId;
+        if (!userId) return;
+        const res = await getUserCoins(userId);
+        if (res?.isSuccess) {
+          const coins = res.data?.coins || res.data?.balance || 0;
+          setUserCoins(coins);
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+    initCoins();
+  }, [user?._id, storedUserId]);
+
+  const handleGiftClick = async (giftItem) => {
+    // Check if a room is selected first
+    if (!selectedRoomId || !selectedUser) {
+      toast.error('Please select a chat to send the gift.', {
+        duration: 3000,
+        position: 'top-center',
+        style: {
+          background: '#dc3545',
+          color: '#fff',
+          fontWeight: '500',
+        },
+        icon: '❌',
+      });
+      return;
+    }
+
+    // Check if user has any coins at all
+    if (userCoins <= 0) {
+      // No coins available - redirect to subscribe page
+      toast.error('You need coins to send gifts! Please subscribe to get coins.', {
         duration: 3000,
         position: 'top-center',
         style: {
@@ -712,14 +795,31 @@ export default function App() {
       return;
     }
 
-    // If user has membership, send the gift
-    sendGift(giftItem);
+    if (userCoins < giftItem.coinCost) {
+      toast.error(`Insufficient coins! You need ${giftItem.coinCost} coins but have ${userCoins}. Please get more coins.`, {
+        duration: 4000,
+        position: 'top-center',
+        style: {
+          background: '#dc3545',
+          color: '#fff',
+          fontWeight: '500',
+        },
+        icon: '💰',
+        action: {
+          label: 'Get Coins',
+          onClick: () => navigate('/metrimonial/membership')
+        }
+      })
+      navigate('/metrimonial/membership');
+      return;
+    }
+
+    await sendGiftToUser(giftItem);
   };
 
-  // Function to send gift message
-  const sendGift = async (giftItem) => {
-    if (!selectedRoomId) {
-      console.error("No room selected");
+  const sendGiftToUser = async (giftItem) => {
+    if (!selectedRoomId || !selectedUser) {
+      console.error("No room or user selected");
       return;
     }
 
@@ -729,11 +829,42 @@ export default function App() {
       return;
     }
 
+    setSendingGift(true);
     try {
-      // Create a gift message
+      // Send gift via API
+        const giftData = {
+          senderId: userId,
+          receiverId: selectedUser._id,
+          giftId: giftItem._id,
+        message: giftItem.description || giftItem.name
+      };
+
+      const response = await sendGiftApi(giftData);
+
+      if (response?.isSuccess) {
+        const newBalance = response.data.remainingCoins || (userCoins - giftItem.coinCost);
+        console.log(`Updating coin balance: ${userCoins} - ${giftItem.coinCost} = ${newBalance}`);
+          setUpdatingCoins(true);
+          setUserCoins(newBalance);
+        
+        // Update localStorage with new balance
+        try {
+          const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+          if (userData?.data) {
+            userData.data.coins = newBalance;
+          } else {
+            userData.coins = newBalance;
+          }
+          localStorage.setItem('userData', JSON.stringify(userData));
+          console.log('Updated localStorage with new coin balance:', newBalance);
+        } catch (error) {
+          console.error('Error updating localStorage:', error);
+        }
+        
+        // Create gift message for chat
       const giftMessage = `🎁 Sent a gift: ${giftItem.name}`;
-      
-      const response = await sendMessage(
+
+        const messageResponse = await sendMessage(
         selectedRoomId,
         userId,
         giftMessage,
@@ -742,10 +873,9 @@ export default function App() {
         null
       );
 
-      if (response?.isSuccess) {
-        // Add the gift message to the chat
+        if (messageResponse?.isSuccess) {
         const giftMessageObj = {
-          id: response.data._id || Date.now(),
+            id: messageResponse.data._id || Date.now(),
           content: giftMessage,
           timestamp: new Date().toLocaleTimeString([], {
             hour: "2-digit",
@@ -761,10 +891,11 @@ export default function App() {
 
         setRoomMessages(prevMessages => [...prevMessages, giftMessageObj]);
         setTimeout(scrollToBottom, 100);
+        }
         
-        // Show success toast
-        toast.success(`Gift "${giftItem.name}" sent successfully!`, {
-          duration: 2000,
+        // Show success toast with updated balance
+        toast.success(`Gift "${giftItem.name}" sent successfully! Coins deducted: ${giftItem.coinCost}. New balance: ${newBalance}`, {
+          duration: 4000,
           position: 'top-center',
           style: {
             background: '#28a745',
@@ -773,6 +904,17 @@ export default function App() {
           },
           icon: '🎁',
         });
+
+        // Refresh coin balance from API to ensure accuracy
+        setTimeout(() => {
+          fetchUserCoins();
+          setUpdatingCoins(false);
+        }, 1000);
+
+        // Notify other components about coin balance change
+        window.dispatchEvent(new CustomEvent('coinBalanceUpdated', { 
+          detail: { newBalance, deductedAmount: giftItem.coinCost } 
+        }));
       }
     } catch (error) {
       console.error("Error sending gift:", error);
@@ -786,6 +928,8 @@ export default function App() {
         },
         icon: '❌',
       });
+    } finally {
+      setSendingGift(false);
     }
   };
 
@@ -794,21 +938,6 @@ export default function App() {
   const toggleDropdown = () => {
     setDropdownOpen(!isDropdownOpen);
   };
-
-
-  const giftItems = [
-    { id: 1, name: "", imgUrl: img1 },
-    { id: 2, name: "", imgUrl: img2 },
-    { id: 3, name: "", imgUrl: img3 },
-    { id: 4, name: "", imgUrl: img4 },
-    { id: 5, name: "", imgUrl: img5 },
-    { id: 6, name: "", imgUrl: img6 },
-    { id: 7, name: "", imgUrl: img7 },
-    { id: 8, name: "", imgUrl: img8 },
-    { id: 9, name: "", imgUrl: img9 },
-    { id: 10, name: "", imgUrl: img10 },
-    { id: 11, name: "", imgUrl: img11 },
-  ];
 
 
   const handleSearch = (query) => {
@@ -864,6 +993,13 @@ export default function App() {
     if (userId) {
       dispatch(getBlockedUsers(userId));
     }
+
+    // Fetch gifts and user coins
+    fetchGifts();
+    // Delay coin fetching to ensure user data is available
+    setTimeout(() => {
+      fetchUserCoins();
+    }, 1000);
   }, [user?._id, storedUserId, dispatch]);
 
   // Re-check blocking status when selectedUser changes
@@ -872,6 +1008,16 @@ export default function App() {
       checkBlockingStatus(selectedUser._id);
     }
   }, [selectedUser?._id]);
+
+  // Refresh coins when user data changes
+  useEffect(() => {
+    if (user?._id || storedUserId) {
+      console.log("User data changed, refreshing coins");
+      setTimeout(() => {
+        fetchUserCoins();
+      }, 500);
+    }
+  }, [user?._id, storedUserId]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -1057,6 +1203,37 @@ export default function App() {
                         Active
                       </small>
                     </h6>
+                    {/* User coins display */}
+                    <div className="mt-1 d-flex align-items-center gap-2">
+                      <small style={{
+                        color: "#6c757d",
+                        fontSize: "0.8rem",
+                        fontWeight: "500"
+                      }}>
+                        💰 {updatingCoins ? (
+                          <span style={{ color: "#ffc107" }}>
+                            <i className="fa fa-spinner fa-spin"></i> Updating...
+                          </span>
+                        ) : (
+                          `${userCoins} coins`
+                        )}
+                      </small>
+                      <button 
+                        className="btn btn-sm btn-outline-primary"
+                        onClick={() => {
+                          fetchUserCoins();
+                        }}
+                        style={{ 
+                          fontSize: "8px", 
+                          padding: "1px 4px",
+                          lineHeight: "1"
+                        }}
+                        title="Refresh coin balance"
+                      >
+                        <i className="fa fa-refresh"></i>
+                      </button>
+                      
+                    </div>
 
                   </div>
                 </div>
@@ -1803,6 +1980,7 @@ export default function App() {
                     fontWeight: "600",
                   }}
                   data-bs-toggle="dropdown"
+                  onClick={fetchGifts}
                 >
                   <i
                     className="fa-solid fa-gift fa-xl"
@@ -1810,33 +1988,114 @@ export default function App() {
                   ></i>{" "}
                 </span>
                 <ul className="dropdown-menu p-3" style={{
-                  width: "400px"
+                  width: "450px"
                 }}>
+                  {/* User coins display */}
+                  <div className="mb-3 p-2" style={{
+                    backgroundColor: userCoins > 0 ? "#d4edda" : "#f8d7da",
+                    borderRadius: "8px",
+                    border: `1px solid ${userCoins > 0 ? "#c3e6cb" : "#f5c6cb"}`
+                  }}>
+                    <div className="d-flex justify-content-between align-items-center">
+                      <span style={{ 
+                        fontWeight: "600", 
+                        color: userCoins > 0 ? "#155724" : "#721c24" 
+                      }}>
+                        💰 Your Coins: {userCoins}
+                        {userCoins <= 0 && (
+                          <small className="d-block" style={{ fontSize: "10px", color: "#721c24" }}>
+                            No coins available - Subscribe to get coins!
+                          </small>
+                        )}
+                      </span>
+                      <button 
+                        className="btn btn-sm btn-outline-primary"
+                        onClick={fetchUserCoins}
+                        style={{ fontSize: "10px", padding: "2px 6px" }}
+                      >
+                        Refresh
+                      </button>
+                    </div>
+                  </div>
+
+                  {loadingGifts ? (
+                    <div className="text-center p-4">
+                      <div className="spinner-border text-primary" role="status">
+                        <span className="sr-only">Loading gifts...</span>
+                      </div>
+                      <p className="mt-2 mb-0" style={{ fontSize: "12px", color: "#6c757d" }}>
+                        Loading gifts...
+                      </p>
+                    </div>
+                  ) : gifts.length === 0 ? (
+                    <div className="text-center p-4">
+                      <p className="text-muted mb-0" style={{ fontSize: "14px" }}>
+                        No gifts available
+                      </p>
+                    </div>
+                  ) : userCoins <= 0 ? (
+                    <div className="text-center p-4">
+                      <div style={{ fontSize: "48px", color: "#dc3545", marginBottom: "15px" }}>
+                        💰
+                      </div>
+                      <h5 style={{ color: "#721c24", marginBottom: "10px" }}>No Coins Available</h5>
+                      <p style={{ color: "#6c757d", marginBottom: "20px" }}>
+                        You need coins to send gifts. Subscribe to get coins and start sending gifts!
+                      </p>
+                      <button 
+                        className="btn btn-primary"
+                        onClick={() => navigate('/metrimonial/membership')}
+                        style={{
+                          borderRadius: "25px",
+                          padding: "10px 25px",
+                          fontWeight: "500"
+                        }}
+                      >
+                        <i className="fa fa-gem me-2"></i>
+                        Get Coins Now
+                      </button>
+                    </div>
+                  ) : (
                   <div style={{
                     display: "grid",
-                    gridTemplateColumns: "repeat(4, 1fr)",
-                    gap: "10px",
+                      gridTemplateColumns: "repeat(3, 1fr)",
+                      gap: "12px",
                     listStyle: "none",
                     padding: 0,
                     margin: 0
                 }}>
-                  {giftItems.map((item) => (
-                      <li key={item.id} style={{ 
+                      {gifts.map((item) => (
+                        <li key={item._id} style={{ 
                         display: "flex",
                         flexDirection: "column",
                         alignItems: "center",
-                        cursor: "pointer"
-                      }}>
-                      <span
+                          cursor: "pointer",
+                          padding: "8px",
+                          borderRadius: "8px",
+                          transition: "background-color 0.2s ease",
+                          backgroundColor: userCoins >= item.coinCost ? "transparent" : "#f8f9fa"
+                        }}
+                        onMouseEnter={(e) => {
+                          if (userCoins >= item.coinCost) {
+                            e.currentTarget.style.backgroundColor = "#f8f9fa";
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = userCoins >= item.coinCost ? "transparent" : "#f8f9fa";
+                        }}>
+                          <div
                         role="img"
                         aria-label="gift icon"
                         aria-hidden="true"
                           onClick={() => handleGiftClick(item)}
-                          style={{ cursor: "pointer" }}
+                            style={{ 
+                              cursor: userCoins >= item.coinCost ? "pointer" : "not-allowed",
+                              opacity: userCoins >= item.coinCost ? 1 : 0.5
+                            }}
                       >
                         <img
                           className="m-1 pointer"
-                          src={item.imgUrl}
+                              src={item.imageUrl}
                           alt={item.name}
                             style={{ 
                               width: "60px", 
@@ -1846,27 +2105,50 @@ export default function App() {
                               objectFit: "cover"
                             }}
                             onMouseEnter={(e) => {
+                                if (userCoins >= item.coinCost) {
                               e.target.style.transform = "scale(1.1)";
                               e.target.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)";
+                                }
                             }}
                             onMouseLeave={(e) => {
                               e.target.style.transform = "scale(1)";
                               e.target.style.boxShadow = "none";
                             }}
                         />
-                      </span>
+                          </div>
                         <div style={{ 
                           fontSize: "10px", 
                           textAlign: "center", 
                           marginTop: "5px",
                           fontWeight: "500",
-                          color: "#666"
+                            color: userCoins >= item.coinCost ? "#495057" : "#6c757d"
                         }}>
                       {item.name}
                         </div>
+                          <div style={{ 
+                            fontSize: "9px", 
+                            textAlign: "center", 
+                            marginTop: "2px",
+                            fontWeight: "600",
+                            color: userCoins >= item.coinCost ? "#28a745" : "#dc3545"
+                          }}>
+                            💰 {item.coinCost} coins
+                          </div>
+                          {userCoins < item.coinCost && (
+                            <div style={{ 
+                              fontSize: "8px", 
+                              textAlign: "center", 
+                              marginTop: "2px",
+                              color: "#dc3545",
+                              fontWeight: "500"
+                            }}>
+                              Insufficient coins
+                            </div>
+                          )}
                     </li>
                   ))}
                   </div>
+                  )}
                 </ul>
               </div>
 
@@ -1917,13 +2199,13 @@ export default function App() {
               <button
                 className="send-btn fs-4"
                 onClick={handleSendMessage}
-                disabled={isUploading}
+                disabled={isUploading || sendingGift}
                 style={{
-                  opacity: isUploading ? 0.6 : 1,
-                  cursor: isUploading ? 'not-allowed' : 'pointer'
+                  opacity: (isUploading || sendingGift) ? 0.6 : 1,
+                  cursor: (isUploading || sendingGift) ? 'not-allowed' : 'pointer'
                 }}
               >
-                {isUploading ? (
+                {(isUploading || sendingGift) ? (
                   <div className="spinner-border spinner-border-sm" role="status">
                     <span className="sr-only">Sending...</span>
                   </div>

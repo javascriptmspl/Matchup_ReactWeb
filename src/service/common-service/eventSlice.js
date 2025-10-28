@@ -25,10 +25,10 @@ export const createEvent = createAsyncThunk(
 // FETCH events thunk
 export const getEvents = createAsyncThunk(
   "event/getEvents",
-  async (userId, { rejectWithValue }) => {
+  async (userId,modeId, { rejectWithValue }) => {
     try {
       const response = await axios.get(
-        `${BASE_URL}/events/getBySenderUserId/${userId}?modeId=68d103d5aa4b176726e60421&page_number=1&page_size=100`
+        `${BASE_URL}/events/getBySenderUserId/${userId}?modeId=${modeId}&page_number=1&page_size=100`
       );
       return response.data.data || [];
     } catch (error) {
@@ -40,10 +40,10 @@ export const getEvents = createAsyncThunk(
 
 export const getEventsM = createAsyncThunk(
   "events/getEventsM",
-  async (userId, { rejectWithValue }) => {
+  async (userId,modeId, { rejectWithValue }) => {
     try {
       const response = await axios.get(
-        `${BASE_URL}/events/getBySenderUserId/${userId}?modeId=68d103ffaa4b176726e60424&page_number=1&page_size=100`
+        `${BASE_URL}/events/getBySenderUserId/${userId}?modeId=${modeId}&page_number=1&page_size=100`
       );
       return response.data.data || [];
     } catch (error) {

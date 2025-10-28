@@ -102,6 +102,7 @@ const MyProfile = () => {
   const [visibleCountAll, setVisibleCountAll] = useState(9);
   const [visibleCountAlbum, setVisibleCountAlbum] = useState(9);
   const [visibleCountPhoto, setVisibleCountPhoto] = useState(9);
+  const [profilePreview, setProfilePreview] = useState(null);
 
   const userId = USER_ID_LOGGEDIN;
   const UserData = data?.user[0];
@@ -172,12 +173,24 @@ const MyProfile = () => {
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
+      // Show preview immediately
       const imageUrl = URL.createObjectURL(file);
+      setProfilePreview(imageUrl);
+      
+      // Upload in background
       dispatch(uploadProfilePictureAsync({ imageData: file, userId })).then(
         () => {
+          // Clear preview after upload completes and refresh
+          URL.revokeObjectURL(imageUrl);
+          setProfilePreview(null);
           forceUpdate(!force);
         }
-      );
+      ).catch((error) => {
+        // On error, clear preview
+        URL.revokeObjectURL(imageUrl);
+        setProfilePreview(null);
+        console.error("Upload failed:", error);
+      });
     }
   };
  
@@ -726,24 +739,48 @@ const MyProfile = () => {
                         />
                         <label
                           htmlFor="imageInput"
-                          style={{ cursor: "pointer" }}
+                          style={{ cursor: "pointer", position: "relative", display: "block" }}
                         >
                           <img
                             src={
-                              User?.mainAvatar
+                              profilePreview || 
+                              (User?.mainAvatar
                                 ? `${BASE_URL}/assets/images/${User?.mainAvatar}`
                                 : User?.avatars?.[0]
                                 ? `${BASE_URL}/assets/images/${User?.avatars?.[0]}`
-                                : userMale
+                                : userMale)
                             }
                             style={{
                               objectFit: "cover",
                               height: "279px",
+                              width: "100%",
+                              transition: "opacity 0.3s ease",
+                              opacity: uploading && !profilePreview ? 0.5 : 1
                             }}
                             alt="dating thumb"
                           />
-
-                          {uploading && <p>Uploading...</p>}
+                          
+                          {/* Subtle loading overlay */}
+                          {uploading && !profilePreview && (
+                            <div style={{
+                              position: "absolute",
+                              top: "50%",
+                              left: "50%",
+                              transform: "translate(-50%, -50%)",
+                              backgroundColor: "rgba(0, 0, 0, 0.6)",
+                              color: "white",
+                              padding: "8px 16px",
+                              borderRadius: "8px",
+                              fontSize: "14px",
+                              fontWeight: "500",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px"
+                            }}>
+                              <i className="fa fa-spinner fa-spin"></i>
+                              Uploading...
+                            </div>
+                          )}
                         </label>
                       </div>
                       <div className="story__content">

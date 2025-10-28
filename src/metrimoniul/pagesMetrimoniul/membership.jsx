@@ -105,8 +105,9 @@ class MembershipPage extends Component {
   componentDidMount() {
     // Get userId from localStorage, Redux store, or wherever you store user data
     // This is a placeholder - adjust according to your auth implementation
-    const userId = localStorage.getItem("userId");
+    const userId = JSON.parse(localStorage.getItem("userData"))?.data?._id;
     this.setState({ userId });
+    console.log("Metrimonial Membership Page Loaded - User ID:", userId);
   }
 
   handleSelectPlan = (index) => {
@@ -120,24 +121,29 @@ class MembershipPage extends Component {
     }
     
     const { userId } = this.state;
- 
+    
+    console.log("Subscription clicked:", planName);
+    console.log("User ID:", userId);
     
     if (!userId) {
       toast.error("Please login to subscribe");
       return;
     }
 
+    console.log("Opening payment modal for:", planName.toLowerCase());
     
     this.setState({
       isPaymentModalOpen: true,
       selectedPlan: planName.toLowerCase(),
     }, () => {
       console.log("Modal state updated:", this.state.isPaymentModalOpen);
+      console.log("Selected plan:", this.state.selectedPlan);
     });
   };
 
   handlePaymentModalClose = (success, confirmationData) => {
-
+    console.log("Payment modal closing - Success:", success);
+    console.log("Confirmation data:", confirmationData);
     
     this.setState({ isPaymentModalOpen: false, selectedPlan: null });
     
@@ -153,7 +159,20 @@ class MembershipPage extends Component {
         { duration: 8000 }
       );
       
-    
+      // You can add additional logic here like:
+      // - Redirect to profile page
+      // - Update user subscription in Redux/Context
+      // - Refresh user data
+      // - Show a welcome modal with subscription details
+      
+      console.log("Subscription Details:", {
+        plan: payment.subscriptionPlan,
+        amount: payment.amount,
+        coinsAwarded,
+        newBalance,
+        startDate: payment.subscriptionStartDate,
+        endDate: payment.subscriptionEndDate
+      });
     } else if (success) {
       toast.success("Payment successful! Your subscription has been activated.");
     }
@@ -213,9 +232,10 @@ class MembershipPage extends Component {
                         </div>
                         <div className="membership__footer">
                           <button 
+                            type="button"
                             className="default-btn reverse" 
-                            style={{ border: 'none', width: '100%' }}
-                            onClick={() => toast.info("Please select a coin plan")}
+                            style={{ border: 'none', width: '100%', cursor: 'pointer' }}
+                            onClick={() => toast.info("Coin plans coming soon!")}
                           >
                             <span>{val.btnText}</span>
                           </button>
@@ -247,7 +267,7 @@ class MembershipPage extends Component {
                           <button 
                             type="button"
                             className="default-btn reverse" 
-                            style={{ border: 'none', width: '100%' }}
+                            style={{ border: 'none', width: '100%', cursor: 'pointer' }}
                             onClick={(e) => this.handleSubscriptionClick(val.daycount, e)}
                           >
                             <span>{val.btnText}</span>

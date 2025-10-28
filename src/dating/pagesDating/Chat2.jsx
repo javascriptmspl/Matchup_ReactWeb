@@ -201,7 +201,6 @@ export default function App() {
           const alreadyNotified = sessionStorage.getItem(notificationKey);
           
           if (!alreadyNotified) {
-            // Show notification only once per call
             toast(`📞 Incoming call from ${incomingCall.callerId.name}!`, {
               duration: 2000,
               position: 'top-center',
@@ -549,7 +548,6 @@ export default function App() {
           // Scroll to bottom
           setTimeout(scrollToBottom, 100);
         } else {
-          // Fallback: add message locally and refresh from server
           const localMessage = {
             id: Date.now(),
             content: messageText,
@@ -567,7 +565,6 @@ export default function App() {
           setRoomMessages(prevMessages => [...prevMessages, localMessage]);
           setTimeout(scrollToBottom, 100);
 
-          // Refresh from server to get the actual message
           setTimeout(() => {
             fetchRoomMessages(selectedRoomId);
           }, 1500);
@@ -576,7 +573,6 @@ export default function App() {
         alert("Message sent but server returned unexpected response");
       }
     } catch (error) {
-      // alert("Failed to send message. Please try again.");
       navigate("/dating/membership");
     }
   };
@@ -585,7 +581,6 @@ export default function App() {
       e.preventDefault();
       handleSendMessage();
     }
-    // Open emoji picker with Ctrl+E
     if (e.ctrlKey && e.key === "e") {
       e.preventDefault();
       setShowEmojiPicker(!showEmojiPicker);
@@ -602,7 +597,6 @@ export default function App() {
       return;
     }
 
-    // Get userId
     const userId = user?._id || storedUserId;
     if (!userId) {
       console.error("No user ID available");
