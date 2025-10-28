@@ -19,8 +19,10 @@ const IncomingCallModal = ({
     const [callConnected, setCallConnected] = useState(false);
     const [callStartTime, setCallStartTime] = useState(null);
     const [callDuration, setCallDuration] = useState(0);
-
-    // Timer effect for call duration
+  
+    const calleer=callId
+    const userId = currentUserId || selectedUser;
+    const [currentCallId, setCurrentCallId] = useState(callId || null);
     useEffect(() => {
         let interval;
         if (callConnected && callStartTime) {
@@ -35,56 +37,6 @@ const IncomingCallModal = ({
         };
     }, [callConnected, callStartTime]);
 
-    // Poll for call status updates when call is initiated (for outgoing calls)
-    useEffect(() => {
-        let pollInterval;
-        if (callInitiated && !callConnected && callId && !isIncomingCall) {
-            pollInterval = setInterval(async () => {
-                try {
-                    const response = await axios.get(`${BASE_URL}/chat/calls/${callId}/status`);
-                    if (response.data.isSuccess && response.data.data.status === 'connected') {
-                        setCallConnected(true);
-                        setCallStartTime(new Date());
-                        setCallDuration(0);
-                        clearInterval(pollInterval);
-                        
-                        toast.success('Call Connected!', {
-                            duration: 2000,
-                            position: 'top-center',
-                            style: {
-                                background: '#28a745',
-                                color: '#fff',
-                                fontWeight: '500',
-                            },
-                            icon: '✅',
-                        });
-                    } else if (response.data.isSuccess && response.data.data.status === 'declined') {
-                        setCallInitiated(false);
-                        setCallConnected(false);
-                        clearInterval(pollInterval);
-                        onHide();
-                        
-                        toast('Call declined by receiver', {
-                            duration: 2000,
-                            position: 'top-center',
-                            style: {
-                                background: '#ffc107',
-                                color: '#000',
-                                fontWeight: '500',
-                            },
-                            icon: '📵',
-                        });
-                    }
-                } catch (error) {
-                    console.error('Error checking call status:', error);
-                }
-            }, 2000); // Poll every 2 seconds
-        }
-        
-        return () => {
-            if (pollInterval) clearInterval(pollInterval);
-        };
-    }, [callInitiated, callConnected, callId, isIncomingCall, onHide]);
 
     const formatTime = (seconds) => {
         const mins = Math.floor(seconds / 60);
@@ -112,14 +64,23 @@ const IncomingCallModal = ({
         setIsCalling(true);
     
         try {
-            // API call according to Swagger: POST /chat/calls/{callId}/answer
+   
             const response = await axios.post(`${BASE_URL}/chat/calls/${callId}/answer`, {
                 userId: currentUserId
             });
-    
+
             const data = response.data;
-    
+
             if (data.isSuccess) {
+                // Notify backend of active call for caller so caller UI can switch to connected
+                try {
+                    const callerId = selectedUser?._id; // caller on incoming call modal
+                    if (callerId) {
+                        await axios.get(`${BASE_URL}/chat/calls/active?userId=${callerId}`);
+                    }
+                } catch (activeErr) {
+                    console.warn('Active calls fetch failed (non-blocking):', activeErr?.response?.data || activeErr.message);
+                }
                 // Show call accepted status
                 toast.success('Call Accepted! Voice call is now active.', {
                     duration: 3000,
@@ -172,10 +133,8 @@ const IncomingCallModal = ({
         }
     };
     const handleDeclineCall = async () => {
-        console.log('Decline call clicked - callId:', callId, 'currentUserId:', currentUserId);
         
         if (!callId || !currentUserId) {
-            console.error('Missing call information for decline:', { callId, currentUserId });
             toast.error('Missing call information. Please try again.', {
                 duration: 3000,
                 position: 'top-center',
@@ -190,7 +149,6 @@ const IncomingCallModal = ({
         }
 
         setIsCalling(true);
-        console.log('Calling decline API...');
 
         try {
             // API call according to Swagger: POST /chat/calls/{callId}/decline
@@ -198,11 +156,9 @@ const IncomingCallModal = ({
                 userId: currentUserId
             });
 
-            console.log('Decline API response:', response.data);
             const data = response.data;
 
             if (data.isSuccess) {
-                console.log('Call declined successfully');
                 // Show declined message
                 toast('Call declined successfully', {
                     duration: 2000,
@@ -215,7 +171,6 @@ const IncomingCallModal = ({
                     icon: '📵',
                 });
                 
-                // Reset call states and close modal
                 setCallConnected(false);
                 setCallInitiated(false);
                 setIsCalling(false);
@@ -247,13 +202,34 @@ const IncomingCallModal = ({
         onHide();
     };
 
-    const handleEndCall = () => {
-        setCallConnected(false);
-        setCallInitiated(false);
-        setIsCalling(false);
-        setCallStartTime(null);
-        setCallDuration(0);
-        onHide();
+    const handleEndCall = async () => {
+        try {
+            if (!callId) {
+                toast.error('Missing call id. Cannot end call.', { duration: 2000, position: 'top-center' });
+            } else {
+                const payload = {
+                    userId: currentUserId,
+                    reason: 'user-ended'
+                };
+                const idToEnd = currentCallId || callId;
+                const res = await axios.post(`${BASE_URL}/chat/calls/${idToEnd}/end`, payload);
+                if (res?.data?.isSuccess) {
+                    toast.success(res?.data?.message || 'Call ended successfully', { duration: 2000, position: 'top-center' });
+                } else {
+                    toast.error(res?.data?.message || 'Failed to end call', { duration: 2000, position: 'top-center' });
+                }
+            }
+        } catch (err) {
+            console.error('Error ending call:', err);
+            toast.error('End call failed. Please try again.', { duration: 2000, position: 'top-center' });
+        } finally {
+            setCallConnected(false);
+            setCallInitiated(false);
+            setIsCalling(false);
+            setCallStartTime(null);
+            setCallDuration(0);
+            onHide();
+        }
     };
 
     const handleStartVoiceCall = async () => {
@@ -298,6 +274,8 @@ const IncomingCallModal = ({
 
                 // Set call as initiated to show "Calling..." state
                 setCallInitiated(true);
+                const newCallId = response?.data?.data?.call?._id || response?.data?.data?._id || response?.data?.data?.id;
+                if (newCallId) { setCurrentCallId(newCallId); }
                 setIsCalling(false);
             } else {
                 throw new Error(data.message || 'Failed to initiate call');
@@ -323,7 +301,9 @@ const IncomingCallModal = ({
         <Modal show={show} onHide={onHide} centered className="incoming-call-modal">
             <Modal.Header closeButton>
                 <Modal.Title>
-                    {isIncomingCall ? 'Incoming Call' : callInitiated ? 'Calling...' : callConnected ? `Call Connected - ${formatTime(callDuration)}` : 'Voice Call'}
+                    {callConnected
+                        ? `Call Connected - ${formatTime(callDuration)}`
+                        : (isIncomingCall ? 'Incoming Call' : (callInitiated ? 'Calling...' : 'Voice Call'))}
                 </Modal.Title>
             </Modal.Header>
             

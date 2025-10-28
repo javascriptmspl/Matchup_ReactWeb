@@ -10,7 +10,6 @@ import { getbyiduser } from "../api/AuthAPI";
 export const uploadProfilePictureAsync = createAsyncThunk(
   "user/uploadProfilePicture",
   async ({ imageData, userId }, thunkAPI) => {
-    console.log("userId slice dp", userId);
     try {
       const response = await uploadProfilePicture(imageData, userId);
       try {

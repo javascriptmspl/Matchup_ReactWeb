@@ -20,7 +20,6 @@ export const filterPartnerByGenderAsync = createAsyncThunk(
   'findUser/filterPartnerByGenderAsync',
   async (data) => {
 const { modeId, gender } = data;
-console.log('slice page ===>>>>' , data)
 try {
   const response = await filterPartnerByGender(modeId, gender);
   return response;

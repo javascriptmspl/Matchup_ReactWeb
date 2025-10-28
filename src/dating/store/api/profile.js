@@ -71,8 +71,7 @@ export const getUserById = async (userId) => {
 //update user profile
 export const updateUserProfile = async (updatedUserData, userId) => {
   try {
-    console.log("API call - User ID:", userId);
-    console.log("API call - Data being sent:", updatedUserData);
+   
 
     // Get token from localStorage
     const token = localStorage.getItem("token");
@@ -86,11 +85,9 @@ export const updateUserProfile = async (updatedUserData, userId) => {
       updatedUserData,
       { headers }
     );
-    console.log("API call - Response:", response.data);
     return response.data;
   } catch (error) {
-    console.error("API call - Error:", error.response?.data);
-    console.error("API call - Status:", error.response?.status);
+   
     throw error;
   }
 };

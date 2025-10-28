@@ -20,7 +20,6 @@ export const getAllActivies = createAsyncThunk(
 
     try {
       const response = await allActivities();
-      console.log(response,"=====activiy");
       return response;
     } catch (error) {
       throw error;
@@ -75,7 +74,6 @@ export const updateActivitySlice = createAsyncThunk(
   async (data) => {
     try {
       const response= await updateActivity(data);
-      console.log(response)
       return response ;
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -93,7 +91,6 @@ export const updateActivitySlice = createAsyncThunk(
   async (data) => {
     try {
       const response= await searchActivity(data);
-      console.log(response.data);
       return response ;
     } catch (error) {
       console.error("Error creating user:", error);
@@ -108,7 +105,6 @@ export const updateActivitySlice = createAsyncThunk(
   async (sort) => {
     try {
       const response= await sortActivity(sort);
-      console.log(response.data);
       return response ;
     } catch (error) {
       console.error("Error creating user:", error);
@@ -218,14 +214,12 @@ const activiesSlice = createSlice({
 
        // search
        .addCase(fetchsearchActivity.fulfilled,(state,action)=>{
-        console.log(action.payload)
         state.Activity = action.payload;
         state.loading = false;
       })
 
       // fetchsortUser
       .addCase(fetchsortActivity.fulfilled,(state,action)=>{
-        console.log(action.payload)
         state.Activity = action.payload;
         state.loading = false;
       })

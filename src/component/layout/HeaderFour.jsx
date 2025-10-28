@@ -322,6 +322,14 @@ const HeaderFour = () => {
                       <li>
                         <Link
                           className="dropdown-item"
+                          to={`/${getKey()}/purchase-history`}
+                        >
+                          Purchase History
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          className="dropdown-item"
                           to={`/${getKey()}/settings`}
                         >
                           Settings

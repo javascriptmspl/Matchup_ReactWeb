@@ -67,6 +67,7 @@ const PartnerPreference = lazy(() =>
 const AddPhotos = lazy(() => import("../pagesMetrimoniul/addUserPicture"));
 const Event = lazy(() => import("../pagesMetrimoniul/Events"));
 const AstroPage = lazy(() => import("../pagesMetrimoniul/Astro-page"));
+const PurchaseHistory = lazy(() => import("../pagesMetrimoniul/purchasehistory"));
 
 function MetrimoniulRoutes() {
   const [showNotifications, setShowNotifications] = useState(false);
@@ -137,6 +138,20 @@ function MetrimoniulRoutes() {
                 }
               >
                 <MembershipPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="purchase-history"
+            element={
+              <Suspense
+                fallback={
+                  <div>
+                    <Lodder />
+                  </div>
+                }
+              >
+                <PurchaseHistory />
               </Suspense>
             }
           />

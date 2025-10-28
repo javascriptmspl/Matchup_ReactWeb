@@ -45,7 +45,6 @@ const LogIn = () => {
           {
             loading: "Logging in...",
             success: (response) => {
-              console.log(response);
               if (response.payload.isSuccess === true) {
                 navigate(`/${getKey()}`);
                 return response.message;

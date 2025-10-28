@@ -1,7 +1,8 @@
 import { Component, Fragment } from "react";
-import { Link } from "react-router-dom";
 import FooterFour from "../../component/layout/footerFour";
 import HeaderFour from "../../component/layout/HeaderFour";
+import StripePaymentModal from "../../dating/component/payment/StripePaymentModal";
+import toast from "react-hot-toast";
 
 const title = "Membership Levels";
 const subtitle =
@@ -94,18 +95,100 @@ class MembershipPage extends Component {
     super(props);
     this.state = {
       selectedCoinPlan: null,
+      isPaymentModalOpen: false,
+      selectedPlan: null,
+      userId: null,
     };
+  }
+
+  componentDidMount() {
+    // Get userId from localStorage, Redux store, or wherever you store user data
+    // This is a placeholder - adjust according to your auth implementation
+    const userId = JSON.parse(localStorage.getItem("userData"))?.data?._id;
+    this.setState({ userId });
+    console.log("Dating Membership Page Loaded - User ID:", userId);
   }
 
   handleSelectPlan = (index) => {
     this.setState({ selectedCoinPlan: index });
   };
 
+  handleSubscriptionClick = (planName, e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    const { userId } = this.state;
+    
+    console.log("Subscription clicked:", planName);
+    console.log("User ID:", userId);
+    
+    if (!userId) {
+      toast.error("Please login to subscribe");
+      return;
+    }
+
+    console.log("Opening payment modal for:", planName.toLowerCase());
+    
+    this.setState({
+      isPaymentModalOpen: true,
+      selectedPlan: planName.toLowerCase(),
+    }, () => {
+      console.log("Modal state updated:", this.state.isPaymentModalOpen);
+      console.log("Selected plan:", this.state.selectedPlan);
+    });
+  };
+
+  handlePaymentModalClose = (success, confirmationData) => {
+    console.log("Payment modal closing - Success:", success);
+    console.log("Confirmation data:", confirmationData);
+    
+    this.setState({ isPaymentModalOpen: false, selectedPlan: null });
+    
+    if (success && confirmationData) {
+      const { payment, coinsAwarded, newBalance } = confirmationData;
+      
+      // Show detailed success message
+      toast.success(
+        `🎉 Welcome to ${payment.subscriptionPlan.toUpperCase()} plan!\n` +
+        `💰 ${coinsAwarded} coins added to your account\n` +
+        `📊 New balance: ${newBalance} coins\n` +
+        `📅 Valid until: ${new Date(payment.subscriptionEndDate).toLocaleDateString()}`,
+        { duration: 8000 }
+      );
+      
+      // You can add additional logic here like:
+      // - Redirect to profile page
+      // - Update user subscription in Redux/Context
+      // - Refresh user data
+      // - Show a welcome modal with subscription details
+      
+      console.log("Subscription Details:", {
+        plan: payment.subscriptionPlan,
+        amount: payment.amount,
+        coinsAwarded,
+        newBalance,
+        startDate: payment.subscriptionStartDate,
+        endDate: payment.subscriptionEndDate
+      });
+    } else if (success) {
+      toast.success("Payment successful! Your subscription has been activated.");
+    }
+  };
+
   render() {
-    const { selectedCoinPlan } = this.state;
+    const { selectedCoinPlan, isPaymentModalOpen, selectedPlan, userId } = this.state;
     return (
       <Fragment>
         <HeaderFour />
+        
+        <StripePaymentModal
+          isOpen={isPaymentModalOpen}
+          onClose={this.handlePaymentModalClose}
+          subscriptionPlan={selectedPlan}
+          userId={userId}
+        />
 
         <div className="membership padding-top padding-bottom">
   <div className="container" style={{maxWidth:'1200px'}}>
@@ -147,9 +230,14 @@ class MembershipPage extends Component {
                           </ul>
                         </div>
                         <div className="membership__footer">
-                          <Link to="#" className="default-btn reverse">
+                          <button 
+                            type="button"
+                            className="default-btn reverse" 
+                            style={{ border: 'none', width: '100%', cursor: 'pointer' }}
+                            onClick={() => toast.info("Coin plans coming soon!")}
+                          >
                             <span>{val.btnText}</span>
-                          </Link>
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -175,9 +263,14 @@ class MembershipPage extends Component {
                           </ul>
                         </div>
                         <div className="membership__footer">
-                          <Link to="#" className="default-btn reverse">
+                          <button 
+                            type="button"
+                            className="default-btn reverse" 
+                            style={{ border: 'none', width: '100%', cursor: 'pointer' }}
+                            onClick={(e) => this.handleSubscriptionClick(val.daycount, e)}
+                          >
                             <span>{val.btnText}</span>
-                          </Link>
+                          </button>
                         </div>
                       </div>
                     </div>

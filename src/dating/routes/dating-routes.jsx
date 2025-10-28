@@ -46,6 +46,7 @@ import ProtectedRoutes from "./protectedRoutes";
 import HomePage from "../pagesDating/home";
 import FindFriendPageNew from "../pagesDating/FindFreindSwipePage";
 import News from "../../component/News/news";
+import PurchaseHistory from "../pagesDating/purchasehistory";
 
 function DatingRoutes() {
   
@@ -59,6 +60,7 @@ function DatingRoutes() {
             <Route path="index-3" element={<HomePageThree />} />
             <Route path="about" element={<AboutPage />} />
             <Route path="membership" element={<MembershipPage />} />
+            <Route path="purchase-history" element={<ProtectedRoutes><PurchaseHistory /></ProtectedRoutes>} />
             <Route path="comingsoon" element={<ComingSoonPage />} />
             <Route path="community" element={<CommunityPage />} />
             <Route path="group" element={<GroupPage />} />

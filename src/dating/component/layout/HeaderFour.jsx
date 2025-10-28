@@ -126,6 +126,13 @@ const HeaderFour = () => {
                           Subscribe now
                         </Link>
                       </li>
+                      
+                      <li>
+                        <Link className="dropdown-item" to="/dating/purchase-history">
+                          Purchase History
+                        </Link>
+                      </li>
+                      
                       <li>
                         <Link
                           onClick={handleLogout}

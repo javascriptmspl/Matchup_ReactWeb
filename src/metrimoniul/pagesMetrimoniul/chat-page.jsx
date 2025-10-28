@@ -441,7 +441,6 @@ export default function App() {
         console.log("⚠️ No messages data in response:", response);
       }
     } catch (error) {
-      console.error("❌ Error fetching messages:", error);
       setRoomMessages([]); // Reset to empty array on error
     } finally {
       setLoadingMessages(false);

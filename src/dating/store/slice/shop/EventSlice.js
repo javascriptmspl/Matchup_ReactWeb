@@ -41,7 +41,6 @@ const EventSlice = createSlice({
       })
       .addCase(addToEventAsync.rejected, (state, action) => {
         state.status = 'failed';
-        console.log(action.error);  // Log the payload instead of the entire action
 
         state.error = action.error.message;
       })

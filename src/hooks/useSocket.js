@@ -6,12 +6,10 @@ export const useSocket = (userId, callbacks = {}) => {
   useEffect(() => {
     if (!userId) return;
 
-    console.log('🔌 Initializing socket connection for user:', userId);
     socketService.connect(userId);
     socketService.setCallbacks(callbacks);
 
     return () => {
-      console.log('🔌 Cleaning up socket connection');
       socketService.disconnect();
     };
   }, [userId]); // Only reconnect if userId changes

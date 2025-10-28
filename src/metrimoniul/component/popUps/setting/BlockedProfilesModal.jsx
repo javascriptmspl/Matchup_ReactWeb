@@ -9,7 +9,6 @@ const BlockedProfilesModal = ({ showModal, hideModal }) => {
     const dispatch = useDispatch();
     const blockedUsersRaw = useSelector((state) => state.block.blockedUsers);
     const blockedUsers = Array.isArray(blockedUsersRaw) ? blockedUsersRaw : [];
-    console.log("blockedUsers",blockedUsers)
 
     const raw = localStorage.getItem('userData');
     const parsed = raw ? JSON.parse(raw) : null;
@@ -23,7 +22,6 @@ const BlockedProfilesModal = ({ showModal, hideModal }) => {
 
     const handleUnblock = async (userId) => {
         try {
-            console.log(`Unblocking user with ID: ${userId}`);
             await dispatch(unblockUser(userId)).unwrap();
             // Refresh the blocked users list after successful unblock
             const currentUserId = parsed?.data?._id;
