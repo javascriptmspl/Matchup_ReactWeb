@@ -23,18 +23,9 @@ import BlockUserModal from "../component/popUps/client";
 import ReportUserModal from "../component/popUps/reportUserModal";
 import RelationshipMilestoneTracker from "../component/popUps/MildStoneModal";
 
+
 import { messages as staticMessages, customMessages } from "../component/chat2-component/message";
 
-import img2 from "../../dating/assets/images/shop/dating/1.jpg";
-import img1 from "../../dating/assets/images/shop/dating/2.jpg";
-import img3 from "../../dating/assets/images/shop/dating/3.jpg";
-import img4 from "../../dating/assets/images/shop/dating/4.jpg";
-import img5 from "../../dating/assets/images/shop/dating/5.jpg";
-import img6 from "../../dating/assets/images/shop/dating/6.jpg";
-import img7 from "../../dating/assets/images/shop/dating/7.jpg";
-import img8 from "../../dating/assets/images/shop/dating/8.jpg";
-import img9 from "../../dating/assets/images/shop/dating/9.jpg";
-import img10 from "../../dating/assets/images/shop/dating/10.png";
 import img11 from "../../dating/assets/images/shop/dating/11.png";
 import chatBG from "../../dating/assets/images/chat/ChatBG.jpg"
 import chatBG2 from "../../dating/assets/images/chat/chatbg2.jpg"
@@ -166,6 +157,24 @@ export default function App() {
   // Manual function to set coins (for debugging)
   const setManualCoins = () => {
     setUserCoins(550);
+  };
+
+  // Resolve current user's avatar URL robustly for immediate local UI updates
+  const getCurrentUserAvatar = () => {
+    try {
+      const main = user?.mainAvatar;
+      if (main) return `${BASE_URL}/assets/images/${main}`;
+      const arr = user?.avatars;
+      if (Array.isArray(arr) && arr.length) {
+        const last = arr[arr.length - 1];
+        const file = typeof last === 'string' ? last : (last?.image || last?.imgUrl || last?.url || last?.path || last?.fileName);
+        if (file) return `${BASE_URL}/assets/images/${file}`;
+      }
+      const ls = JSON.parse(localStorage.getItem('userData') || '{}');
+      const lsMain = ls?.data?.mainAvatar || ls?.mainAvatar;
+      if (lsMain) return `${BASE_URL}/assets/images/${lsMain}`;
+    } catch (_) { /* ignore */ }
+    return dummyUserPic;
   };
 
   const checkForIncomingCalls = async () => {
@@ -309,9 +318,7 @@ export default function App() {
 
   const handleSelectEmoji = (emojiObject) => {
     const { emoji } = emojiObject;
-    // Use emoji Unicode character directly
     setInputMessage((prevMessage) => prevMessage + emoji);
-    // Close emoji picker after selection
     setShowEmojiPicker(false);
   };
 
@@ -335,18 +342,18 @@ export default function App() {
 
       setSelectedRoomId(room.roomId);
 
-      // First, get room details
       await fetchRoomDetails(room.roomId);
 
-      // Then fetch messages
+      if (!gifts || gifts.length === 0) {
+        await fetchGifts();
+      }
+
       await fetchRoomMessages(room.roomId);
 
-      // Check blocking status after selecting user
       await checkBlockingStatus(room.otherUser?._id);
     }, 100);
   };
 
-  // Function to check if selected user is blocked or has blocked current user
   const checkBlockingStatus = async (targetUserId) => {
     if (!targetUserId) return;
     
@@ -354,19 +361,16 @@ export default function App() {
     if (!currentUserId) return;
 
     try {
-      // Fetch blocked users list if not already loaded
       if (blockedUsers.length === 0) {
         await dispatch(getBlockedUsers(currentUserId)).unwrap();
       }
 
-      // Check if current user has blocked the selected user
       const isBlocked = blockedUsers.some(blockedUser => {
         const blockedId = blockedUser?.blocked?._id || blockedUser?._id || blockedUser?.id;
         return blockedId === targetUserId;
       });
       setIsSelectedUserBlocked(isBlocked);
 
-      // Check if current user is blocked by the selected user
       const blockedByResult = await dispatch(checkIfBlockedBy({ 
         currentUserId, 
         targetUserId 
@@ -379,7 +383,6 @@ export default function App() {
     }
   };
 
-  // Fetch room details first
   const fetchRoomDetails = async (roomId) => {
     if (!roomId) return;
 
@@ -391,7 +394,6 @@ export default function App() {
       if (response?.isSuccess && response?.data) {
         const roomData = response.data;
 
-        // Find the other user (not the current user)
         const otherUser = roomData.users?.find(u => u._id !== userId);
 
         if (otherUser) {
@@ -409,7 +411,6 @@ export default function App() {
     }
   };
 
-  // Fetch messages for a specific room
   const fetchRoomMessages = async (roomId) => {
     if (!roomId) return;
     const userId = user?._id || storedUserId;
@@ -423,7 +424,6 @@ export default function App() {
       setRoomMessages(response.data.messages);
 
       if (response?.isSuccess && response?.data) {
-        // Ensure response.data is an array
         const messagesArray = response.data.messages;
         if (messagesArray.length === 0) {
           setRoomMessages([]);
@@ -432,20 +432,30 @@ export default function App() {
         }
 
      
-        const transformedMessages = messagesArray.map((msg, index) => ({
-          ...msg, // keep all original fields
-          id: msg._id || index, // optional unique id for UI
-          content: msg.content || msg.message, // normalize content field
-          timestamp: new Date(msg.createdAt).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          sent: msg.senderId._id === userId,
-          avatar: msg.senderId._id === userId
-            ? (msg.senderId.mainAvatar ? `${BASE_URL}/assets/images/${msg.senderId.mainAvatar}` : dummyUserPic)
-            : (selectedUser?.mainAvatar || dummyUserPic),
-          messageType: msg.messageType || 'text'
-        }));
+        const transformedMessages = messagesArray.map((msg, index) => {
+          const base = msg.content || msg.message || '';
+          const messageType = msg.messageType || 'text';
+          const giftName = messageType === 'gift' ? base.split(':').slice(1).join(':').trim() : '';
+          let matchedGift = messageType === 'gift' && gifts?.length
+            ? gifts.find(g => (g.name || '').toLowerCase() === (giftName || '').toLowerCase())
+            : undefined;
+          if (messageType === 'gift' && !matchedGift && gifts?.length) {
+            const lower = base.toLowerCase();
+            matchedGift = gifts.find(g => lower.includes((g.name || '').toLowerCase()));
+          }
+          return ({
+            ...msg,
+            id: msg._id || index,
+            content: base,
+            timestamp: new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            sent: msg.senderId._id === userId,
+            avatar: msg.senderId._id === userId
+              ? (msg.senderId.mainAvatar ? `${BASE_URL}/assets/images/${msg.senderId.mainAvatar}` : dummyUserPic)
+              : (selectedUser?.avatar || dummyUserPic),
+            messageType,
+            giftData: messageType === 'gift' ? (msg.giftData || (matchedGift ? { _id: matchedGift._id, name: matchedGift.name, imageUrl: matchedGift.imageUrl } : undefined)) : undefined,
+          });
+        });
 
         setRoomMessages(prevMessages => {
 
@@ -473,7 +483,7 @@ export default function App() {
       }
     } catch (error) {
       console.error("❌ Error fetching messages:", error);
-      setRoomMessages([]); // Reset to empty array on error
+      setRoomMessages([]); 
     } finally {
       setLoadingMessages(false);
     }
@@ -511,7 +521,6 @@ export default function App() {
       );
 
       if (response?.isSuccess) {
-        // Clear input immediately
         const messageText = inputMessage;
         setInputMessage("");
         setSelectedEmojis([]);
@@ -519,7 +528,6 @@ export default function App() {
         setShowEmojiPicker(false);
         setReplyingToMessage(null);
 
-        // If server returns the message data, use it
         if (response.data && response.data._id) {
           const serverMessage = {
             id: response.data._id,
@@ -529,14 +537,11 @@ export default function App() {
               minute: "2-digit",
             }),
             sent: true,
-            avatar: user?.mainAvatar
-              ? `${BASE_URL}/assets/images/${user.mainAvatar}`
-              : dummyUserPic,
+            avatar: getCurrentUserAvatar(),
             messageType: response.data.messageType || 'text'
           };
 
           setRoomMessages(prevMessages => {
-            // Check if message already exists (avoid duplicates)
             const messageExists = prevMessages.some(msg => msg.id === serverMessage.id);
             if (messageExists) {
               return prevMessages;
@@ -545,7 +550,6 @@ export default function App() {
             return updated;
           });
 
-          // Scroll to bottom
           setTimeout(scrollToBottom, 100);
         } else {
           const localMessage = {
@@ -556,9 +560,7 @@ export default function App() {
               minute: "2-digit",
             }),
             sent: true,
-            avatar: user?.mainAvatar
-              ? `${BASE_URL}/assets/images/${user.mainAvatar}`
-              : dummyUserPic,
+            avatar: getCurrentUserAvatar(),
             messageType: SelectedFile ? 'file' : 'text'
           };
 
@@ -617,7 +619,6 @@ export default function App() {
           )
         );
 
-        // Clear editing state
         setEditingMessageId(null);
         setEditedContent('');
       } else {
@@ -630,20 +631,17 @@ export default function App() {
     }
   };
 
-  // Handle canceling edit
   const handleCancelEdit = () => {
     setEditingMessageId(null);
     setEditedContent('');
   };
 
-  // Handle deleting a message
   const handleDeleteMessage = async (messageId) => {
     if (!messageId) {
       console.error("No message ID provided");
       return;
     }
 
-    // Get userId
     const userId = user?._id || storedUserId;
     if (!userId) {
       console.error("No user ID available");
@@ -651,7 +649,6 @@ export default function App() {
       return;
     }
 
-    // Optional: Ask for confirmation
     if (!window.confirm("Are you sure you want to delete this message?")) {
       return;
     }
@@ -661,7 +658,6 @@ export default function App() {
       const response = await deleteMessage(messageId, userId);
 
       if (response?.isSuccess) {
-        // Remove the message from state
         setRoomMessages(prevMessages =>
           prevMessages.filter(msg => msg._id !== messageId)
         );
@@ -675,7 +671,6 @@ export default function App() {
     }
   };
 
-  // Handle replying to a message
   const handleReplyToMessage = (message) => {
     if (!message) {
       return;
@@ -689,7 +684,6 @@ export default function App() {
       sent: message.sent
     });
 
-    // Automatically focus on input field
     setTimeout(() => {
       const inputField = document.getElementById("exampleFormControlInput2");
       if (inputField) {
@@ -698,14 +692,11 @@ export default function App() {
     }, 100);
   };
 
-  // Handle canceling reply
   const handleCancelReply = () => {
     setReplyingToMessage(null);
   };
 
-  // Handle gift sending with coin balance check
   const handleGiftClick = async (giftItem) => {
-    // Check if a room is selected first
     if (!selectedRoomId || !selectedUser) {
       toast.error('Please select a chat to send the gift.', {
         duration: 3000,
@@ -720,9 +711,7 @@ export default function App() {
       return;
     }
 
-    // Check if user has any coins at all
     if (userCoins <= 0) {
-      // No coins available - redirect to subscribe page
       toast.error('You need coins to send gifts! Please subscribe to get coins.', {
         duration: 3000,
         position: 'top-center',
@@ -734,7 +723,6 @@ export default function App() {
         icon: '💎',
       });
       
-      // Redirect after a short delay to let user see the toast
       setTimeout(() => {
         navigate('/dating/membership');
       }, 1500);
@@ -777,7 +765,6 @@ export default function App() {
 
     setSendingGift(true);
     try {
-      // Send gift via API
       const giftData = {
         senderId: userId,
         receiverId: selectedUser._id,
@@ -793,7 +780,6 @@ export default function App() {
         setUpdatingCoins(true);
         setUserCoins(newBalance);
         
-        // Update localStorage with new balance
         try {
           const userData = JSON.parse(localStorage.getItem('userData') || '{}');
           if (userData?.data) {
@@ -807,7 +793,6 @@ export default function App() {
           console.error('Error updating localStorage:', error);
         }
         
-        // Create gift message for chat
         const giftMessage = `🎁 Sent a gift: ${giftItem.name}`;
         
         const messageResponse = await sendMessage(
@@ -828,9 +813,7 @@ export default function App() {
               minute: "2-digit",
             }),
             sent: true,
-            avatar: user?.mainAvatar
-              ? `${BASE_URL}/assets/images/${user.mainAvatar}`
-              : dummyUserPic,
+            avatar: getCurrentUserAvatar(),
             messageType: 'gift',
             giftData: giftItem
           };
@@ -839,7 +822,6 @@ export default function App() {
           setTimeout(scrollToBottom, 100);
         }
         
-        // Show success toast with updated balance
         toast.success(`Gift "${giftItem.name}" sent successfully! Coins deducted: ${giftItem.coinCost}. New balance: ${newBalance}`, {
           duration: 4000,
           position: 'top-center',
@@ -851,13 +833,11 @@ export default function App() {
           icon: '🎁',
         });
 
-        // Refresh coin balance from API to ensure accuracy
         setTimeout(() => {
           fetchUserCoins();
           setUpdatingCoins(false);
         }, 1000);
 
-        // Notify other components about coin balance change
         window.dispatchEvent(new CustomEvent('coinBalanceUpdated', { 
           detail: { newBalance, deductedAmount: giftItem.coinCost } 
         }));
@@ -886,7 +866,6 @@ export default function App() {
   };
 
 
-  // Dynamic gifts will be loaded from API
 
 
   const handleSearch = (query) => {
@@ -909,7 +888,6 @@ export default function App() {
 
 
     const fetchRooms = async () => {
-      // Use user ID from Redux or fallback to localStorage
       const userId = user?._id || storedUserId;
 
       if (!userId) {
@@ -936,29 +914,23 @@ export default function App() {
     };
 
     fetchRooms();
-
-    // Fetch blocked users on component mount
     const userId = user?._id || storedUserId;
     if (userId) {
       dispatch(getBlockedUsers(userId));
     }
 
-    // Fetch gifts and user coins
     fetchGifts();
-    // Delay coin fetching to ensure user data is available
     setTimeout(() => {
       fetchUserCoins();
     }, 1000);
   }, [user?._id, storedUserId, dispatch]);
 
-  // Re-check blocking status when selectedUser changes
   useEffect(() => {
     if (selectedUser?._id) {
       checkBlockingStatus(selectedUser._id);
     }
   }, [selectedUser?._id]);
 
-  // Refresh coins when user data changes
   useEffect(() => {
     if (user?._id || storedUserId) {
       console.log("User data changed, refreshing coins");
@@ -982,7 +954,6 @@ export default function App() {
     };
   }, []);
 
-  // Close emoji picker when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (showEmojiPicker && !event.target.closest('.emoji-picker-container') && !event.target.closest('.smile-message-input')) {
@@ -996,7 +967,6 @@ export default function App() {
     };
   }, [showEmojiPicker]);
 
-  // Request notification permission on component mount
   useEffect(() => {
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission();
@@ -1009,11 +979,10 @@ export default function App() {
     const userId = user?._id || storedUserId;
     if (!userId) return;
   
-    checkForIncomingCalls(); // initial fetch
-  
+    checkForIncomingCalls(); 
     const pollForCalls = setInterval(() => {
       checkForIncomingCalls();
-    }, 9000); // or 5000 ms — 1s is too frequent
+    }, 9000); 
   
     return () => clearInterval(pollForCalls);
   }, []);
@@ -1109,15 +1078,12 @@ export default function App() {
           <div>
             <div
               className="row py-1 mb-2 border-bottom shadow-md bg-[#f5f5f5];"
-            // style={{ marginLeft: "1px", marginRight: "10px" }}
             >
               <div className="col-7 chat-dp">
                 {" "}
-                {/* Adjusted column width for medium screens and larger */}
                 <div className="row chat-status">
                   <div className="col-4 col-lg-2">
                     {" "}
-                    {/* Adjusted column width for medium screens and larger */}
                     <img
                       src={selectedUser ? selectedUser.avatar : dummyUserPic}
                       alt="avatar"
@@ -1131,9 +1097,8 @@ export default function App() {
                     />
                   </div>
 
-                  <div className="col-8 py-2 col-lg-8">
+                  <div className="col-8 py-2 col-lg-8 d-flex gap-3">
                     {" "}
-                    {/* Adjusted column width for medium screens and larger */}
                     <h6>
                       {selectedUser ? selectedUser.name : "Select a user"}<br />
                       <small
@@ -1146,7 +1111,6 @@ export default function App() {
                         Active
                       </small>
                     </h6>
-                    {/* User coins display */}
                     <div className="mt-1 d-flex align-items-center gap-2">
                       <small style={{
                         color: "#6c757d",
@@ -1307,7 +1271,7 @@ export default function App() {
               {selectedUser ?
                 <Scrollbars
                   autoHide className="msg-wrap"
-                  style={{ position: "relative", height: "65vh" }}
+                  style={{ position: "relative", height: "65vh", paddingBottom: "120px" }}
                   id="chat-container"
                   ref={scrollbarsRef}
                 >
@@ -1350,25 +1314,23 @@ export default function App() {
                                   />
                                 ) : message.messageType === 'gift' ? (
                                   <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-                                    <div
-                                      className="small p-3 me-3 mb-1 rounded-3"
-                                      style={{
-                                        backgroundColor: "#f24570",
-                                        color: "#ffffff",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: "10px",
-                                        border: "2px solid #ffd700"
-                                      }}
-                                    >
-                                      <span style={{ fontSize: "20px" }}>🎁</span>
-                                      <div>
-                                        <div style={{ fontWeight: "600" }}>Gift Sent!</div>
-                                        <div style={{ fontSize: "12px", opacity: 0.9 }}>
-                                          {message.content}
+                                    {(() => {
+                                      const parsedName = (message?.content || "").split(": ")[1] || "";
+                                      const imgUrl = message?.giftData?.imageUrl || (gifts.find(g => g.name === parsedName)?.imageUrl);
+                                      return (
+                                        <div className="small p-2 me-3 mb-1 rounded-3" style={{ backgroundColor: "#f24570", color: "#ffffff", display: "flex", alignItems: "center", gap: "10px", border: "2px solid #ffd700" }}>
+                                          {imgUrl ? (
+                                            <img src={imgUrl} alt={parsedName || 'gift'} style={{ width: 64, height: 64, borderRadius: 8, objectFit: 'cover' }} />
+                                          ) : (
+                                            <span style={{ fontSize: "20px" }}>🎁</span>
+                                          )}
+                                          <div>
+                                            <div style={{ fontWeight: "600" }}>Gift Sent!</div>
+                                            {parsedName && <div style={{ fontSize: "12px", opacity: 0.9 }}>{parsedName}</div>}
+                                          </div>
                                         </div>
-                                      </div>
-                                    </div>
+                                      );
+                                    })()}
                                   </div>
                                 ) : (
                                   <>
@@ -1541,26 +1503,23 @@ export default function App() {
                                     />
                                   ) : message.messageType === 'gift' ? (
                                     <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
-                                      <div
-                                        className="small p-3 mb-1 rounded-3"
-                                        style={{
-                                          backgroundColor: "#f5f6f7",
-                                          color: "#000",
-                                          marginRight: "8px",
-                                          display: "flex",
-                                          alignItems: "center",
-                                          gap: "10px",
-                                          border: "2px solid #ffd700"
-                                        }}
-                                      >
-                                        <span style={{ fontSize: "20px" }}>🎁</span>
-                                        <div>
-                                          <div style={{ fontWeight: "600", color: "#f24570" }}>Gift Received!</div>
-                                          <div style={{ fontSize: "12px", color: "#6c757d" }}>
-                                            {message.content}
+                                      {(() => {
+                                        const parsedName = (message?.content || "").split(": ")[1] || "";
+                                        const imgUrl = message?.giftData?.imageUrl || (gifts.find(g => g.name === parsedName)?.imageUrl);
+                                        return (
+                                          <div className="small p-2 mb-1 rounded-3" style={{ backgroundColor: "#f5f6f7", color: "#000", marginRight: "8px", display: "flex", alignItems: "center", gap: "10px", border: "2px solid #ffd700" }}>
+                                            {imgUrl ? (
+                                              <img src={imgUrl} alt={parsedName || 'gift'} style={{ width: 64, height: 64, borderRadius: 8, objectFit: 'cover' }} />
+                                            ) : (
+                                              <span style={{ fontSize: "20px" }}>🎁</span>
+                                            )}
+                                            <div>
+                                              <div style={{ fontWeight: "600", color: "#f24570" }}>Gift Received!</div>
+                                              {parsedName && <div style={{ fontSize: "12px", color: "#6c757d" }}>{parsedName}</div>}
+                                            </div>
                                           </div>
-                                        </div>
-                                      </div>
+                                        );
+                                      })()}
                                     </div>
                                   ) : (
                                     <>
@@ -1739,7 +1698,6 @@ export default function App() {
               </div>
             )}
 
-            {/* Show block message if blocked or being blocked */}
             {(isSelectedUserBlocked || isBlockedBySelectedUser) ? (
               <div 
                 className="text-center py-4 mt-4"
@@ -1756,7 +1714,6 @@ export default function App() {
                     ? "You have blocked this user. Chat is disabled."
                     : "This user has blocked you. Chat is disabled."}
                 </div>
-                {/* Unblock button for when current user has blocked the other user */}
                 {isSelectedUserBlocked && (
                   <button
                     className="btn btn-success"

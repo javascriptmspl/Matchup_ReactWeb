@@ -302,6 +302,11 @@ export default function App() {
       // First, get room details
       await fetchRoomDetails(room.roomId);
 
+      // Ensure gifts are loaded before fetching messages (so gift images can be resolved)
+      if (!gifts || gifts.length === 0) {
+        await fetchGifts();
+      }
+
       // Then fetch messages
       await fetchRoomMessages(room.roomId);
 
@@ -395,20 +400,26 @@ export default function App() {
         }
 
         // Transform API messages to component format
-        const transformedMessages = messagesArray.map((msg, index) => ({
-          ...msg, // keep all original fields
-          id: msg._id || index, // optional unique id for UI
-          content: msg.content || msg.message, // normalize content field
-          timestamp: new Date(msg.createdAt).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          sent: msg.senderId._id === userId,
-          avatar: msg.senderId._id === userId
-            ? (msg.senderId.mainAvatar ? `${BASE_URL}/assets/images/${msg.senderId.mainAvatar}` : dummyUserPic)
-            : (selectedUser?.mainAvatar || dummyUserPic),
-          messageType: msg.messageType || 'text'
-        }));
+        const transformedMessages = messagesArray.map((msg, index) => {
+          const base = msg.content || msg.message || '';
+          const messageType = msg.messageType || 'text';
+          const giftName = messageType === 'gift' ? base.split(':').slice(1).join(':').trim() : '';
+          const matchedGift = messageType === 'gift' && gifts?.length
+            ? gifts.find(g => (g.name || '').toLowerCase() === (giftName || '').toLowerCase())
+            : undefined;
+          return ({
+            ...msg,
+            id: msg._id || index,
+            content: base,
+            timestamp: new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            sent: msg.senderId._id === userId,
+            avatar: msg.senderId._id === userId
+              ? (msg.senderId.mainAvatar ? `${BASE_URL}/assets/images/${msg.senderId.mainAvatar}` : dummyUserPic)
+              : (selectedUser?.avatar || dummyUserPic),
+            messageType,
+            giftData: messageType === 'gift' ? (msg.giftData || (matchedGift ? { _id: matchedGift._id, name: matchedGift.name, imageUrl: matchedGift.imageUrl } : undefined)) : undefined,
+          });
+        });
 
         setRoomMessages(prevMessages => {
 
@@ -1362,7 +1373,7 @@ export default function App() {
               {selectedUser ?
                 <Scrollbars
                   autoHide className="msg-wrap"
-                  style={{ position: "relative", height: "65vh" }}
+                  style={{ position: "relative", height: "65vh", paddingBottom: "120px" }}
                   id="chat-container"
                   ref={scrollbarsRef}
                 >

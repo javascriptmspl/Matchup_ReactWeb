@@ -22,7 +22,6 @@ export const createEvent = createAsyncThunk(
   }
 );
 
-// FETCH events thunk
 export const getEvents = createAsyncThunk(
   "event/getEvents",
   async (userId,modeId, { rejectWithValue }) => {
@@ -53,7 +52,6 @@ export const getEventsM = createAsyncThunk(
   }
 );
 
-// DELETE event thunk
 export const deleteEvent = createAsyncThunk(
   "event/deleteEvent",
   async (eventId, { rejectWithValue }) => {
@@ -81,7 +79,6 @@ const eventSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      // CREATE
       .addCase(createEvent.pending, (state) => {
         state.loading = true;
         state.error = null;

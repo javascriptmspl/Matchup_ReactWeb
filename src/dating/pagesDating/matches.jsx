@@ -43,45 +43,6 @@ const MatchPage = () => {
       toast.error('Failed to load chat rooms')
     }
   }
-  
-  // const handleClick = (id, userName, user) => {
-  //   setLoveImageStatus((prevLoveImageStatus) => {
-  //     const isLiked = prevLoveImageStatus[id] === loveRed;
-
-  //     // Move the user from Matches to Favorites
-  //     if (isLiked) {
-  //       const updatedMatchesList = matches.filter((val) => val.id !== id);
-  //       setMatches(updatedMatchesList);
-
-  //       const updatedFavoritesList = [
-  //         ...favrorite,
-  //         { id: id, name: userName, ...user },
-  //       ];
-  //       setFavorite(updatedFavoritesList);
-
-  //       toast.success(`You've added ${userName} to favorites! 💖`);
-  //     } else {
-  //       // Move the user from Favorites to Matches
-  //       const updatedFavoritesList = favrorite.filter((val) => val.id !== id);
-  //       setFavorite(updatedFavoritesList);
-
-  //       const updatedMatchesList = [
-  //         ...matches,
-  //         { id: id, name: userName, ...user },
-  //       ];
-  //       setMatches(updatedMatchesList);
-
-  //       toast.success(
-  //         `You've removed ${userName} from favorites and added to matches. 😢`
-  //       );
-  //     }
-
-  //     return {
-  //       ...prevLoveImageStatus,
-  //       [id]: isLiked ? loveBlack : loveRed,
-  //     };
-  //   });
-  // };
 
   const getLoveImage = (userId) => {
     const isMatches = favoriteContentList.some((val) => val.id === userId);
