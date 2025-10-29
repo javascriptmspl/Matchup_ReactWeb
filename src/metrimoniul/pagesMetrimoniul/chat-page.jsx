@@ -89,6 +89,17 @@ export default function App() {
   const [showGiftModal, setShowGiftModal] = useState(false);
   const [sendingGift, setSendingGift] = useState(false);
 
+  // Add gift pop animation styles (once)
+  useEffect(() => {
+    const styleId = 'gift-bubble-anim-style-metri';
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = `@keyframes giftPop{0%{transform:scale(0.6);opacity:0}60%{transform:scale(1.05);opacity:1}100%{transform:scale(1)}}.gift-pop{animation:giftPop 450ms ease-out}`;
+      document.head.appendChild(style);
+    }
+  }, []);
+
   const handleShow = () => setShowModal(true);
   const handleHide = () => setShowModal(false);
   const handleShowVideoCall = () => setShowVideoCallModal(true);
@@ -402,7 +413,8 @@ export default function App() {
         // Transform API messages to component format
         const transformedMessages = messagesArray.map((msg, index) => {
           const base = msg.content || msg.message || '';
-          const messageType = msg.messageType || 'text';
+          const inferredType = base && typeof base === 'string' && base.includes('Sent a gift:') ? 'gift' : 'text';
+          const messageType = msg.messageType || inferredType;
           const giftName = messageType === 'gift' ? base.split(':').slice(1).join(':').trim() : '';
           const matchedGift = messageType === 'gift' && gifts?.length
             ? gifts.find(g => (g.name || '').toLowerCase() === (giftName || '').toLowerCase())
@@ -1199,7 +1211,7 @@ export default function App() {
                     />
                   </div>
 
-                  <div className="col-8 py-2 col-lg-8">
+                  <div className="col-8 py-2 col-lg-8 d-flex gap-2">
                     {" "}
                     {/* Adjusted column width for medium screens and larger */}
                     <h6>
@@ -1437,25 +1449,23 @@ export default function App() {
                                   </div>
                                 ) : message.messageType === 'gift' ? (
                                   <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-                                    <div
-                                      className="small p-3 me-3 mb-1 rounded-3"
-                                      style={{
-                                        backgroundColor: "#f24570",
-                                        color: "#ffffff",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: "10px",
-                                        border: "2px solid #ffd700"
-                                      }}
-                                    >
-                                      <span style={{ fontSize: "20px" }}>🎁</span>
-                                      <div>
-                                        <div style={{ fontWeight: "600" }}>Gift Sent!</div>
-                                        <div style={{ fontSize: "12px", opacity: 0.9 }}>
-                                          {message.content}
+                                    {(() => {
+                                      const parsedName = (message?.content || "").split(": ")[1] || "";
+                                      const imgUrl = message?.giftData?.imageUrl || (gifts.find(g => g.name === parsedName)?.imageUrl);
+                                      return (
+                                        <div className="small p-2 me-3 mb-1 rounded-3 gift-pop" style={{ backgroundColor: "#f24570", color: "#ffffff", display: "flex", alignItems: "center", gap: "10px", border: "2px solid #ffd700" }}>
+                                          {imgUrl ? (
+                                            <img src={imgUrl} alt={parsedName || 'gift'} style={{ width: 64, height: 64, borderRadius: 8, objectFit: 'cover' }} />
+                                          ) : (
+                                            <span style={{ fontSize: "20px" }}>🎁</span>
+                                          )}
+                                          <div>
+                                            <div style={{ fontWeight: "600" }}>Gift Sent!</div>
+                                            {parsedName && <div style={{ fontSize: "12px", opacity: 0.9 }}>{parsedName}</div>}
+                                          </div>
                                         </div>
-                                      </div>
-                                    </div>
+                                      );
+                                    })()}
                                   </div>
                                 ) : (
                                   <>
@@ -1649,26 +1659,23 @@ export default function App() {
                                     </div>
                                   ) : message.messageType === 'gift' ? (
                                     <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
-                                      <div
-                                        className="small p-3 mb-1 rounded-3"
-                                        style={{
-                                          backgroundColor: "#f5f6f7",
-                                          color: "#000",
-                                          marginRight: "8px",
-                                          display: "flex",
-                                          alignItems: "center",
-                                          gap: "10px",
-                                          border: "2px solid #ffd700"
-                                        }}
-                                      >
-                                        <span style={{ fontSize: "20px" }}>🎁</span>
-                                        <div>
-                                          <div style={{ fontWeight: "600", color: "#f24570" }}>Gift Received!</div>
-                                          <div style={{ fontSize: "12px", color: "#6c757d" }}>
-                                            {message.content}
+                                      {(() => {
+                                        const parsedName = (message?.content || "").split(": ")[1] || "";
+                                        const imgUrl = message?.giftData?.imageUrl || (gifts.find(g => g.name === parsedName)?.imageUrl);
+                                        return (
+                                          <div className="small p-2 mb-1 rounded-3 gift-pop" style={{ backgroundColor: "#f5f6f7", color: "#000", marginRight: "8px", display: "flex", alignItems: "center", gap: "10px", border: "2px solid #ffd700" }}>
+                                            {imgUrl ? (
+                                              <img src={imgUrl} alt={parsedName || 'gift'} style={{ width: 64, height: 64, borderRadius: 8, objectFit: 'cover' }} />
+                                            ) : (
+                                              <span style={{ fontSize: "20px" }}>🎁</span>
+                                            )}
+                                            <div>
+                                              <div style={{ fontWeight: "600", color: "#f24570" }}>Gift Received!</div>
+                                              {parsedName && <div style={{ fontSize: "12px", color: "#6c757d" }}>{parsedName}</div>}
+                                            </div>
                                           </div>
-                                        </div>
-                                      </div>
+                                        );
+                                      })()}
                                     </div>
                                   ) : (
                                     <>

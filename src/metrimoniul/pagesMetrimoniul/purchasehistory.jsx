@@ -271,7 +271,8 @@ const PurchaseHistory = () => {
                             fontSize: '13px',
                             fontWeight: '600',
                             textTransform: 'capitalize',
-                            display: 'inline-block'
+                            display: 'inline-block',
+                            color:'black',
                           }}>
                             {purchase.paymentStatus || 'N/A'}
                           </span>
@@ -306,7 +307,7 @@ const PurchaseHistory = () => {
                                 <p><strong>Plan:</strong> <span style={{ textTransform: 'capitalize', color: '#007bff', fontWeight: '600' }}>{purchase.subscriptionPlan || 'N/A'}</span></p>
                                 <p><strong>Amount:</strong> <span style={{ color: '#28a745', fontWeight: 'bold' }}>${purchase.amount?.toFixed(2) || '0.00'}</span> {purchase.currency?.toUpperCase() || 'USD'}</p>
                                 <p><strong>Coins Awarded:</strong> <span style={{ color: '#ffc107', fontWeight: 'bold' }}>{purchase.coinsAwarded || 0} coins</span></p>
-                                <p><strong>Status:</strong> <span className={`status ${getStatusClass(purchase.paymentStatus)}`} style={{ textTransform: 'capitalize' }}>{purchase.paymentStatus}</span></p>
+                                <p><strong>Status:</strong> <span className={`status ${getStatusClass(purchase.paymentStatus)}`} style={{ textTransform: 'capitalize', color:'black' }}>{purchase.paymentStatus}</span></p>
                                 <p><strong>Transaction ID:</strong> <span style={{ fontFamily: 'monospace', fontSize: '13px' }}>{purchase.stripePaymentIntentId || 'N/A'}</span></p>
                                 <p><strong>Customer ID:</strong> <span style={{ fontFamily: 'monospace', fontSize: '13px' }}>{purchase.stripeCustomerId || 'N/A'}</span></p>
                                 <p><strong>Purchase Date:</strong> {formatDate(purchase.createdAt)}</p>

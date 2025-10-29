@@ -20,6 +20,7 @@ import {
 import { BASE_URL } from "../../base";
 import { fetchPotentialUsers } from "../../service/common-service/find-patner";
 import { log } from "handlebars";
+import { SearchFindPartnerAPI } from "../../service/MANAGE_API/find-user-API";
 
 const MembersPage = () => {
   const dispatch = useDispatch();
@@ -84,6 +85,30 @@ const MembersPage = () => {
     myfun();
   }, []);
 
+  const handleSearchSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const query = (filter || "").trim();
+      if (!query) {
+        const res = await dispatch(
+          fetchPotentialUsers({ userId, modeId })
+        ).unwrap();
+        setMembers(res?.data);
+        return;
+      }
+      const result = await SearchFindPartnerAPI(query);
+      const list = Array.isArray(result?.data)
+        ? result.data
+        : Array.isArray(result)
+        ? result
+        : [];
+      setMembers(list || []);
+    } catch (err) {
+      console.error("Search failed", err);
+      setMembers([]);
+    }
+  };
+
   const handleFilterSearch = async (filters) => {
 
     try {
@@ -132,7 +157,7 @@ const MembersPage = () => {
                 </div>
                 <div className="group__bottom--head">
                   <div className="left">
-                    <form onSubmit={(e) => e.preventDefault()}>
+                    <form onSubmit={handleSearchSubmit}>
                       <input
                         type="text"
                         name="name"
