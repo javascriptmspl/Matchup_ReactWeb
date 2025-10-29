@@ -71,7 +71,7 @@ const Events = (e) => {
     getEvent();
   }, [dispatch, Userid]);
 
-  // Update local state when Redux store changes
+ 
   useEffect(() => {
     if (eventArray && eventArray.length > 0) {
       setStoreData(eventArray);

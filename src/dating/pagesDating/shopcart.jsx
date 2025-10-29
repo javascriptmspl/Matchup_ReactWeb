@@ -1,10 +1,10 @@
-import React, { Fragment } from "react";
+import React, { Fragment, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import HeaderFour from "../../component/layout/HeaderFour";
 import FooterFour from "../../component/layout/footerFour";
 import del from '../assets/images/shop/del.png'
-import { removeFromCartAsync } from "../store/slice/shop/CartSlice";
+import { removeFromCartAsync, updateQuantityAsync } from "../store/slice/shop/CartSlice";
 
 
 const ShopCart = () => {
@@ -16,6 +16,25 @@ const ShopCart = () => {
     const handleRemoveFromCart = (index) => {
         dispatch(removeFromCartAsync(index));
       };
+
+    const handleQtyChange = (index, next) => {
+        const parsed = parseInt(next, 10);
+        dispatch(updateQuantityAsync({ index, quantity: isNaN(parsed) ? 1 : parsed }));
+    };
+
+    const inc = (index, current) => {
+        dispatch(updateQuantityAsync({ index, quantity: (current || 1) + 1 }));
+    };
+
+    const dec = (index, current) => {
+        const q = Math.max(1, (current || 1) - 1);
+        dispatch(updateQuantityAsync({ index, quantity: q }));
+    };
+
+    const currency = (n)=> `$${Number(n).toFixed(2)}`;
+    const subtotal = useMemo(()=>{
+        return cartItems.reduce((sum, it)=> sum + (Number(it.price?.toString().replace(/[^0-9.]/g,'')||0) * (Number(it.pack)||1)), 0);
+    },[cartItems]);
     return (
         <Fragment>
             <HeaderFour />
@@ -49,17 +68,18 @@ const ShopCart = () => {
                                             <td className="cat-price">{val.price}</td>
                                             <td className="cat-quantity">
                                                 <div className="cart-plus-minus">
-                                                    <div className="dec qtybutton">-</div>
+                                                    <div className="dec qtybutton" onClick={()=>dec(i, Number(val.pack)||1)}>-</div>
                                                     <input
                                                         className="cart-plus-minus-box"
                                                         type="text"
                                                         name="qtybutton"
-                                                        defaultValue={val.pack}
+                                                        value={val.pack || 1}
+                                                        onChange={(e)=>handleQtyChange(i, e.target.value)}
                                                     />
-                                                    <div className="inc qtybutton">+</div>
+                                                    <div className="inc qtybutton" onClick={()=>inc(i, Number(val.pack)||1)}>+</div>
                                                 </div>
                                             </td>
-                                            <td className="cat-toprice">{val.price}</td>
+                                            <td className="cat-toprice">{currency((Number(val.price?.toString().replace(/[^0-9.]/g,'')||0))*(Number(val.pack)||1))}</td>
                                             <td className="cat-edit">
                                                 <a href="#"  onClick={() => handleRemoveFromCart(i)} >
                                                     <img src={`${del}`} alt={`${val.delImgAlt}`} />
@@ -116,7 +136,7 @@ const ShopCart = () => {
                                             <ul className="codex">
                                                 <li>
                                                     <span className="pull-left">Cart Subtotal</span>
-                                                    <p className="pull-right">$ 0.00</p>
+                                                    <p className="pull-right">{currency(subtotal)}</p>
                                                 </li>
                                                 <li>
                                                     <span className="pull-left">Shipping and Handling</span>
@@ -124,7 +144,7 @@ const ShopCart = () => {
                                                 </li>
                                                 <li>
                                                     <span className="pull-left">Order Total</span>
-                                                    <p className="pull-right">$ 2940.00</p>
+                                                    <p className="pull-right">{currency(subtotal)}</p>
                                                 </li>
                                             </ul>
                                         </div>

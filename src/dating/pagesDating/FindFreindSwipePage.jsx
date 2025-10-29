@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import SearchFilterModal from "../component/popUps/searchModal";
 import { useDispatch } from "react-redux";
 import { createActivity, fetchUsersByGender, getFilteredUsers } from "../../service/common-service/getuserbyGender";
+import { SearchFindPartnerAPI } from "../../service/MANAGE_API/find-user-API";
 // import { getFindPartnerAPI } from "../../service/MANAGE_API/find-user-API";
 import { metriGetAllUsersAsync } from "../../service/MANAGE_SLICE/find-user-SLICE";
 import { log } from "handlebars/runtime";
@@ -28,6 +29,7 @@ function FindFriendPageNew() {
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [filterModal, setFilterModal] = useState(false);
+  const [searchInputQuery, setSearchInputQuery] = useState("");
 
   const navigate = useNavigate();
   const dispatch = useDispatch()
@@ -256,6 +258,31 @@ const userInterests = showUserByGender[currentIndex]?.interest ?? dummyInterests
       
 
 
+  const handleSearchSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const query = (searchInputQuery || "").trim();
+      if (!query) {
+        const res = await dispatch(
+          fetchPotentialUsers({ userId, modeId })
+        ).unwrap();
+        setMembers(res?.data);
+        return;
+      }
+      const result = await SearchFindPartnerAPI(query);
+      const list = Array.isArray(result?.data)
+        ? result.data
+        : Array.isArray(result)
+        ? result
+        : [];
+      setMembers(list || []);
+      setCurrentIndex(0);
+    } catch (err) {
+      console.error("Search failed", err);
+      setMembers([]);
+    }
+  };
+
 
 
   return (
@@ -393,21 +420,18 @@ const userInterests = showUserByGender[currentIndex]?.interest ?? dummyInterests
                       <div className="left">
                         <form
                           action="#"
-                          onSubmit={(e) => {
-                            e.preventDefault();
-                          }}
+                          onSubmit={handleSearchSubmit}
                         >
                           <input
                             className="bg-white"
                             type="text"
                             name="search"
                             placeholder="search"
-                            autocomplete="off"
-                          // value={searchInputQuery}
-                          // onChange={(e) => setSearchInputQuery(e.target.value)}
-                          // style={{float:"left"}}
+                            autoComplete="off"
+                            value={searchInputQuery}
+                            onChange={(e) => setSearchInputQuery(e.target.value)}
                           />
-                          {/* Corrected button type */}
+                        
                           <button type="submit">
                             <i className="fa-solid fa-magnifying-glass"></i>
                           </button>

@@ -86,6 +86,19 @@ export default function App() {
   const [showGiftModal, setShowGiftModal] = useState(false);
   const [sendingGift, setSendingGift] = useState(false);
   const [updatingCoins, setUpdatingCoins] = useState(false);
+  // Inject lightweight animation styles for gift bubbles (once)
+  useEffect(() => {
+    const styleId = 'gift-bubble-anim-style';
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = `
+        @keyframes giftPop {0%{transform:scale(0.6);opacity:0}60%{transform:scale(1.05);opacity:1}100%{transform:scale(1)} }
+        .gift-pop { animation: giftPop 450ms ease-out; }
+      `;
+      document.head.appendChild(style);
+    }
+  }, []);
 
   const handleShow = () => setShowModal(true);
   const handleHide = () => setShowModal(false);
@@ -434,7 +447,8 @@ export default function App() {
      
         const transformedMessages = messagesArray.map((msg, index) => {
           const base = msg.content || msg.message || '';
-          const messageType = msg.messageType || 'text';
+          const inferredType = base && typeof base === 'string' && base.includes('Sent a gift:') ? 'gift' : 'text';
+          const messageType = msg.messageType || inferredType;
           const giftName = messageType === 'gift' ? base.split(':').slice(1).join(':').trim() : '';
           let matchedGift = messageType === 'gift' && gifts?.length
             ? gifts.find(g => (g.name || '').toLowerCase() === (giftName || '').toLowerCase())
@@ -1318,7 +1332,7 @@ export default function App() {
                                       const parsedName = (message?.content || "").split(": ")[1] || "";
                                       const imgUrl = message?.giftData?.imageUrl || (gifts.find(g => g.name === parsedName)?.imageUrl);
                                       return (
-                                        <div className="small p-2 me-3 mb-1 rounded-3" style={{ backgroundColor: "#f24570", color: "#ffffff", display: "flex", alignItems: "center", gap: "10px", border: "2px solid #ffd700" }}>
+                                        <div className="small p-2 me-3 mb-1 rounded-3 gift-pop" style={{ backgroundColor: "#f24570", color: "#ffffff", display: "flex", alignItems: "center", gap: "10px", border: "2px solid #ffd700" }}>
                                           {imgUrl ? (
                                             <img src={imgUrl} alt={parsedName || 'gift'} style={{ width: 64, height: 64, borderRadius: 8, objectFit: 'cover' }} />
                                           ) : (
@@ -1507,7 +1521,7 @@ export default function App() {
                                         const parsedName = (message?.content || "").split(": ")[1] || "";
                                         const imgUrl = message?.giftData?.imageUrl || (gifts.find(g => g.name === parsedName)?.imageUrl);
                                         return (
-                                          <div className="small p-2 mb-1 rounded-3" style={{ backgroundColor: "#f5f6f7", color: "#000", marginRight: "8px", display: "flex", alignItems: "center", gap: "10px", border: "2px solid #ffd700" }}>
+                                          <div className="small p-2 mb-1 rounded-3 gift-pop" style={{ backgroundColor: "#f5f6f7", color: "#000", marginRight: "8px", display: "flex", alignItems: "center", gap: "10px", border: "2px solid #ffd700" }}>
                                             {imgUrl ? (
                                               <img src={imgUrl} alt={parsedName || 'gift'} style={{ width: 64, height: 64, borderRadius: 8, objectFit: 'cover' }} />
                                             ) : (

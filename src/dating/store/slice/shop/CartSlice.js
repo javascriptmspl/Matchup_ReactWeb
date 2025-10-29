@@ -39,6 +39,20 @@ export const removeFromCartAsync = createAsyncThunk(
   }
 );
 
+// Update quantity for an item
+export const updateQuantityAsync = createAsyncThunk(
+  'cart/updateQuantityAsync',
+  async ({ index, quantity }, { getState }) => {
+    const { cart } = getState();
+    const normalizedQty = Math.max(1, Number.isFinite(quantity) ? Number(quantity) : 1);
+    const updatedCart = cart.items.map((item, i) =>
+      i === index ? { ...item, pack: normalizedQty } : item
+    );
+    updateCartInLocalStorage(updatedCart);
+    return updatedCart;
+  }
+);
+
 const cartSlice = createSlice({
   name: 'cart',
   initialState: {
@@ -70,6 +84,17 @@ const cartSlice = createSlice({
         state.items = action.payload;
       })
       .addCase(removeFromCartAsync.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.error.message;
+      })
+      .addCase(updateQuantityAsync.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(updateQuantityAsync.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.items = action.payload;
+      })
+      .addCase(updateQuantityAsync.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.error.message;
       });
