@@ -1104,7 +1104,7 @@ export default function App() {
         <MDBInputGroup className="rounded mb-3 px-lg-3">
           <input
             className="form-control headerChat"
-            placeholder="Search"
+            placeholder="Search" 
             type="search"
             style={{ height: 50 }}
             onChange={handleChange}

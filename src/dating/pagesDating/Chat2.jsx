@@ -1274,7 +1274,13 @@ export default function App() {
                       onClick={handleShowVideoCall}
                     ></i>
                   </Link>
-                       <VideoCallModal show={showVideoCallModal} onHide={handleHideVideoCall} />
+                       <VideoCallModal 
+                         show={showVideoCallModal} 
+                         onHide={handleHideVideoCall} 
+                         selectedUser={selectedUser}
+                         currentUserId={user?._id || storedUserId}
+                         selectedRoomId={selectedRoomId}
+                       />
 
 
                 </div>
@@ -2144,30 +2150,53 @@ export default function App() {
           selectedUser={selectedUser}
         />
 
-        {/* Incoming Call Modal */}
+        {/* Incoming Call Modal (voice/video) */}
         {incomingCall && (
-          <IncomingCallModal 
-            show={showIncomingCallModal} 
-            onHide={() => {
-              // Clear notification flag when modal is closed
-              if (incomingCall) {
-                const notificationKey = `call_notification_${incomingCall._id}`;
-                sessionStorage.removeItem(notificationKey);
-              }
-              setShowIncomingCallModal(false);
-              setIncomingCall(null);
-            }}
-            selectedUser={{
-              _id: incomingCall.callerId._id,
-              name: incomingCall.callerId.name,
-              avatar: `${BASE_URL}/assets/images/${incomingCall.callerId.mainAvatar}`
-            }}
-            currentUserId={user?._id || storedUserId}
-            selectedRoomId={incomingCall.roomId}
-            callId={incomingCall._id}
-            isIncomingCall={true}
-            callerName={incomingCall.callerId.name}
-          />
+          incomingCall.callType === 'video' ? (
+            <VideoCallModal 
+              show={showIncomingCallModal} 
+              onHide={() => {
+                if (incomingCall) {
+                  const notificationKey = `call_notification_${incomingCall._id}`;
+                  sessionStorage.removeItem(notificationKey);
+                }
+                setShowIncomingCallModal(false);
+                setIncomingCall(null);
+              }}
+              selectedUser={{
+                _id: incomingCall.callerId._id,
+                name: incomingCall.callerId.name,
+                avatar: `${BASE_URL}/assets/images/${incomingCall.callerId.mainAvatar}`
+              }}
+              currentUserId={user?._id || storedUserId}
+              selectedRoomId={incomingCall.roomId}
+              callId={incomingCall._id}
+              isIncomingCall={true}
+              callerName={incomingCall.callerId.name}
+            />
+          ) : (
+            <IncomingCallModal 
+              show={showIncomingCallModal} 
+              onHide={() => {
+                if (incomingCall) {
+                  const notificationKey = `call_notification_${incomingCall._id}`;
+                  sessionStorage.removeItem(notificationKey);
+                }
+                setShowIncomingCallModal(false);
+                setIncomingCall(null);
+              }}
+              selectedUser={{
+                _id: incomingCall.callerId._id,
+                name: incomingCall.callerId.name,
+                avatar: `${BASE_URL}/assets/images/${incomingCall.callerId.mainAvatar}`
+              }}
+              currentUserId={user?._id || storedUserId}
+              selectedRoomId={incomingCall.roomId}
+              callId={incomingCall._id}
+              isIncomingCall={true}
+              callerName={incomingCall.callerId.name}
+            />
+          )
         )}
 
         {/* Call History Modal */}

@@ -20,23 +20,7 @@ const EventViewSchedule = ({
 
   const User = profileData;
 
-  // const dataEvent = localStorage.getItem("dataEvent");
-  // const datanotifyEvent = localStorage.getItem("datanotifyEvent");
 
-  // useEffect(() => {
-  //   const parsedDataEvent = dataEvent ? JSON.parse(dataEvent) : null;
-  //   const parsedDatanotifyEvent = datanotifyEvent
-  // //    ? JSON.parse(datanotifyEvent)
-  //     : null;
-
-  //   // Assuming setStoreData is a function that updates the state
-  //   setStoreData([...parsedDataEvent, ...parsedDatanotifyEvent]);
-  // }, [datanotifyEvent, dataEvent]);
-
-  // useEffect(() => {
-  //   const data = localStorage.getItem("dataEvent");
-  //   setStoreData(data ? [JSON.parse(data)] : []);
-  // }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -215,17 +199,7 @@ const EventViewSchedule = ({
           </div>
 
           <div className="main-bottom">
-            {/* <Link onClick={hideModal}> 
-           <button className="send-msg-btn">
-              <p className="content">Send a Message</p>
-            </button></Link>
-            
-           <Link >
-             <button onClick={handleSubmit} className="schedule-date" >
-              <p className="celender schedulename">
-                Submit
-              </p>
-            </button></Link> */}
+          
           </div>
         </div>
       </div>

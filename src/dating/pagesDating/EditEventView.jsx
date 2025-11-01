@@ -32,26 +32,7 @@ let GroupPageContentList = [
     profession: "UX Designer",
     address: "Brooklyn Bridge, New York, NY 10038",
   },
-  // {
-  //   imgUrl: "/assets/images/group/03.jpg",
-  //   imgAlt: "Dating Thumb",
-  //   title: "Amelia Taylor",
-  //   desc: "Your meeting is scheduled with Amelia Taylor",
-  //   activety: "2 days ago",
-  //   group: "Public Group",
-  //   date: "30th Jan",
-  //   location: "Chicago",
-  // },
-  // {
-  //   imgUrl: "/assets/images/group/04.jpg",
-  //   imgAlt: "Dating Thumb",
-  //   title: "Manuela Moench",
-  //   desc: "Your meeting is scheduled with Manuela Moench",
-  //   activety: "2 days ago",
-  //   group: "Public Group",
-  //   date: "10th Feb",
-  //   location: "Florida",
-  // },
+
 ];
 
 

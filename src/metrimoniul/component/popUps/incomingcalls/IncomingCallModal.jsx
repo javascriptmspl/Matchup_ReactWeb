@@ -23,6 +23,9 @@ const IncomingCallModal = ({
     const calleer=callId
     const userId = currentUserId || selectedUser;
     const [currentCallId, setCurrentCallId] = useState(callId || null);
+    const [localStream, setLocalStream] = useState(null);
+    const [isMuted, setIsMuted] = useState(false);
+    const [micPermission, setMicPermission] = useState('prompt');
     useEffect(() => {
         let interval;
         if (callConnected && callStartTime) {
@@ -45,6 +48,50 @@ const IncomingCallModal = ({
     };
 
 
+
+    const startMic = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            setLocalStream(stream);
+            const audioTrack = stream.getAudioTracks()[0];
+            if (audioTrack) { audioTrack.enabled = !isMuted; }
+        } catch (err) {
+            console.error('Microphone access error:', err);
+            toast.error('Unable to access microphone', { duration: 2000, position: 'top-center' });
+        }
+    };
+
+    const stopMic = () => {
+        if (localStream) {
+            try { localStream.getTracks().forEach(t => t.stop()); } catch (_) {}
+            setLocalStream(null);
+        }
+    };
+
+    useEffect(() => {
+        let mounted = true;
+        const checkPerm = async () => {
+            try {
+                if (navigator.permissions && navigator.permissions.query) {
+                    const status = await navigator.permissions.query({ name: 'microphone' });
+                    if (mounted) setMicPermission(status.state);
+                    status.onchange = () => { if (mounted) setMicPermission(status.state); };
+                }
+            } catch (_) {}
+        };
+        checkPerm();
+        return () => { mounted = false; };
+    }, []);
+
+    const toggleMute = () => {
+        if (!localStream) return;
+        const track = localStream.getAudioTracks()[0];
+        if (!track) return;
+        const next = !isMuted;
+        track.enabled = !next;
+        setIsMuted(next);
+        toast(next ? 'Muted' : 'Unmuted', { duration: 1200, position: 'top-center' });
+    };
 
     const handleAnswerCall = async () => {
         if (!callId || !currentUserId) {
@@ -97,6 +144,8 @@ const IncomingCallModal = ({
                 setCallConnected(true);
                 setCallStartTime(new Date());
                 setCallDuration(0);
+                // Start microphone capture on connect
+                startMic();
     
                 // Show call continuation message
                 setTimeout(() => {
@@ -199,6 +248,7 @@ const IncomingCallModal = ({
     const handleCancelCall = () => {
         setCallInitiated(false);
         setIsCalling(false);
+        stopMic();
         onHide();
     };
 
@@ -228,6 +278,7 @@ const IncomingCallModal = ({
             setIsCalling(false);
             setCallStartTime(null);
             setCallDuration(0);
+            stopMic();
             onHide();
         }
     };
@@ -277,6 +328,8 @@ const IncomingCallModal = ({
                 const newCallId = response?.data?.data?.call?._id || response?.data?.data?._id || response?.data?.data?.id;
                 if (newCallId) { setCurrentCallId(newCallId); }
                 setIsCalling(false);
+                // Optionally start mic immediately on outgoing call
+                startMic();
             } else {
                 throw new Error(data.message || 'Failed to initiate call');
             }
@@ -297,8 +350,13 @@ const IncomingCallModal = ({
         }
     };
 
+    const handleClose = () => {
+        stopMic();
+        onHide();
+    };
+
     return (
-        <Modal show={show} onHide={onHide} centered className="incoming-call-modal">
+        <Modal show={show} onHide={handleClose} centered className="incoming-call-modal">
             <Modal.Header closeButton>
                 <Modal.Title>
                     {callConnected
@@ -358,6 +416,18 @@ const IncomingCallModal = ({
             >
                  End Call
             </Button>
+            <Button 
+                variant="outline-secondary"
+                onClick={toggleMute}
+                style={{
+                    padding: '10px 30px',
+                    borderRadius: '25px',
+                    fontWeight: '500'
+                }}
+                className="ms-2"
+            >
+                {isMuted ? 'Unmute' : 'Mute'}
+            </Button>
         </>
     ) : isIncomingCall ? (
         <>
@@ -416,6 +486,18 @@ const IncomingCallModal = ({
                 }}
             >
                  End Call
+            </Button>
+            <Button 
+                variant="outline-secondary"
+                onClick={toggleMute}
+                style={{
+                    padding: '10px 30px',
+                    borderRadius: '25px',
+                    fontWeight: '500'
+                }}
+                className="ms-2"
+            >
+                {isMuted ? 'Unmute' : 'Mute'}
             </Button>
         </>
     ) : callInitiated ? (
