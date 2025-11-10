@@ -49,7 +49,7 @@ const Events = (e) => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [ViewUser, setViewUser] = useState([]);
   const [selectedData, setSelectedData] = useState([]);
-  const eventArray = useSelector((state) => state.eventArray);
+  const eventArray = useSelector((state) => state.event?.eventArray);
   const [eventToDeleteIndex, setEventToDeleteIndex] = useState(null);
 
   const selectus = (val) => {
@@ -149,7 +149,7 @@ const Events = (e) => {
       if (res.payload) {
         const res = await dispatch(getEvents(Userid));
         setStoreData(res.payload);
-        toast.success("Event deleted successfully");
+       
         setDeleteSchedule(false);
         setEventToDeleteIndex(null);
       } else {

@@ -38,7 +38,7 @@ const Events = (e) => {
   const [storeData, setStoreData] = useState([]);
   const [selectedUser, setSelectedUser] = useState([]);
   const [selectedData, setSelectedData] = useState([]);
-  const eventArray = useSelector((state) => state.eventArray);
+  const eventArray = useSelector((state) => state.event?.eventArray);
   const [eventToDeleteIndex, setEventToDeleteIndex] = useState(null);
 
   // Add a state to hold the selected member for scheduling
@@ -74,6 +74,12 @@ const Events = (e) => {
     };
     getEventM();
   }, []);
+
+  useEffect(() => {
+    if (eventArray && eventArray.length > 0) {
+      setStoreData(eventArray);
+    }
+  }, [eventArray]);
 
   const clockTime = () => {
     setCalenderSchedule(false);

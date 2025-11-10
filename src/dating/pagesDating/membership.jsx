@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 
 const title = "Membership Levels";
 const subtitle =
-  "Our dating platform is like a breath of fresh air. Clean and trendy design with ready to use features we are sure you will love.";
+  "Our dating platform is like a breath of fresh air. Clean and trendy design with ready-to-use features we are sure you will love.";
 
 let MembershipList = [
   {
@@ -15,22 +15,10 @@ let MembershipList = [
     price: "$20.00",
     btnText: "Select Plan",
     faciList: [
-      {
-        iconName: "fa-solid fa-circle-check",
-        text: "View Members Directory",
-      },
-      {
-        iconName: "fa-solid fa-circle-check",
-        text: "View Members Profile",
-      },
-      {
-        iconName: "fa-solid fa-circle-check",
-        text: "Send Private Messages",
-      },
-      {
-        iconName: "fa-solid fa-circle-xmark",
-        text: "Add Media To Your Profile",
-      },
+      { iconName: "fa-solid fa-circle-check", text: "View Members Directory" },
+      { iconName: "fa-solid fa-circle-check", text: "View Members Profile" },
+      { iconName: "fa-solid fa-circle-check", text: "Send Private Messages" },
+      { iconName: "fa-solid fa-circle-xmark", text: "Add Media To Your Profile" },
     ],
   },
   {
@@ -39,53 +27,25 @@ let MembershipList = [
     price: "$30.00",
     btnText: "Select Plan",
     faciList: [
-      {
-        iconName: "fa-solid fa-circle-check",
-        text: "View Members Directory",
-      },
-      {
-        iconName: "fa-solid fa-circle-check",
-        text: "View Members Profile",
-      },
-      {
-        iconName: "fa-solid fa-circle-check",
-        text: "Send Private Messages",
-      },
-      {
-        iconName: "fa-solid fa-circle-check",
-        text: "Add Media To Your Profile",
-      },
+      { iconName: "fa-solid fa-circle-check", text: "View Members Directory" },
+      { iconName: "fa-solid fa-circle-check", text: "View Members Profile" },
+      { iconName: "fa-solid fa-circle-check", text: "Send Private Messages" },
+      { iconName: "fa-solid fa-circle-check", text: "Add Media To Your Profile" },
     ],
   },
 ];
 
 let coinsPlan = [
   {
-    daycount: "Choose you best coin plan",
+    daycount: "Choose your best coin plan",
     perMonth: "Elevate connections with our premier Best Coin Plan!",
     price: "Free",
     btnText: "Select Plan",
     faciList: [
-      {
-        iconName: "fa-solid fa-circle-check",
-        text: "5 coins $8.99",
-        offer: "save 45%",
-      },
-      {
-        iconName: "fa-solid fa-circle-check",
-        text: "30 coins $37.99",
-        offer: "best value",
-      },
-      {
-        iconName: "fa-solid fa-circle-check",
-        text: "15 coins $22.99",
-        offer: "save 48%",
-      },
-      {
-        iconName: "fa-solid fa-circle-check",
-        text: "2 coins $2.99",
-        offer: "small plan",
-      },
+      { iconName: "fa-solid fa-circle-check", text: "5 coins $8.99", offer: "save 45%" },
+      { iconName: "fa-solid fa-circle-check", text: "30 coins $37.99", offer: "best value" },
+      { iconName: "fa-solid fa-circle-check", text: "15 coins $22.99", offer: "save 48%" },
+      { iconName: "fa-solid fa-circle-check", text: "2 coins $2.99", offer: "small plan" },
     ],
   },
 ];
@@ -102,11 +62,8 @@ class MembershipPage extends Component {
   }
 
   componentDidMount() {
-    // Get userId from localStorage, Redux store, or wherever you store user data
-    // This is a placeholder - adjust according to your auth implementation
     const userId = JSON.parse(localStorage.getItem("userData"))?.data?._id;
     this.setState({ userId });
-    console.log("Dating Membership Page Loaded - User ID:", userId);
   }
 
   handleSelectPlan = (index) => {
@@ -118,62 +75,35 @@ class MembershipPage extends Component {
       e.preventDefault();
       e.stopPropagation();
     }
-    
+
     const { userId } = this.state;
-    
-    console.log("Subscription clicked:", planName);
-    console.log("User ID:", userId);
-    
     if (!userId) {
-      toast.error("Please login to subscribe");
+      toast.error("Please login to subscribe", { duration: 2000, position: "top-center" });
       return;
     }
 
-    console.log("Opening payment modal for:", planName.toLowerCase());
-    
     this.setState({
       isPaymentModalOpen: true,
       selectedPlan: planName.toLowerCase(),
-    }, () => {
-      console.log("Modal state updated:", this.state.isPaymentModalOpen);
-      console.log("Selected plan:", this.state.selectedPlan);
     });
   };
 
   handlePaymentModalClose = (success, confirmationData) => {
-    console.log("Payment modal closing - Success:", success);
-    console.log("Confirmation data:", confirmationData);
-    
     this.setState({ isPaymentModalOpen: false, selectedPlan: null });
-    
-    if (success && confirmationData) {
-      const { payment, coinsAwarded, newBalance } = confirmationData;
-      
-      // Show detailed success message
-      toast.success(
-        `🎉 Welcome to ${payment.subscriptionPlan.toUpperCase()} plan!\n` +
-        `💰 ${coinsAwarded} coins added to your account\n` +
-        `📊 New balance: ${newBalance} coins\n` +
-        `📅 Valid until: ${new Date(payment.subscriptionEndDate).toLocaleDateString()}`,
-        { duration: 8000 }
-      );
-      
-      // You can add additional logic here like:
-      // - Redirect to profile page
-      // - Update user subscription in Redux/Context
-      // - Refresh user data
-      // - Show a welcome modal with subscription details
-      
-      console.log("Subscription Details:", {
-        plan: payment.subscriptionPlan,
-        amount: payment.amount,
-        coinsAwarded,
-        newBalance,
-        startDate: payment.subscriptionStartDate,
-        endDate: payment.subscriptionEndDate
+
+    if (success) {
+      toast.success("Payment Successful!", {
+        duration: 2000,
+        position: "top-center",
+        style: {
+          background: "#4BB543",
+          color: "#fff",
+          fontSize: "16px",
+          padding: "12px 20px",
+          borderRadius: "8px",
+          textAlign: "center",
+        },
       });
-    } else if (success) {
-      toast.success("Payment successful! Your subscription has been activated.");
     }
   };
 
@@ -182,7 +112,7 @@ class MembershipPage extends Component {
     return (
       <Fragment>
         <HeaderFour />
-        
+
         <StripePaymentModal
           isOpen={isPaymentModalOpen}
           onClose={this.handlePaymentModalClose}
@@ -191,20 +121,19 @@ class MembershipPage extends Component {
         />
 
         <div className="membership padding-top padding-bottom">
-  <div className="container" style={{maxWidth:'1200px'}}>
-    <div className="section__header style-2 text-center">
-      <h2>{title}</h2>
-      <p>{subtitle}</p>
-    </div>
-    <div className="section__wrapper">
+          <div className="container" style={{ maxWidth: "1200px" }}>
+            <div className="section__header style-2 text-center">
+              <h2>{title}</h2>
+              <p>{subtitle}</p>
+            </div>
+
+            <div className="section__wrapper">
               <div className="row g-4 justify-content-center row-cols-xl-3 row-cols-lg-3 row-cols-sm-2 row-cols-1">
+                {/* Coin Plans */}
                 {coinsPlan.map((val, i) => (
                   <div
-                    className={`col ${
-                      selectedCoinPlan === i ? "selected-coin-plan" : ""
-                    }`}
+                    className={`col ${selectedCoinPlan === i ? "selected-coin-plan" : ""}`}
                     key={i}
-                    //    style={{ width: '35%' }}
                     onClick={() => this.handleSelectPlan(i)}
                   >
                     <div className="membership__item">
@@ -215,11 +144,11 @@ class MembershipPage extends Component {
                         </div>
                         <div className="membership__body">
                           <ul>
-                            {val.faciList.map((val, i) => (
-                              <li key={i} className="pointer" style={{padding:'20px 0px'}}>
-                                <i className={val.iconName}></i>
-                                <span className="px-2">{val.text}</span>
-                                <span className="px-2">{val.offer}</span>
+                            {val.faciList.map((item, j) => (
+                              <li key={j} className="pointer" style={{ padding: "20px 0px" }}>
+                                <i className={item.iconName}></i>
+                                <span className="px-2">{item.text}</span>
+                                <span className="px-2">{item.offer}</span>
                                 <img
                                   src="https://png.pngtree.com/png-clipart/20220823/original/pngtree-flying-gold-coin-png-png-image_8447452.png"
                                   alt=""
@@ -230,11 +159,16 @@ class MembershipPage extends Component {
                           </ul>
                         </div>
                         <div className="membership__footer">
-                          <button 
+                          <button
                             type="button"
-                            className="default-btn reverse" 
-                            style={{ border: 'none', width: '100%', cursor: 'pointer' }}
-                            onClick={() => toast.info("Coin plans coming soon!")}
+                            className="default-btn reverse"
+                            style={{ border: "none", width: "100%", cursor: "pointer" }}
+                            onClick={() =>
+                              toast.info("Coin plans coming soon!", {
+                                duration: 1500,
+                                position: "top-center",
+                              })
+                            }
                           >
                             <span>{val.btnText}</span>
                           </button>
@@ -243,6 +177,8 @@ class MembershipPage extends Component {
                     </div>
                   </div>
                 ))}
+
+                {/* Membership Plans */}
                 {MembershipList.map((val, i) => (
                   <div className="col" key={i}>
                     <div className="membership__item">
@@ -254,19 +190,18 @@ class MembershipPage extends Component {
                         <div className="membership__body">
                           <h4>{val.price}</h4>
                           <ul>
-                            {val.faciList.map((val, i) => (
-                              <li key={i}>
-                                <i className={val.iconName}></i>{" "}
-                                <span>{val.text}</span>
+                            {val.faciList.map((item, j) => (
+                              <li key={j}>
+                                <i className={item.iconName}></i> <span>{item.text}</span>
                               </li>
                             ))}
                           </ul>
                         </div>
                         <div className="membership__footer">
-                          <button 
+                          <button
                             type="button"
-                            className="default-btn reverse" 
-                            style={{ border: 'none', width: '100%', cursor: 'pointer' }}
+                            className="default-btn reverse"
+                            style={{ border: "none", width: "100%", cursor: "pointer" }}
                             onClick={(e) => this.handleSubscriptionClick(val.daycount, e)}
                           >
                             <span>{val.btnText}</span>
@@ -278,8 +213,8 @@ class MembershipPage extends Component {
                 ))}
               </div>
             </div>
-  </div>
-</div>
+          </div>
+        </div>
 
         <FooterFour />
       </Fragment>

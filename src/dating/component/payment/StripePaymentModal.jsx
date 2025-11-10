@@ -15,7 +15,7 @@ const stripePublishableKey = process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY;
 
 console.log("Stripe Key Check:", stripePublishableKey ? "✓ Key Found" : "✗ Key Missing");
 
-if (!stripePublishableKey) {
+if (!stripePublishableKey) { 
   console.error("STRIPE KEY ERROR: REACT_APP_STRIPE_PUBLISHABLE_KEY is not defined in .env file");
   console.error("Make sure to restart the development server after adding .env file");
 }
@@ -60,20 +60,7 @@ const CheckoutForm = ({ clientSecret, amount, onSuccess, onCancel, userId }) => 
           if (confirmResponse.isSuccess) {
             const { payment, coinsAwarded, newBalance } = confirmResponse.data;
             
-            // Show success message with subscription details
-            toast.success(
-              `Payment successful! ${coinsAwarded} coins awarded. New balance: ${newBalance}`,
-              { duration: 5000 }
-            );
-            
-            console.log("Subscription activated:", {
-              plan: payment.subscriptionPlan,
-              startDate: payment.subscriptionStartDate,
-              endDate: payment.subscriptionEndDate,
-              coinsAwarded,
-              newBalance
-            });
-            
+     
             onSuccess(paymentIntent, confirmResponse.data);
           } else {
             toast.error("Payment processed but failed to activate subscription. Please contact support.");
@@ -163,6 +150,7 @@ const StripePaymentModal = ({ isOpen, onClose, subscriptionPlan, userId }) => {
       setLoading(false);
     }
   };
+
 
   const handleSuccess = (paymentIntent, confirmationData) => {
     console.log("Payment successful:", paymentIntent);

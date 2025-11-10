@@ -115,7 +115,7 @@ const eventSlice = createSlice({
       .addCase(deleteEvent.fulfilled, (state, action) => {
         state.loading = false;
         state.eventArray = state.eventArray.filter(
-          (event) => event.id !== action.payload
+          (event) => (event.id || event._id) !== action.payload
         );
       })
       .addCase(deleteEvent.rejected, (state, action) => {
