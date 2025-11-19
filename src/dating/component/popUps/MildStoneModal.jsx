@@ -62,7 +62,12 @@ const RelationshipMilestoneTracker = ({ showModal, hideModal, selectedUser, filt
   }
 
   return (
-    <Modal className='me-2' show={showModal} onHide={hideModal} centered size="lg"  >
+    <>
+    <style>{`
+      .rb-backdrop-blur { backdrop-filter: blur(6px); background-color: rgba(0,0,0,0.35) !important; z-index: 50010 !important; }
+      .modal.rb-call-modal { z-index: 50020 !important; }
+    `}</style>
+    <Modal className='me-2 rb-call-modal' show={showModal} onHide={hideModal} centered size="lg" backdropClassName="rb-backdrop-blur"  >
       <span onClick={hideModal}>
         <i
           className="fa fa-times fs-3"
@@ -133,6 +138,7 @@ const RelationshipMilestoneTracker = ({ showModal, hideModal, selectedUser, filt
         </div>
       </div>
     </Modal>
+    </>
   );
 };
 

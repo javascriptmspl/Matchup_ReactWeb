@@ -114,12 +114,13 @@ const HeaderFour = () => {
       if (userId) {
         try {
           const response = await fetch(
-            `${BASE_URL}/notifications/user/${userId}?page=1&limit=100`
+            `${BASE_URL}/notifications/unread-count/${userId}`
           );
           const data = await response.json();
-          setNotificationCount(data.length);
+          setNotificationCount(data.count || 0);
         } catch (error) {
           console.error("Error fetching notification count:", error);
+          setNotificationCount(0);
         }
       }
     };

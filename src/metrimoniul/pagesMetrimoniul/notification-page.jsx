@@ -2,10 +2,10 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Container, Row } from "react-bootstrap";
-import HeaderFour from "../component/layout/HeaderFour";
+import HeaderFourWithNotifications from "../component/layout/HeaderFourWithNotifications";
 import SelectProduct from "../component/select/selectproduct";
 import { BASE_URL } from "../../base";
-import { fetchNotifications } from "../../service/common-service/notificationslice";
+import { fetchNotifications, markAllAsRead } from "../../service/common-service/notificationslice";
 import TimeAgo from "../component/popUps/setting/TimeAgo";
 import { Link } from "react-router-dom";
 
@@ -65,6 +65,14 @@ const NotificationFullPage = () => {
   const user_Data = JSON.parse(datingId);
   const userId = user_Data.data._id;
 
+  const handleMarkAllAsRead = async () => {
+    try {
+      await dispatch(markAllAsRead(userId)).unwrap();
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
+  };
+
   useEffect(() => {
     if (userId) {
       dispatch(fetchNotifications({ userId: userId, page: 1, limit: 11 }));
@@ -73,20 +81,30 @@ const NotificationFullPage = () => {
 
   return (
     <>
-      <HeaderFour />
+      <HeaderFourWithNotifications />
       <Container>
         <Row className="align-items-center">
           <div className="col-lg-6 col-md-6 col-sm-12">
             <h2 className="notification-title-page">Notifications</h2>
           </div>
           <div className="col-lg-6 col-md-6 col-sm-12">
-            <div className="member__info--right member__info--right-notification ">
+            <div className="member__info--right member__info--right-notification d-flex justify-content-end align-items-center">
+              {notifications.some(n => n.status === 'UNREAD') && (
+                <button 
+                  className="btn btn-sm btn-outline-primary me-3"
+                  onClick={handleMarkAllAsRead}
+                  style={{ fontSize: '14px', padding: '6px 12px' }}
+                >
+                  Mark all as read
+                </button>
+              )}
               <div className="member__info--customselect right w-100">
                 <div className="default-btn">
                   <span>Order By:</span>
-                </div>
-                <div className="banner__inputlist">
-                  <SelectProduct select={"Newest"} />
+                  <select className="select__border--none">
+                    <option value="newest">Newest</option>
+                    <option value="oldest">Oldest</option>
+                  </select>
                 </div>
               </div>
             </div>

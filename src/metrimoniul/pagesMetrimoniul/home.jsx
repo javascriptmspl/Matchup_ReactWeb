@@ -12,7 +12,7 @@ import WorkSectionTwo from "../component/section/worktwo";
 
 import FooterFour from "../component/layout/footerFour";
 import NotificationPage from "../component/popUps/notification";
-import HeaderFour from "../../component/layout/HeaderFour";
+import HeaderFourWithNotifications from "../component/layout/HeaderFourWithNotifications";
 
 const HomePage = () => {
   const [showNotifications, setShowNotifications] = useState(false);
@@ -27,7 +27,7 @@ const HomePage = () => {
 
   return (
     <Fragment>
-      <HeaderFour />
+      <HeaderFourWithNotifications />
       <BannerOne />
       {/* <StorySection /> */}
       {/* <MemberSection /> */}

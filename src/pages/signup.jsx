@@ -410,27 +410,25 @@ const SignUp = (selectedProfile) => {
                       </h4>
 
                       {/* iam  */}
-                      <div className="form-group">
-                        <label>I am a</label>
-                        <select
-                          name="iAm"
-                          value={formik.values.iAm}
-                          onChange={formik.handleChange}
-                          className="my-form-control"
-                        >
-                          <option value="Male">Man</option>
-                          <option value="Female">Woman</option>
-                        </select>
-                        {formik.touched.iAm && formik.errors.iAm ? (
-                          <div
-                            className="error-message"
-                            style={{ color: "red" }}
-                          >
-                            {formik.errors.iAm}
-                          </div>
-                        ) : null}
-                      </div>
+                     <div className="form-group">
+  <label>I am a</label>
+  <select
+    name="iAm"
+    value={formik.values.iAm}
+    onChange={formik.handleChange}
+    className="my-form-control"
+  >
+    <option value="">-- Select --</option>
+    <option value="Male">Man</option>
+    <option value="Female">Woman</option>
+  </select>
 
+  {formik.touched.iAm && formik.errors.iAm ? (
+    <div className="error-message" style={{ color: "red" }}>
+      {formik.errors.iAm}
+    </div>
+  ) : null}
+</div>
                       {/* loooking for  */}
                       <div className="form-group">
                         <label>Looking for a</label>
@@ -440,6 +438,7 @@ const SignUp = (selectedProfile) => {
                           onChange={formik.handleChange}
                           className="my-form-control"
                         >
+                          <option value="">-- Select --</option>
                           <option value="Male">Man</option>
                           <option value="Female">Woman</option>
                         </select>
@@ -462,6 +461,7 @@ const SignUp = (selectedProfile) => {
                           onChange={formik.handleChange}
                           className="my-form-control"
                         >
+                          <option value="">-- Select --</option>
                           <option value="Single">Single</option>
                           <option value="Married">Married</option>
                         </select>

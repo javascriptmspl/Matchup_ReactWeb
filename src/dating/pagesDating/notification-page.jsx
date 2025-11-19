@@ -6,7 +6,7 @@
 // import SelectProduct from "../component/select/selectproduct";
 
 // import { Link } from "react-router-dom";
-// import { fetchNotifications } from "../../service/common-service/notificationslice";
+// import { fetchNotifications, markAsRead } from "../../service/common-service/notificationslice";
 // import { BASE_URL } from "../../base";
 // import TimeAgo from "../../metrimoniul/component/popUps/setting/TimeAgo";
 
@@ -121,12 +121,12 @@ import { Container, Row } from "react-bootstrap";
 import HeaderFour from "../component/layout/HeaderFour";
 import SelectProduct from "../component/select/selectproduct";
 import { BASE_URL } from "../../base";
-import { fetchNotifications } from "../../service/common-service/notificationslice";
+import { fetchNotifications, markAsRead, markAllAsRead } from "../../service/common-service/notificationslice";
 import { Link } from "react-router-dom";
 import TimeAgo from "../../metrimoniul/component/popUps/setting/TimeAgo";
 
 
-const NotificationItem = ({ notification }) => {
+const NotificationItem = ({ notification, onClick }) => {
   const avatar = notification.senderUserId?.mainAvatar
     ? `${BASE_URL}/assets/images/${notification.senderUserId.mainAvatar}`
     : notification.senderUserId?.avatars?.length
@@ -138,6 +138,8 @@ const NotificationItem = ({ notification }) => {
       className={`notification-item ${
         notification.status === "UNREAD" ? "unread" : "read"
       }`}
+      onClick={() => onClick(notification)}
+      style={{ cursor: 'pointer' }}
     >
       <div className="notification-content">
         <div className="notification-action">
@@ -181,6 +183,25 @@ const NotificationFullPage = () => {
   const user_Data = JSON.parse(datingId);
   const userId = user_Data.data._id;
 
+  const handleNotificationClick = async (notification) => {
+    // Mark as read if unread
+    if (notification.status === 'UNREAD') {
+      try {
+        await dispatch(markAsRead([notification._id])).unwrap();
+      } catch (error) {
+        console.error('Error marking notification as read:', error);
+      }
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      await dispatch(markAllAsRead(userId)).unwrap();
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
+  };
+
   useEffect(() => {
     if (userId) {
       dispatch(fetchNotifications({ userId: userId, page: 1, limit: 11 }));
@@ -196,13 +217,23 @@ const NotificationFullPage = () => {
             <h2 className="notification-title-page">Notifications</h2>
           </div>
           <div className="col-lg-6 col-md-6 col-sm-12">
-            <div className="member__info--right member__info--right-notification ">
+            <div className="member__info--right member__info--right-notification d-flex justify-content-end align-items-center">
+              {notifications.some(n => n.status === 'UNREAD') && (
+                <button 
+                  className="btn btn-sm btn-outline-primary me-3"
+                  onClick={handleMarkAllAsRead}
+                  style={{ fontSize: '14px', padding: '6px 12px' }}
+                >
+                  Mark all as read
+                </button>
+              )}
               <div className="member__info--customselect right w-100">
                 <div className="default-btn">
                   <span>Order By:</span>
-                </div>
-                <div className="banner__inputlist">
-                  <SelectProduct select={"Newest"} />
+                  <select className="select__border--none">
+                    <option value="newest">Newest</option>
+                    <option value="oldest">Oldest</option>
+                  </select>
                 </div>
               </div>
             </div>
@@ -217,7 +248,11 @@ const NotificationFullPage = () => {
     <p>No notifications found.</p>
   ) : (
     notifications.map((notification) => (
-      <NotificationItem key={notification._id} notification={notification} />
+      <NotificationItem 
+        key={notification._id} 
+        notification={notification} 
+        onClick={handleNotificationClick}
+      />
     ))
   )}
 </div>

@@ -356,7 +356,12 @@ const IncomingCallModal = ({
     };
 
     return (
-        <Modal show={show} onHide={handleClose} centered className="incoming-call-modal">
+        <>
+        <style>{`
+          .rb-backdrop-blur { backdrop-filter: blur(6px); background-color: rgba(0,0,0,0.35) !important; z-index: 50010 !important; }
+          .modal.rb-call-modal { z-index: 50020 !important; }
+        `}</style>
+        <Modal show={show} onHide={handleClose} centered className="incoming-call-modal rb-call-modal" backdropClassName="rb-backdrop-blur">
             <Modal.Header closeButton>
                 <Modal.Title>
                     {callConnected
@@ -565,6 +570,7 @@ const IncomingCallModal = ({
     )}
 </Modal.Footer>
         </Modal>
+        </>
     );
 };
 

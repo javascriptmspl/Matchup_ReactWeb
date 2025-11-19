@@ -56,7 +56,12 @@ const {eventDatahandle}=useContext(MyContext)
   };
  
   return (
-    <Modal show={showModal} onHide={hideModal} centered >
+    <>
+    <style>{`
+      .rb-backdrop-blur { backdrop-filter: blur(6px); background-color: rgba(0,0,0,0.35) !important; z-index: 50010 !important; }
+      .modal.rb-call-modal { z-index: 50020 !important; }
+    `}</style>
+    <Modal show={showModal} onHide={hideModal} centered className="rb-call-modal" backdropClassName="rb-backdrop-blur" >
       
         
         <div className="main" style={{position:"relative"}}>
@@ -203,6 +208,7 @@ const {eventDatahandle}=useContext(MyContext)
         </div>
       </div>
     </Modal>
+    </>
   );
 };
 

@@ -74,7 +74,12 @@ const CalenderSchedule = ({
   };
 
   return (
-    <Modal show={showModal} onHide={hideModal} centered>
+    <>
+    <style>{`
+      .rb-backdrop-blur { backdrop-filter: blur(6px); background-color: rgba(0,0,0,0.35) !important; z-index: 50010 !important; }
+      .modal.rb-call-modal { z-index: 50020 !important; }
+    `}</style>
+    <Modal show={showModal} onHide={hideModal} centered className="rb-call-modal" backdropClassName="rb-backdrop-blur">
       {!showCalendar ? (
         <>
           <div
@@ -155,6 +160,7 @@ const CalenderSchedule = ({
         </div>
       )}
     </Modal>
+    </>
   );
 };
 

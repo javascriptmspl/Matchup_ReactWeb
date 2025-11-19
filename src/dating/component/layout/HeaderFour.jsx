@@ -2,13 +2,19 @@ import React, { useState, useEffect } from "react";
 import { Badge } from "react-bootstrap";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import NotificationModal from "../../../pages/notification-modal";
+import { BASE_URL } from "../../../base";
 import logo from "../../assets/images/logo/Logo-light-pink.png";
 
 const HeaderFour = () => {
-  const [username, setUsername] = useState(localStorage.getItem("username"));
+  const [username, setUsername] = useState(localStorage.getItem("userData"));
+  const [userData, setUserData] = useState(localStorage.getItem("userData"));
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0);
   const location = useLocation();
   const navigate = useNavigate();
+  const userDataObj = userData ? JSON.parse(userData) : null;
+  const userId = userDataObj?.data?._id || null;
+
   const isSmallScreen = window.innerWidth <= 768 && 992;
 
   useEffect(() => {
@@ -16,6 +22,28 @@ const HeaderFour = () => {
       setIsNotificationModalOpen(false);
     }
   }, [location.pathname]);
+
+  useEffect(() => {
+    const fetchNotificationCount = async () => {
+      if (userId) {
+        try {
+          const response = await fetch(
+            `${BASE_URL}/notifications/unread-count/${userId}`
+          );
+          const data = await response.json();
+          setNotificationCount(data.count || 0);
+        } catch (error) {
+          console.error("Error fetching notification count:", error);
+          setNotificationCount(0);
+        }
+      }
+    };
+
+    fetchNotificationCount();
+    // Refresh notification count every 30 seconds
+    const interval = setInterval(fetchNotificationCount, 30000);
+    return () => clearInterval(interval);
+  }, [userId]);
 
   const handleNotificationClick = () => {
     if (isSmallScreen) {
@@ -196,7 +224,7 @@ const HeaderFour = () => {
                           cursor: "pointer",
                         }}
                       >
-                        4
+                        {notificationCount}
                       </Badge>
                     </span>
                     <ul

@@ -48,7 +48,12 @@ const BlockUserModal = ({ showModal, hideModal, selectedUser, isBlocked = false,
   }
 
   return (
-    <Modal show={showModal} onHide={hideModal} centered>
+    <>
+    <style>{`
+      .rb-backdrop-blur { backdrop-filter: blur(6px); background-color: rgba(0,0,0,0.35) !important; z-index: 50010 !important; }
+      .modal.rb-call-modal { z-index: 50020 !important; }
+    `}</style>
+    <Modal show={showModal} onHide={hideModal} centered className="rb-call-modal" backdropClassName="rb-backdrop-blur">
       <Modal.Header closeButton>
         <Modal.Title>{isBlocked ? 'Unblock' : 'Block'} Confirmation</Modal.Title>
       </Modal.Header>
@@ -81,6 +86,7 @@ const BlockUserModal = ({ showModal, hideModal, selectedUser, isBlocked = false,
         </Button>
       </Modal.Footer>
     </Modal>
+    </>
   )
 }
 

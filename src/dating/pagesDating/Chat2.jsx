@@ -1088,10 +1088,101 @@ export default function App() {
   const renderChatBox = () => {
     return (
       <div>
+        <style>{`
+          @keyframes chatFadeIn { from {opacity: 0; transform: translateY(6px)} to {opacity: 1; transform: translateY(0)} }
+          @keyframes bubblePop { 0% { transform: scale(0.96); opacity:.8 } 60% { transform: scale(1.02) } 100% { transform: scale(1); opacity:1 } }
+          @keyframes slideInR { from {opacity:0; transform: translateX(14px)} to {opacity:1; transform: translateX(0)} }
+          @keyframes slideInL { from {opacity:0; transform: translateX(-14px)} to {opacity:1; transform: translateX(0)} }
+          @keyframes dotBounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+          @keyframes glowPulse { 0%{ box-shadow:0 0 0 0 rgba(242,69,112,0.35)} 70%{ box-shadow:0 0 0 10px rgba(242,69,112,0)} 100%{ box-shadow:0 0 0 0 rgba(242,69,112,0)} }
+          @keyframes subtleShake { 0%,100%{ transform: translateY(0)} 50%{ transform: translateY(-2px)} }
+          @keyframes fadeDown { from{ opacity:0; transform: translateY(-6px)} to{ opacity:1; transform: translateY(0)} }
+          @keyframes ripple { to { width:160px; height:160px; opacity:0 } }
+          @keyframes sheen { 0%{ left: -60% } 100%{ left: 120% } }
+
+          .msg-anim { animation: chatFadeIn .35s ease-out; }
+          .chat-bubble { box-shadow: 0 6px 16px rgba(0,0,0,.06); animation: bubblePop .25s ease-out; transition: transform .18s ease, box-shadow .18s ease; }
+          .chat-bubble:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,.14); }
+          .bubble-sent { background: linear-gradient(135deg, #f24570 0%, #ff7e9a 100%) !important; color: #fff !important; }
+          .bubble-recv { background: #f5f6f7 !important; color: #2d3436 !important; }
+          .msg-time { opacity:.7; font-size:11px; animation: chatFadeIn .4s ease .12s both; }
+          .typing-indicator { display:flex; align-items:center; gap:6px; margin: 0 8px; }
+          .typing-indicator span { width:6px; height:6px; background:#6c757d; border-radius:50%; display:inline-block; animation: dotBounce 1.4s infinite; }
+          .typing-indicator span:nth-child(2){ animation-delay: .15s }
+          .typing-indicator span:nth-child(3){ animation-delay: .3s }
+          .msg-row.sent .chat-bubble{ animation: slideInR .32s ease-out, bubblePop .25s ease-out; }
+          .msg-row.recv .chat-bubble{ animation: slideInL .32s ease-out, bubblePop .25s ease-out; }
+          .chat-bubble.with-tail{ position: relative; }
+          .bubble-sent:hover::before{ content:""; position:absolute; top:0; left:-60%; width:40%; height:100%; background: linear-gradient( to right, rgba(255,255,255,0) 0%, rgba(255,255,255,.25) 50%, rgba(255,255,255,0) 100% ); transform: skewX(-20deg); animation: sheen .9s ease; border-radius: inherit; }
+          /* Use rotated square so tail color perfectly matches the bubble */
+          .chat-bubble.with-tail.bubble-sent:after{
+            content:""; position:absolute; right:-6px; bottom:12px; width:12px; height:12px;
+            background: linear-gradient(135deg, #f24570 0%, #ff7e9a 100%);
+            transform: rotate(45deg); border-radius:2px; box-shadow: 0 1px 0 rgba(0,0,0,.06);
+          }
+          .chat-bubble.with-tail.bubble-recv:before{
+            content:""; position:absolute; left:-6px; bottom:12px; width:12px; height:12px;
+            background: #f5f6f7; transform: rotate(45deg); border-radius:2px; box-shadow: 0 1px 0 rgba(0,0,0,.06);
+          }
+          .avatar-hover:hover{ transform: scale(1.05); transition: transform .18s ease; }
+          .chat-solo img{ transition: transform .18s ease; }
+          .chat-solo img:hover{ transform: scale(1.05); }
+          .new-pulse{ animation: glowPulse 1.5s ease-out 1; }
+          .gift-pop{ animation: subtleShake 1.6s ease-in-out; }
+          .dropdown-menu{ animation: fadeDown .18s ease-out; transform-origin: top right; z-index: 50000; }
+          .chat-opt{ position: relative; z-index: 1200; }
+          /* Ensure header actions and menus stack above the message scroller */
+          .chat-header{ position: relative; z-index: 40000; }
+          .send-btn{ position: relative; overflow: hidden; }
+          .send-btn:active::after{ content:""; position:absolute; left:50%; bottom:50%; width:6px; height:6px; background: rgba(242,69,112,.35); border-radius:50%; transform: translate(-50%,-50%); animation: ripple .5s ease-out; }
+          /* Nice scroll thumbs in webkit browsers */
+          .msg-wrap::-webkit-scrollbar{ width: 10px; }
+          .msg-wrap::-webkit-scrollbar-thumb{ background: rgba(0,0,0,.12); border-radius: 8px; }
+          .msg-wrap::-webkit-scrollbar-thumb:hover{ background: rgba(0,0,0,.22); }
+          /* Animate file images */
+          img[alt^="file "]{ animation: chatFadeIn .3s ease-out; }
+          /* Coins UI animations */
+          @keyframes coinFloat { 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-2px) } }
+          @keyframes coinPulse { 0%{ box-shadow:0 0 0 0 rgba(255,193,7,.35) } 70%{ box-shadow:0 0 0 12px rgba(255,193,7,0) } 100%{ box-shadow:0 0 0 0 rgba(255,193,7,0) } }
+          @keyframes coinShimmer { 0%{ left:-40% } 100%{ left:120% } }
+          .coin-badge{ display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px; background: #fff; border:1px solid rgba(0,0,0,.06); box-shadow: 0 6px 16px rgba(0,0,0,.06); transition: transform .16s ease, box-shadow .16s ease; position: relative; overflow: hidden; }
+          .coin-badge:hover{ transform: translateY(-1px); box-shadow: 0 10px 24px rgba(0,0,0,.12); }
+          .coin-badge:hover .coin-count{ text-shadow: 0 1px 0 rgba(0,0,0,.08); }
+          .coin-badge:hover::after{ content:""; position:absolute; top:0; left:-40%; width:40%; height:100%; background: linear-gradient( to right, rgba(255,255,255,0) 0%, rgba(255,255,255,.45) 50%, rgba(255,255,255,0) 100% ); transform: skewX(-20deg); animation: coinShimmer .9s ease; }
+          .coin-icon{ display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%; background: radial-gradient(circle at 30% 30%, #ffe082, #ffc107 60%, #ffb300); box-shadow: inset 0 1px 2px rgba(255,255,255,.6), inset 0 -1px 2px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06); color:#7a5e00; font-size:12px; animation: coinFloat 2.2s ease-in-out infinite; }
+          .coin-count{ font-size:.8rem; color:#6c757d; font-weight:600; letter-spacing:.2px; }
+          .coin-badge.is-updating{ animation: coinPulse 1.4s ease-out infinite; }
+          /* Status chip */
+          .status-chip{ display:inline-flex; align-items:center; gap:6px; padding:1px 8px; border-radius:999px; background: rgba(25,135,84,.08); color:#198754 !important; border:1px solid rgba(25,135,84,.15); font-weight:600; }
+          .status-chip::before{ content:""; width:6px; height:6px; border-radius:50%; background:#16a34a; box-shadow:0 0 0 4px rgba(22,163,74,.15); }
+          /* Header action icons */
+          @keyframes iconPulse { 0%{ box-shadow:0 0 0 0 rgba(242,69,112,.35)} 70%{ box-shadow:0 0 0 12px rgba(242,69,112,0)} 100%{ box-shadow:0 0 0 0 rgba(242,69,112,0)} }
+          .action-icon{ position:relative; display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:50%; transition: transform .16s ease, color .16s ease, background .16s ease; }
+          .action-icon:hover{ transform: translateY(-1px); color:#f24570 !important; background: rgba(242,69,112,.08); }
+          .action-icon:active{ transform: scale(.96); }
+          .action-icon.pulse{ animation: iconPulse 1.6s ease-out 1; }
+          .action-trigger{ padding:6px; border-radius:8px; transition: background .16s ease; }
+          .action-trigger:hover{ background: rgba(0,0,0,.06); }
+          /* Chat list item hover */
+          .chat-list-wrap a{ border-radius:12px; padding:6px 8px; }
+          .chat-list-wrap a:hover{ background: rgba(0,0,0,.035); }
+          /* Messages area background */
+          .msg-wrap{ background: radial-gradient(1200px 600px at 100% -200px, rgba(242,69,112,.06), transparent 70%) no-repeat, #fff; }
+          .chat-header{ background: linear-gradient(180deg, #ffffff 0%, #fff6f8 70%); border-bottom: 1px solid rgba(0,0,0,.06); backdrop-filter: saturate(1.1); position: relative; z-index: 40000; }
+          .chat-dp img:hover{ box-shadow: 0 0 0 3px rgba(242,69,112,.15), 0 6px 16px rgba(0,0,0,.12); transform: translateY(-1px); transition: transform .16s ease, box-shadow .16s ease; }
+          .coin-refresh:hover{ box-shadow: inset 0 0 0 2px rgba(242,69,112,.35); border-color:#f24570; color:#f24570; }
+          .dropdown-menu .dropdown-item{ border-radius:8px; margin:2px 6px; }
+          .dropdown-menu .dropdown-item:hover{ background: rgba(242,69,112,.08); color:#f24570; }
+          /* Shared modal backdrop/classes for consistent blur overlay */
+          .rb-backdrop-blur { backdrop-filter: blur(6px); background-color: rgba(0,0,0,0.35) !important; z-index: 50010 !important; }
+          .modal.rb-call-modal { z-index: 50020 !important; }
+          @keyframes dotPulse { 0%{ box-shadow:0 0 0 0 rgba(22,163,74,.4);} 70%{ box-shadow:0 0 0 8px rgba(22,163,74,0);} 100%{ box-shadow:0 0 0 0 rgba(22,163,74,0);} }
+          .badge-dot{ position:absolute; right:0; bottom:0; width:10px; height:10px; border-radius:50%; animation: dotPulse 1.6s ease infinite; }
+        `}</style>
         {selectedUser ? (
           <div>
             <div
-              className="row py-1 mb-2 border-bottom shadow-md bg-[#f5f5f5];"
+              className="row py-1 mb-2 border-bottom shadow-md bg-[#f5f5f5]; chat-header"
             >
               <div className="col-7 chat-dp">
                 {" "}
@@ -1116,6 +1207,7 @@ export default function App() {
                     <h6>
                       {selectedUser ? selectedUser.name : "Select a user"}<br />
                       <small
+                        className="status-chip"
                         style={{
                           color: "green",
                           fontSize: "0.9rem",
@@ -1126,21 +1218,26 @@ export default function App() {
                       </small>
                     </h6>
                     <div className="mt-1 d-flex align-items-center gap-2">
-                      <small style={{
-                        color: "#6c757d",
-                        fontSize: "0.8rem",
-                        fontWeight: "500"
-                      }}>
-                        💰 {updatingCoins ? (
-                          <span style={{ color: "#ffc107" }}>
+                      <small
+                        className={`coin-badge ${updatingCoins ? 'is-updating' : ''}`}
+                        style={{
+                          color: "#6c757d",
+                          fontSize: "0.8rem",
+                          fontWeight: 600
+                        }}
+                        title="Your coin balance"
+                      >
+                        <span className="coin-icon">💰</span>
+                        {updatingCoins ? (
+                          <span className="coin-count" style={{ color: "#cc9a06" }}>
                             <i className="fa fa-spinner fa-spin"></i> Updating...
                           </span>
                         ) : (
-                          `${userCoins} coins`
+                          <span className="coin-count">{`${userCoins} coins`}</span>
                         )}
                       </small>
                       <button 
-                        className="btn btn-sm btn-outline-primary"
+                        className="btn btn-sm btn-outline-primary coin-refresh"
                         onClick={() => {
                           fetchUserCoins();
                         }}
@@ -1162,28 +1259,21 @@ export default function App() {
 
               <div className="col-5 chat-opt">
                 {" "}
-                <div className="float-end me-2 con-info">
+                <div className="dropdown float-end me-2 con-info" data-bs-auto-close="false" data-bs-display="static">
                   {" "}
-                  <Link className="float-end header__more fs-3 my-2 text-muted" >
-                    <span
-                      to="#"
-                      className="pointer"
-                      style={{
-                        fontWeight: "700",
-                      }}
-                      data-bs-toggle="dropdown"
-                    >
-                      <i
-                        class="fa fa-ellipsis-v"
-                        aria-hidden="true"
-                      ></i>
-                    </span>
-                    <ul className="dropdown-menu" style={{
-                      width: "200px"
-                    }}>
+                  <button
+                    type="button"
+                    className="btn btn-link header__more fs-3 my-2 text-muted action-trigger"
+                    style={{ fontWeight: "700" }}
+                    data-bs-toggle="dropdown"
+                      data-bs-display="static" 
+                    aria-expanded="false"
+                  >
+                    <i className="fa fa-ellipsis-v" aria-hidden="true"></i>
+                  </button>
+                  <ul className="dropdown-menu dropdown-menu-end" style={{ width: "200px" }}>
                       <li>
-
-                        <Link className="dropdown-item py-2"
+                        <button className="dropdown-item py-2"
                           onClick={() => setCalenderSchedule(true)}
                         >
                           <i
@@ -1192,11 +1282,10 @@ export default function App() {
                             title="date Schedule"
                           ></i>{" "}
                           Schedule Date
-                        </Link>
+                        </button>
                       </li>
                       <li>
-
-                        <Link className="dropdown-item py-2"
+                        <button className="dropdown-item py-2"
                           onClick={() => setCheckCompatibility(true)}
                         >
                           <i
@@ -1205,20 +1294,19 @@ export default function App() {
                             title="Check Compatibility"
                           ></i>{" "}
                           Compatibility
-                        </Link>
+                        </button>
                       </li>
                       <li>
-
-                        <Link className="dropdown-item py-2"
+                        <button className="dropdown-item py-2"
                           onClick={() => setMilestone(true)}
                         >
                           <i class="fa fa-history me-3" aria-hidden="true"></i>
                           {" "}
                           Track Milestone
-                        </Link>
+                        </button>
                       </li>
                       <li>
-                        <Link className="dropdown-item py-2"
+                        <button className="dropdown-item py-2"
                           onClick={() => setBlockUser(true)}
                         >
                           <i
@@ -1226,10 +1314,10 @@ export default function App() {
                             aria-hidden="true"
                           ></i>{" "}
                           {isSelectedUserBlocked ? "Unblock" : "Block"}
-                        </Link>
+                        </button>
                       </li>
                       <li>
-                        <Link className="dropdown-item py-2"
+                        <button className="dropdown-item py-2"
                           onClick={() => setReportUser(true)}
                         >
                           <i
@@ -1237,10 +1325,10 @@ export default function App() {
                             aria-hidden="true"
                           ></i>{" "}
                           Report
-                        </Link>
+                        </button>
                       </li>
                       <li>
-                        <Link className="dropdown-item py-2"
+                        <button className="dropdown-item py-2"
                           onClick={() => {
                             setShowCallHistory(true);
                             fetchCallHistory();
@@ -1251,12 +1339,11 @@ export default function App() {
                             aria-hidden="true"
                           ></i>{" "}
                           Call History
-                        </Link>
+                        </button>
                       </li>
-                    </ul>
-                  </Link>
-
-                  <Link className="float-end fs-4 text-muted my-2"  onClick={handleShow}>
+                  </ul>
+                
+   <Link className="float-end fs-4 text-muted my-2 action-icon"  onClick={handleShow}>
                     <i class="fa fa-phone" aria-hidden="true"></i>
                   </Link>
                   <IncomingCallModal 
@@ -1312,12 +1399,11 @@ export default function App() {
                     </div>
                   ) : (
                     <>
-                      {roomMessages.map((message) => {
+                      {roomMessages.map((message, index) => {
                         return (
                           <div
                             key={message.id}
-                            className={`px-3 px-md-5 d-flex flex-row chat-solo justify-content-${message.sent ? "end" : "start"
-                              }`}
+                            className={`px-3 px-md-5 d-flex flex-row chat-solo msg-row ${message.sent ? 'sent' : 'recv'} justify-content-${message.sent ? "end" : "start"} ${message.sent ? 'animate-slide-in-right' : 'animate-slide-in-left'}`}
                           >
                           {message.sent ? (
                             <>
@@ -1430,14 +1516,15 @@ export default function App() {
                                       ) : (
                                         <>
                                           <div
-                                            className="small p-2 me-3 mb-1 rounded-3"
+                                            className="small p-2 me-3 mb-1 rounded-3 chat-bubble bubble-sent with-tail msg-anim new-pulse"
                                             style={{
                                               backgroundColor: "#f24570",
                                               color: "#ffffff",
                                               display: "inline-block",
                                               fontSize: "14px",
                                               lineHeight: "1.4",
-                                              wordBreak: "break-word"
+                                              wordBreak: "break-word",
+                                              animationDelay: `${Math.min(index * 0.03, 0.25)}s`
                                             }}
                                           >
                                             {/* Reply Information */}
@@ -1465,7 +1552,7 @@ export default function App() {
                                             {message.content}
                                           </div>
                                           <p
-                                            className="small me-3 mb-0 text-muted"
+                                            className="small me-3 mb-0 text-muted msg-time"
                                             style={{ fontSize: "11px" }}
                                           >
                                             {message.timestamp}
@@ -1481,6 +1568,7 @@ export default function App() {
                               <img
                                 src={message.avatar}
                                 alt={`avatar ${message.id}`}
+                                className="avatar-hover"
                                 style={{
                                   borderRadius: '50%',
                                   width: "45px",
@@ -1501,7 +1589,7 @@ export default function App() {
                                 <img
                                   src={selectedUser ? selectedUser.avatar : dummyUserPic}
                                   alt="avatar"
-                                  className="d-flex align-self-center"
+                                  className="d-flex align-self-center avatar-hover"
                                   style={{
                                     borderRadius: "50%",
                                     width: "45px",
@@ -1544,7 +1632,7 @@ export default function App() {
                                   ) : (
                                     <>
                                       <div
-                                        className="small p-2 mb-1 rounded-3"
+                                        className="small p-2 mb-1 rounded-3 chat-bubble bubble-recv with-tail msg-anim new-pulse"
                                         style={{
                                           backgroundColor: "#f5f6f7",
                                           color: "#000",
@@ -1552,7 +1640,8 @@ export default function App() {
                                           display: "inline-block",
                                           fontSize: "14px",
                                           lineHeight: "1.4",
-                                          wordBreak: "break-word"
+                                          wordBreak: "break-word",
+                                          animationDelay: `${Math.min(index * 0.03, 0.25)}s`
                                         }}
                                       >
                                         {/* Reply Information */}
@@ -1604,7 +1693,7 @@ export default function App() {
                                       </div>
 
                                       <p
-                                        className="small text-muted mb-0"
+                                        className="small text-muted mb-0 msg-time"
                                         style={{
                                           fontSize: "11px",
                                           width: "100%",
@@ -2200,7 +2289,7 @@ export default function App() {
         )}
 
         {/* Call History Modal */}
-        <Modal show={showCallHistory} onHide={() => setShowCallHistory(false)} size="lg" centered>
+        <Modal show={showCallHistory} onHide={() => setShowCallHistory(false)} size="lg" centered className="rb-call-modal" backdropClassName="rb-backdrop-blur">
           <Modal.Header closeButton>
             <Modal.Title>Call History</Modal.Title>
           </Modal.Header>
