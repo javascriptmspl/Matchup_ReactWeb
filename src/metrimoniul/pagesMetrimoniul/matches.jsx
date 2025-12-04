@@ -137,7 +137,7 @@ const MatchPage = () => {
         ).unwrap();
         setMatches(res2?.data);
       }
-      toast.success(`${reaction} action performed successfully`);
+      
     } catch (err) {
       console.error("Activity error:", err);
       toast.error("Failed to perform action");
@@ -146,7 +146,7 @@ const MatchPage = () => {
 
   const handleChatClick = (receiverUserId) => {
     if (isCreatingRoom) {
-      toast("Creating room, please wait...");
+    
       return;
     }
 
@@ -158,7 +158,7 @@ const MatchPage = () => {
  
 
     setIsCreatingRoom(true);
-    toast("Checking for chat room...");
+ 
 
     const handleRoomsList = (rooms = []) => {
      
@@ -182,17 +182,17 @@ const MatchPage = () => {
 
       if (existingRoom) {
         console.log("✅ Found existing room, navigating to chat");
-        toast.success("Room found! Opening chat...");
+        
         setIsCreatingRoom(false);
         navigate("/metrimonial/chat");
       } else {
        
-        toast("Creating new chat room...");
+        
         
         const handleRoomCreated = (roomData) => {
           console.log("🎉 Room created:", roomData);
           socketRef.current.off("room_created", handleRoomCreated);
-          toast.success("Chat room created!");
+         
           setIsCreatingRoom(false);
           navigate("/metrimonial/chat");
         };

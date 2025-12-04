@@ -36,12 +36,12 @@ export const useSocket = (userId, callbacks = {}) => {
     socketService.deleteRoom(roomId);
   }, []);
 
-  const findRoomByUsers = useCallback((otherUserId) => {
-    socketService.findRoomByUsers(otherUserId);
+  const sendMessage = useCallback((roomId, message, replyToId = null) => {
+    socketService.sendMessage(roomId, message, replyToId);
   }, []);
 
-  const sendMessage = useCallback((content, replyToId = null) => {
-    socketService.sendMessage(content, replyToId);
+  const replyMessage = useCallback((roomId, replyToId, message) => {
+    socketService.replyMessage(roomId, replyToId, message);
   }, []);
 
   const editMessage = useCallback((messageId, newContent) => {
@@ -52,16 +52,20 @@ export const useSocket = (userId, callbacks = {}) => {
     socketService.deleteMessage(messageId);
   }, []);
 
-  const getChatHistory = useCallback((page = 1, limit = 50) => {
-    socketService.getChatHistory(page, limit);
+  const getChatHistory = useCallback((roomId, page = 1, limit = 50) => {
+    socketService.getChatHistory(roomId, page, limit);
   }, []);
 
-  const startTyping = useCallback(() => {
-    socketService.startTyping();
+  const startTyping = useCallback((roomId) => {
+    socketService.startTyping(roomId);
   }, []);
 
-  const stopTyping = useCallback(() => {
-    socketService.stopTyping();
+  const stopTyping = useCallback((roomId) => {
+    socketService.stopTyping(roomId);
+  }, []);
+
+  const getCallHistory = useCallback((page = 1, limit = 20) => {
+    socketService.getCallHistory(page, limit);
   }, []);
 
   return {
@@ -74,10 +78,10 @@ export const useSocket = (userId, callbacks = {}) => {
     getMyRooms,
     joinRoom,
     deleteRoom,
-    findRoomByUsers,
     
     // Message methods
     sendMessage,
+    replyMessage,
     editMessage,
     deleteMessage,
     getChatHistory,
@@ -85,6 +89,9 @@ export const useSocket = (userId, callbacks = {}) => {
     // Typing methods
     startTyping,
     stopTyping,
+    
+    // Call methods
+    getCallHistory,
   };
 };
 

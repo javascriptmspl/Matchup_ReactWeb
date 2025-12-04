@@ -35,21 +35,42 @@ export const createChatRoom = async (userId, toUserId) => {
 };
 
 // Send a message in a room
-export const sendMessage = async (roomId, userId, message, messageType = 'text', replyToMessageId = null) => {
+export const sendMessage = async (roomId, userId, message, messageType = 'text', replyToMessageId = null, file = null) => {
   try {
-    const payload = {
-      userId,
-      message,
-      messageType
-    };
-    
-    // Add replyToMessageId if provided
-    if (replyToMessageId) {
-      payload.replyToMessageId = replyToMessageId;
+    // If file is provided, use FormData
+    if (file) {
+      const formData = new FormData();
+      formData.append('userId', userId);
+      formData.append('message', message || '');
+      formData.append('messageType', messageType || 'file');
+      formData.append('file', file);
+      
+      if (replyToMessageId) {
+        formData.append('replyToMessageId', replyToMessageId);
+      }
+      
+      const response = await axios.post(`${BASE_URL}/chat/rooms/${roomId}/messages`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } else {
+      // Regular text message
+      const payload = {
+        userId,
+        message,
+        messageType
+      };
+      
+      // Add replyToMessageId if provided
+      if (replyToMessageId) {
+        payload.replyToMessageId = replyToMessageId;
+      }
+      
+      const response = await axios.post(`${BASE_URL}/chat/rooms/${roomId}/messages`, payload);
+      return response.data;
     }
-    
-    const response = await axios.post(`${BASE_URL}/chat/rooms/${roomId}/messages`, payload);
-    return response.data;
   } catch (error) {
     throw error;
   }

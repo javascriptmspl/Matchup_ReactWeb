@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useMemo } from "react";
+import React, { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import {
   MDBContainer,
   MDBRow,
@@ -15,7 +15,6 @@ import HeaderFour from "../../component/layout/HeaderFour";
 import EmojiPicker from "emoji-picker-react";
 import { Link, useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
-import axios from 'axios';
 import CheckCompatibilityModal from "../component/popUps/checkCompatibilty";
 import NotificationScheduleModal from "../component/popUps/notificationSchedule";
 import CalenderScheduleModal from "../component/popUps/calenderSchedule";
@@ -32,11 +31,13 @@ import chatBG2 from "../../dating/assets/images/chat/chatbg2.jpg"
 import dummyUserPic from "../../dating/assets/images/myCollection/user-male.jpg"
 import { useSelector, useDispatch } from "react-redux";
 import { BASE_URL } from "../../base";
-import { getChatRooms, getRoomById, getRoomMessages, sendMessage, createChatRoom, editMessage, deleteMessage } from "../../service/MANAGE_API/chat-API";
+import { getRoomById, sendMessage as sendMessageAPI } from "../../service/MANAGE_API/chat-API";
 import { getBlockedUsers, checkIfBlockedBy } from "../../service/common-service/blockSlice";
 import { getAllGifts, sendGift, getUserCoins } from "../../service/MANAGE_API/gift-API";
 import VideoCallModal from "../../metrimoniul/component/popUps/incomingcalls/VideoCallModal";
 import IncomingCallModal from "../../metrimoniul/component/popUps/incomingcalls/IncomingCallModal";
+import { useSocket } from "../../hooks/useSocket";
+import socketService from "../../services/SocketService";
 
 
 
@@ -68,6 +69,8 @@ export default function App() {
   const [chatRooms, setChatRooms] = useState([]);
   const [selectedRoomId, setSelectedRoomId] = useState(null);
   const [roomMessages, setRoomMessages] = useState([]);
+  const [unreadCounts, setUnreadCounts] = useState({}); // { roomId: count }
+  const [lastMessages, setLastMessages] = useState({}); // { roomId: { message, timestamp, isRead } }
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editedContent, setEditedContent] = useState('');
@@ -78,14 +81,28 @@ export default function App() {
   const [showVideoCallModal, setShowVideoCallModal] = useState(false);
   const [incomingCall, setIncomingCall] = useState(null);
   const [showIncomingCallModal, setShowIncomingCallModal] = useState(false);
+  const [isCallModalManuallyClosed, setIsCallModalManuallyClosed] = useState(false);
   const [callHistory, setCallHistory] = useState([]);
   const [showCallHistory, setShowCallHistory] = useState(false);
+  const [currentCallId, setCurrentCallId] = useState(null);
+  const [callConnected, setCallConnected] = useState(false);
+  const [callInitiated, setCallInitiated] = useState(false);
+  const [callStartTime, setCallStartTime] = useState(null);
+  const [isMicOn, setIsMicOn] = useState(false);
   const [gifts, setGifts] = useState([]);
   const [loadingGifts, setLoadingGifts] = useState(false);
   const [userCoins, setUserCoins] = useState(0);
   const [showGiftModal, setShowGiftModal] = useState(false);
   const [sendingGift, setSendingGift] = useState(false);
   const [updatingCoins, setUpdatingCoins] = useState(false);
+  const [messagesByRoom, setMessagesByRoom] = useState({});
+  const [typingUsers, setTypingUsers] = useState({});
+  const [hasMoreMessages, setHasMoreMessages] = useState(true);
+  const selectedRoomIdRef = useRef(selectedRoomId);
+  const user = useSelector((state) => state.profile.userData)
+  useEffect(() => {
+    selectedRoomIdRef.current = selectedRoomId;
+  }, [selectedRoomId]);
   // Inject lightweight animation styles for gift bubbles (once)
   useEffect(() => {
     const styleId = 'gift-bubble-anim-style';
@@ -100,13 +117,29 @@ export default function App() {
     }
   }, []);
 
+  const startMic = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      setIsMicOn(true);
+      const audioTracks = stream.getAudioTracks();
+      return () => {
+        audioTracks.forEach(track => track.stop());
+        setIsMicOn(false);
+      };
+    } catch (err) {
+      console.error('Error accessing microphone:', err);
+      toast.error('Could not access microphone. Please check permissions.');
+      setIsMicOn(false);
+    }
+  };
+
   const handleShow = () => setShowModal(true);
   const handleHide = () => setShowModal(false);
   const handleShowVideoCall = () => setShowVideoCallModal(true);
   const handleHideVideoCall = () => setShowVideoCallModal(false);
 
   // Fetch gifts from API
-  const fetchGifts = async () => {
+  const fetchGifts = useCallback(async () => {
     setLoadingGifts(true);
     try {
       const response = await getAllGifts(1, 11);
@@ -128,15 +161,26 @@ export default function App() {
     } finally {
       setLoadingGifts(false);
     }
-  };
-
+  }, []);
+  const storedUserId = useMemo(() => {
+    try {
+      const userData = localStorage.getItem('userData');
+      if (userData) {
+        const parsedUser = JSON.parse(userData);
+        return parsedUser?.data?._id || parsedUser?._id;
+      }
+    } catch (error) {
+      console.error("Error parsing userData from localStorage:", error);
+    }
+    return null;
+  }, []);
   // Fetch user coins
-  const fetchUserCoins = async () => {
-    const userId = user?._id || storedUserId;
-    if (!userId) return;
+  const fetchUserCoins = useCallback(async () => {
+    const latestUserId = user?._id || storedUserId;
+    if (!latestUserId) return;
 
     try {
-      const response = await getUserCoins(userId);
+      const response = await getUserCoins(latestUserId);
       
       if (response.isSuccess) {
         const coins = response.data?.coins || response.data?.balance || 0;
@@ -148,7 +192,7 @@ export default function App() {
   
       calculateCoinsFromLocalStorage();
     }
-  };
+  }, [user?._id, storedUserId]);
 
   const calculateCoinsFromLocalStorage = () => {
     try {
@@ -190,41 +234,281 @@ export default function App() {
     return dummyUserPic;
   };
 
-  const checkForIncomingCalls = async () => {
+  const checkForIncomingCalls = () => {
+    // Incoming calls are delivered via socket events (onIncomingCall)
+  };
+
+  const fetchCallHistory = () => {
+    if (!userId || !isConnected) return;
+    socketGetCallHistory(1, 20);
+  };
+
+
+  
+  const userPic = user?.avatars.length - 1
+  const blockedUsers = useSelector((state) => state.block.blockedUsers)
+
+  
+
     const userId = user?._id || storedUserId;
-    if (!userId) {
-      return;
-    }
 
-    try {
-      const response = await axios.get(`${BASE_URL}/chat/calls/history?page=1&limit=5&userId=${userId}`);
-      
-      if (response.data.isSuccess && response.data.data.calls) {
-        const calls = response.data.data.calls;
-        setCallHistory(calls); // Update call history
-        
-        const incomingCall = calls.find(call => 
-          call.calleeId._id === userId && 
-          call.status === 'ringing'
-        );
+  const {
+    isConnected,
+    createRoom: socketCreateRoom,
+    getMyRooms,
+    joinRoom,
+    sendMessage: socketSendMessage,
+    editMessage: socketEditMessage,
+    deleteMessage: socketDeleteMessage,
+    getChatHistory,
+    startTyping,
+    stopTyping,
+    getCallHistory: socketGetCallHistory
+  } = useSocket(userId, {
+    onRoomsList: (rooms) => {
+      setChatRooms(rooms || []);
+    },
+    onChatHistory: (data) => {
+      const currentSelectedRoomId = selectedRoomIdRef.current;
+      if (!currentSelectedRoomId) return;
+      const messages = Array.isArray(data) ? data : (data?.messages || []);
 
-        const declinedCalls = calls.filter(call => 
-          call.callerId._id === userId && 
-          call.status === 'declined'
-        );
+      if (messages.length > 0) {
+        const transformedMessages = messages.map((msg, index) => {
+          const base = msg.content || msg.message || '';
+          const inferredType = base && typeof base === 'string' && base.includes('Sent a gift:') ? 'gift' : 'text';
+          const messageType = msg.messageType || inferredType;
+          const giftName = messageType === 'gift' ? base.split(':').slice(1).join(':').trim() : '';
+          const matchedGift = messageType === 'gift' && gifts?.length
+            ? gifts.find(g => (g.name || '').toLowerCase() === (giftName || '').toLowerCase())
+            : undefined;
 
-        if (declinedCalls.length > 0 && showModal) {
-          setShowModal(false);
+          return {
+            ...msg,
+            id: msg._id || index,
+            content: base,
+            timestamp: new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            sent: msg.msgFrom?._id === userId || msg.senderId?._id === userId,
+            avatar: (msg.msgFrom?._id === userId || msg.senderId?._id === userId)
+              ? getCurrentUserAvatar()
+              : (selectedUser?.avatar || dummyUserPic),
+            messageType,
+            fileUrl: msg.fileUrl || msg.file || (msg.attachment ? `${BASE_URL}/${msg.attachment}` : null),
+            giftData: messageType === 'gift'
+              ? (msg.giftData || (matchedGift ? { _id: matchedGift._id, name: matchedGift.name, imageUrl: matchedGift.imageUrl } : undefined))
+              : undefined,
+            senderId: msg.msgFrom || msg.senderId,
+          };
+        });
+
+        setMessagesByRoom(prev => ({
+          ...prev,
+          [currentSelectedRoomId]: transformedMessages
+        }));
+
+        if (transformedMessages.length > 0) {
+          const lastMsg = transformedMessages[transformedMessages.length - 1];
+          const messageText = lastMsg.content ||
+            (lastMsg.messageType === 'gift' ? 'Sent a gift' :
+              lastMsg.messageType === 'file' ? 'Sent a file' : 'Message');
+
+          setLastMessages(prev => ({
+            ...prev,
+            [currentSelectedRoomId]: {
+              message: messageText,
+              timestamp: lastMsg.createdAt || new Date(),
+              isRead: currentSelectedRoomId === selectedRoomIdRef.current
+            }
+          }));
         }
 
-        if (incomingCall && !showIncomingCallModal) {
-          // Check if we've already shown notification for this call
-          const notificationKey = `call_notification_${incomingCall._id}`;
+        if (currentSelectedRoomId === selectedRoomIdRef.current) {
+          setRoomMessages(prevMessages => {
+            const existingMessagesMap = new Map(prevMessages.map(msg => [msg.id || msg._id, msg]));
+            transformedMessages.forEach(msg => {
+              existingMessagesMap.set(msg.id || msg._id, msg);
+            });
+            const merged = Array.from(existingMessagesMap.values());
+            merged.sort((a, b) => {
+              const timeA = new Date(a.createdAt || a.timestamp).getTime();
+              const timeB = new Date(b.createdAt || b.timestamp).getTime();
+              return timeA - timeB;
+            });
+            return merged;
+          });
+          setTimeout(scrollToBottom, 100);
+        }
+      } else if (messagesByRoom[currentSelectedRoomId]?.length) {
+        setHasMoreMessages(false);
+      }
+      setLoadingMessages(false);
+    },
+    onNewMessage: (message, roomId) => {
+      const currentSelectedRoomId = selectedRoomIdRef.current;
+      const transformedMessage = {
+        ...message,
+        id: message._id,
+        content: message.content || message.message || '',
+        timestamp: new Date(message.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        sent: message.msgFrom?._id === userId || message.senderId?._id === userId,
+        avatar: (message.msgFrom?._id === userId || message.senderId?._id === userId)
+          ? getCurrentUserAvatar()
+          : (selectedUser?.avatar || dummyUserPic),
+        messageType: message.messageType || 'text',
+        fileUrl: message.fileUrl || message.file || (message.attachment ? `${BASE_URL}/${message.attachment}` : null),
+        senderId: message.msgFrom || message.senderId,
+      };
+
+      if (roomId) {
+        const messageText = transformedMessage.content ||
+          (transformedMessage.messageType === 'gift' ? 'Sent a gift' :
+            transformedMessage.messageType === 'file' ? 'Sent a file' : 'Message');
+
+        setLastMessages(prev => ({
+          ...prev,
+          [roomId]: {
+            message: messageText,
+            timestamp: transformedMessage.createdAt || new Date(),
+            isRead: roomId === currentSelectedRoomId
+          }
+        }));
+
+        const isFromCurrentUser = message.msgFrom?._id === userId || message.senderId?._id === userId;
+        if (!isFromCurrentUser && roomId !== currentSelectedRoomId) {
+          setUnreadCounts(prev => ({
+            ...prev,
+            [roomId]: (prev[roomId] || 0) + 1
+          }));
+        }
+
+        setMessagesByRoom(prev => {
+          const roomMessages = prev[roomId] || [];
+          const messageExists = roomMessages.some(msg => (msg.id || msg._id) === (transformedMessage.id || transformedMessage._id));
+          if (messageExists) {
+            return prev;
+          }
+          return {
+            ...prev,
+            [roomId]: [...roomMessages, transformedMessage]
+          };
+        });
+      }
+
+      if (roomId && currentSelectedRoomId && roomId === currentSelectedRoomId) {
+        setRoomMessages(prevMessages => {
+          const messageExists = prevMessages.some(msg => (msg.id || msg._id) === (transformedMessage.id || transformedMessage._id));
+          if (messageExists) {
+            return prevMessages;
+          }
+          return [...prevMessages, transformedMessage];
+        });
+        setTimeout(scrollToBottom, 100);
+      }
+    },
+    onMessageEdited: (message, roomId) => {
+      const currentSelectedRoomId = selectedRoomIdRef.current;
+
+      if (roomId) {
+        setMessagesByRoom(prev => {
+          const roomMessages = prev[roomId] || [];
+          return {
+            ...prev,
+            [roomId]: roomMessages.map(msg =>
+              (msg._id || msg.id) === (message._id || message.id)
+                ? { ...msg, content: message.content || message.message, isEdited: true }
+                : msg
+            )
+          };
+        });
+      }
+
+      if (roomId && currentSelectedRoomId && roomId === currentSelectedRoomId) {
+        setRoomMessages(prevMessages =>
+          prevMessages.map(msg =>
+            (msg._id || msg.id) === (message._id || message.id)
+              ? { ...msg, content: message.content || message.message, isEdited: true }
+              : msg
+          )
+        );
+      }
+    },
+    onMessageDeleted: (messageId, roomId) => {
+      const currentSelectedRoomId = selectedRoomIdRef.current;
+
+      if (roomId) {
+        setMessagesByRoom(prev => {
+          const roomMessages = prev[roomId] || [];
+          return {
+            ...prev,
+            [roomId]: roomMessages.filter(msg => (msg._id || msg.id) !== messageId)
+          };
+        });
+      }
+
+      if (roomId && currentSelectedRoomId && roomId === currentSelectedRoomId) {
+        setRoomMessages(prevMessages =>
+          prevMessages.filter(msg => (msg._id || msg.id) !== messageId)
+        );
+      }
+    },
+    onRoomCreated: () => {
+      getMyRooms();
+    },
+    onUserTyping: (data) => {
+      const currentSelectedRoomId = selectedRoomIdRef.current;
+      if (data.roomId && currentSelectedRoomId && data.roomId === currentSelectedRoomId) {
+        setTypingUsers(prev => ({
+          ...prev,
+          [data.roomId]: {
+            userId: data.userId,
+            userName: data.userName || 'Someone',
+            isTyping: true
+          }
+        }));
+        setTimeout(() => {
+          setTypingUsers(prev => {
+            const updated = { ...prev };
+            if (updated[data.roomId]?.userId === data.userId) {
+              delete updated[data.roomId];
+            }
+            return updated;
+          });
+        }, 3000);
+      }
+    },
+    onUserStoppedTyping: (data) => {
+      const currentSelectedRoomId = selectedRoomIdRef.current;
+      if (data.roomId && currentSelectedRoomId && data.roomId === currentSelectedRoomId) {
+        setTypingUsers(prev => {
+          const updated = { ...prev };
+          if (updated[data.roomId]?.userId === data.userId) {
+            delete updated[data.roomId];
+          }
+          return updated;
+        });
+      }
+    },
+    onCallHistory: (data) => {
+      const calls = Array.isArray(data) ? data : (data?.calls || data?.items || []);
+      if (calls.length > 0) {
+        setCallHistory(calls);
+      }
+    },
+    onIncomingCall: (data) => {
+      const calleeId = typeof data.calleeId === 'object' ? data.calleeId._id : data.calleeId;
+      const currentUserIdStr = String(userId);
+      const calleeIdStr = String(calleeId);
+
+      if (calleeId && calleeIdStr !== currentUserIdStr) {
+        return;
+      }
+
+      const notificationKey = `call_notification_${data.callSessionId}`;
           const alreadyNotified = sessionStorage.getItem(notificationKey);
           
           if (!alreadyNotified) {
-            toast(`📞 Incoming call from ${incomingCall.callerId.name}!`, {
-              duration: 2000,
+        toast(`📞 Incoming call from ${data.callerName || 'Someone'}!`, {
+          duration: 3000,
               position: 'top-center',
               style: {
                 background: '#ffc107',
@@ -237,59 +521,125 @@ export default function App() {
 
             if (Notification.permission === 'granted') {
               new Notification('📞 Incoming Call', {
-                body: `${incomingCall.callerId.name} is calling you`,
+            body: `${data.callerName || 'Someone'} is calling you`,
                 icon: '/favicon.ico',
                 tag: 'incoming-call',
                 requireInteraction: true
               });
             }
 
-            // Mark this call as notified
             sessionStorage.setItem(notificationKey, 'true');
           }
 
-          setIncomingCall(incomingCall);
+      const newIncomingCall = {
+        _id: data.callSessionId,
+        callerId: {
+          _id: data.callerId,
+          name: data.callerName,
+          mainAvatar: data.callerAvatar || null
+        },
+        calleeId: {
+          _id: userId
+        },
+        status: 'ringing',
+        roomId: data.roomId,
+        callType: data.callType
+      };
+      setIncomingCall(newIncomingCall);
+      if (newIncomingCall.callType === 'video') {
+        setShowVideoCallModal(true);
+        setShowIncomingCallModal(false);
+      } else {
           setShowIncomingCallModal(true);
-        }
+        setShowVideoCallModal(false);
       }
-    } catch (error) {
-      console.error('Error checking for incoming calls:', error);
-    }
-  };
-
-  // Function to fetch call history
-  const fetchCallHistory = async () => {
-    const userId = user?._id || storedUserId;
-    if (!userId) return;
-
-    try {
-      const response = await axios.get(`${BASE_URL}/chat/calls/history?page=1&limit=20&userId=${userId}`);
-      
-      if (response.data.isSuccess && response.data.data.calls) {
-        setCallHistory(response.data.data.calls);
+      setIsCallModalManuallyClosed(false);
+    },
+    onCallStarted: (data) => {
+      if (!currentCallId && data.callSessionId) {
+        setCurrentCallId(data.callSessionId);
       }
-    } catch (error) {
-      console.error('Error fetching call history:', error);
-    }
-  };
 
-
-  const user = useSelector((state) => state.profile.userData[0])
-  const userPic = user?.avatars.length - 1
-  const blockedUsers = useSelector((state) => state.block.blockedUsers)
-
-  const storedUserId = useMemo(() => {
-    try {
-      const userData = localStorage.getItem('userData');
-      if (userData) {
-        const parsedUser = JSON.parse(userData);
-        return parsedUser?.data?._id || parsedUser?._id;
+      setCallConnected(true);
+      setCallInitiated(false);
+      if (incomingCall && incomingCall.callType === 'video') {
+        setShowVideoCallModal(true);
+        setShowIncomingCallModal(false);
+      } else {
+        setShowIncomingCallModal(true);
+        setShowVideoCallModal(false);
       }
-    } catch (error) {
-      console.error("Error parsing userData from localStorage:", error);
+      setIsCallModalManuallyClosed(false);
+      setIncomingCall(prev => prev ? { ...prev, status: 'connected' } : null);
+      setCallStartTime(prevTime => prevTime || new Date());
+
+      if (!isMicOn) {
+        startMic();
+      }
+    },
+    onCallEnded: (data) => {
+      setCallConnected(false);
+      setCallInitiated(false);
+      setCurrentCallId(null);
+      setCallStartTime(null);
+      setShowIncomingCallModal(false);
+      setShowVideoCallModal(false);
+      setIncomingCall(null);
+      setIsCallModalManuallyClosed(false);
+      if (data?.callSessionId) {
+        const notificationKey = `call_notification_${data.callSessionId}`;
+        sessionStorage.removeItem(notificationKey);
+      }
+    },
+    onCallDeclined: () => {
+      setCallConnected(false);
+      setCallInitiated(false);
+      setShowIncomingCallModal(false);
+      setShowVideoCallModal(false);
+      setIsCallModalManuallyClosed(false);
+      if (incomingCall) {
+        const notificationKey = `call_notification_${incomingCall._id}`;
+        sessionStorage.removeItem(notificationKey);
+      }
+      setIncomingCall(null);
+    },
+    onCallError: (data) => {
+      const errorMessage = data?.message || 'Call error occurred';
+
+      if (errorMessage.includes('already in progress') || errorMessage.includes('Call already in progress')) {
+        toast.error('Another call is already in progress. Please end the current call first.', {
+          duration: 4000,
+          position: 'top-center',
+          style: {
+            background: '#dc3545',
+            color: '#fff',
+            fontWeight: '500',
+          },
+          icon: '⚠️',
+        });
+        setCallConnected(false);
+        setCallInitiated(false);
+        setCurrentCallId(null);
+        setShowIncomingCallModal(false);
+        setIncomingCall(null);
+      } else {
+        toast.error(errorMessage, {
+          duration: 3000,
+          position: 'top-center',
+          style: {
+            background: '#dc3545',
+            color: '#fff',
+            fontWeight: '500',
+          },
+          icon: '❌',
+        });
+      }
+    },
+    onError: (error) => {
+      console.error('Socket error:', error);
+      toast.error(error.message || 'An error occurred');
     }
-    return null;
-  }, []);
+  });
 
   const clockTime = () => {
     setCalenderSchedule(false);
@@ -351,20 +701,40 @@ export default function App() {
   };
 
   const handleUserSelect = async (room) => {
-    setTimeout(async () => {
+    const roomId = room.roomId;
+    if (!roomId) return;
 
-      setSelectedRoomId(room.roomId);
+    setSelectedRoomId(roomId);
 
-      await fetchRoomDetails(room.roomId);
+    // Mark messages as read when room is opened
+    setUnreadCounts(prev => ({
+      ...prev,
+      [roomId]: 0
+    }));
 
-      if (!gifts || gifts.length === 0) {
-        await fetchGifts();
-      }
+    // Update last message as read
+    setLastMessages(prev => ({
+      ...prev,
+      [roomId]: prev[roomId] ? { ...prev[roomId], isRead: true } : prev[roomId]
+    }));
 
-      await fetchRoomMessages(room.roomId);
+    // If we already have cached messages for this room, show them immediately
+    if (messagesByRoom[roomId] && messagesByRoom[roomId].length > 0) {
+      setRoomMessages(messagesByRoom[roomId]);
+    } else {
+      setRoomMessages([]);
+    }
 
-      await checkBlockingStatus(room.otherUser?._id);
-    }, 100);
+    await fetchRoomDetails(roomId);
+
+    if (!gifts || gifts.length === 0) {
+      await fetchGifts();
+    }
+
+    // Fetch messages from server (will update cache via socket callback)
+    await fetchRoomMessages(roomId);
+
+    await checkBlockingStatus(room.otherUser?._id);
   };
 
   const checkBlockingStatus = async (targetUserId) => {
@@ -424,81 +794,18 @@ export default function App() {
     }
   };
 
-  const fetchRoomMessages = async (roomId) => {
-    if (!roomId) return;
-    const userId = user?._id || storedUserId;
-    if (!userId) return;
+  const fetchRoomMessages = async (roomId, page = 1, limit = 50) => {
+    if (!roomId || !userId) return;
+    if (loadingMessages || (page > 1 && !hasMoreMessages)) return;
 
     setLoadingMessages(true);
     try {
-
-
-      const response = await getRoomMessages(roomId, userId);
-      setRoomMessages(response.data.messages);
-
-      if (response?.isSuccess && response?.data) {
-        const messagesArray = response.data.messages;
-        if (messagesArray.length === 0) {
-          setRoomMessages([]);
-          setLoadingMessages(false);
-          return;
-        }
-
-     
-        const transformedMessages = messagesArray.map((msg, index) => {
-          const base = msg.content || msg.message || '';
-          const inferredType = base && typeof base === 'string' && base.includes('Sent a gift:') ? 'gift' : 'text';
-          const messageType = msg.messageType || inferredType;
-          const giftName = messageType === 'gift' ? base.split(':').slice(1).join(':').trim() : '';
-          let matchedGift = messageType === 'gift' && gifts?.length
-            ? gifts.find(g => (g.name || '').toLowerCase() === (giftName || '').toLowerCase())
-            : undefined;
-          if (messageType === 'gift' && !matchedGift && gifts?.length) {
-            const lower = base.toLowerCase();
-            matchedGift = gifts.find(g => lower.includes((g.name || '').toLowerCase()));
-          }
-          return ({
-            ...msg,
-            id: msg._id || index,
-            content: base,
-            timestamp: new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-            sent: msg.senderId._id === userId,
-            avatar: msg.senderId._id === userId
-              ? (msg.senderId.mainAvatar ? `${BASE_URL}/assets/images/${msg.senderId.mainAvatar}` : dummyUserPic)
-              : (selectedUser?.avatar || dummyUserPic),
-            messageType,
-            giftData: messageType === 'gift' ? (msg.giftData || (matchedGift ? { _id: matchedGift._id, name: matchedGift.name, imageUrl: matchedGift.imageUrl } : undefined)) : undefined,
-          });
-        });
-
-        setRoomMessages(prevMessages => {
-
-          if (prevMessages.length > transformedMessages.length) {
-            return prevMessages;
-          }
-
-
-          if (prevMessages.length === transformedMessages.length) {
-
-            const lastPrevId = prevMessages[prevMessages.length - 1]?.id;
-            const lastTransId = transformedMessages[transformedMessages.length - 1]?.id;
-
-            if (lastPrevId === lastTransId) {
-              return prevMessages;
-            }
-          }
-
-          return transformedMessages;
-        });
-
-        setTimeout(scrollToBottom, 100);
-      } else {
-        console.log("⚠️ No messages data in response:", response);
+      if (socketService?.currentRoom !== roomId) {
+        socketService.joinRoom(roomId);
       }
+      getChatHistory(roomId, page, limit);
     } catch (error) {
-      console.error("❌ Error fetching messages:", error);
-      setRoomMessages([]); 
-    } finally {
+      console.error("Error fetching room messages:", error);
       setLoadingMessages(false);
     }
   };
@@ -519,77 +826,63 @@ export default function App() {
       return;
     }
 
-    const userId = user?._id || storedUserId;
     if (!userId) {
       console.error("No user ID available");
       return;
     }
 
     try {
-      const response = await sendMessage(
+      const messageText = inputMessage.trim();
+      const replyToId = replyingToMessage?._id || null;
+
+      // If file selected, upload via API, then socket will emit new_message
+      if (SelectedFile) {
+        try {
+          const response = await sendMessageAPI(
         selectedRoomId,
         userId,
-        inputMessage.trim(),
-        SelectedFile ? 'file' : 'text',
-        replyingToMessage?._id || null
+            messageText || 'Sent an image',
+            'file',
+            replyToId,
+            SelectedFile
       );
 
       if (response?.isSuccess) {
-        const messageText = inputMessage;
+            toast.success("Image sent successfully!");
         setInputMessage("");
         setSelectedEmojis([]);
         setSelectedFile(null);
+            if (filePreview) {
+              URL.revokeObjectURL(filePreview);
+            }
+            setFilePreview(null);
         setShowEmojiPicker(false);
         setReplyingToMessage(null);
-
-        if (response.data && response.data._id) {
-          const serverMessage = {
-            id: response.data._id,
-            content: response.data.message || messageText,
-            timestamp: new Date(response.data.createdAt).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-            sent: true,
-            avatar: getCurrentUserAvatar(),
-            messageType: response.data.messageType || 'text'
-          };
-
-          setRoomMessages(prevMessages => {
-            const messageExists = prevMessages.some(msg => msg.id === serverMessage.id);
-            if (messageExists) {
-              return prevMessages;
-            }
-            const updated = [...prevMessages, serverMessage];
-            return updated;
-          });
-
-          setTimeout(scrollToBottom, 100);
         } else {
-          const localMessage = {
-            id: Date.now(),
-            content: messageText,
-            timestamp: new Date().toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-            sent: true,
-            avatar: getCurrentUserAvatar(),
-            messageType: SelectedFile ? 'file' : 'text'
-          };
-
-          setRoomMessages(prevMessages => [...prevMessages, localMessage]);
-          setTimeout(scrollToBottom, 100);
-
-          setTimeout(() => {
-            fetchRoomMessages(selectedRoomId);
-          }, 1500);
+            toast.error("Failed to upload image. Please try again.");
+          }
+        } catch (error) {
+          console.error("Error uploading file:", error);
+          toast.error("Failed to upload image. Please try again.");
         }
       } else {
-        alert("Message sent but server returned unexpected response");
+        // Text message via socket
+        if (replyToId) {
+          socketSendMessage(selectedRoomId, messageText, replyToId);
+        } else {
+          socketSendMessage(selectedRoomId, messageText);
+        }
+
+        setInputMessage("");
+        setSelectedEmojis([]);
+        setSelectedFile(null);
+        setFilePreview(null);
+        setShowEmojiPicker(false);
+        setReplyingToMessage(null);
       }
     } catch (error) {
-      navigate("/dating/membership");
+      console.error("Error sending message:", error);
+      toast.error("Failed to send message. Please try again.");
     }
   };
   const handleKeyDown = (e) => {
@@ -613,35 +906,19 @@ export default function App() {
       return;
     }
 
-    const userId = user?._id || storedUserId;
     if (!userId) {
       console.error("No user ID available");
-      alert("Cannot edit message: User not authenticated");
+      toast.error("Cannot edit message: User not authenticated");
       return;
     }
 
- 
     try {
-      const response = await editMessage(editingMessageId, userId, editedContent.trim());
-
-      if (response?.isSuccess) {
-        setRoomMessages(prevMessages =>
-          prevMessages.map(msg =>
-            msg._id === editingMessageId
-              ? { ...msg, content: response.data.content, isEdited: true }
-              : msg
-          )
-        );
-
+      socketEditMessage(editingMessageId, editedContent.trim());
         setEditingMessageId(null);
         setEditedContent('');
-      } else {
-        alert('Failed to edit message');
-      }
     } catch (error) {
       console.error('Error editing message:', error);
-      console.error('Error details:', error.response?.data || error.message);
-      alert('Failed to edit message. Please try again.');
+      toast.error('Failed to edit message. Please try again.');
     }
   };
 
@@ -656,32 +933,16 @@ export default function App() {
       return;
     }
 
-    const userId = user?._id || storedUserId;
-    if (!userId) {
-      console.error("No user ID available");
-      alert("Cannot delete message: User not authenticated");
-      return;
-    }
-
     if (!window.confirm("Are you sure you want to delete this message?")) {
       return;
     }
 
 
     try {
-      const response = await deleteMessage(messageId, userId);
-
-      if (response?.isSuccess) {
-        setRoomMessages(prevMessages =>
-          prevMessages.filter(msg => msg._id !== messageId)
-        );
-      } else {
-        alert('Failed to delete message');
-      }
+      socketDeleteMessage(messageId);
     } catch (error) {
       console.error('Error deleting message:', error);
-      console.error('Error details:', error.response?.data || error.message);
-      alert('Failed to delete message. Please try again.');
+      toast.error('Failed to delete message. Please try again.');
     }
   };
 
@@ -808,33 +1069,7 @@ export default function App() {
         }
         
         const giftMessage = `🎁 Sent a gift: ${giftItem.name}`;
-        
-        const messageResponse = await sendMessage(
-          selectedRoomId,
-          userId,
-          giftMessage,
-          'gift',
-          null,
-          null
-        );
-
-        if (messageResponse?.isSuccess) {
-          const giftMessageObj = {
-            id: messageResponse.data._id || Date.now(),
-            content: giftMessage,
-            timestamp: new Date().toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-            sent: true,
-            avatar: getCurrentUserAvatar(),
-            messageType: 'gift',
-            giftData: giftItem
-          };
-
-          setRoomMessages(prevMessages => [...prevMessages, giftMessageObj]);
-          setTimeout(scrollToBottom, 100);
-        }
+        socketSendMessage(selectedRoomId, giftMessage);
         
         toast.success(`Gift "${giftItem.name}" sent successfully! Coins deducted: ${giftItem.coinCost}. New balance: ${newBalance}`, {
           duration: 4000,
@@ -899,45 +1134,21 @@ export default function App() {
 
 
   useEffect(() => {
+    if (userId && isConnected) {
+      getMyRooms();
+    }
 
-
-    const fetchRooms = async () => {
-      const userId = user?._id || storedUserId;
-
-      if (!userId) {
-
-        return;
-      }
-
-
-      try {
-        const response = await getChatRooms(userId);
-
-
-        if (response?.isSuccess && response?.data) {
-          setChatRooms(response.data);
-
-        } else {
-          ;
-        }
-      } catch (error) {
-        console.error("❌ Error fetching chat rooms:", error);
-        console.error("Error details:", error.response?.data || error.message);
-        console.error("Full error:", error);
-      }
-    };
-
-    fetchRooms();
-    const userId = user?._id || storedUserId;
     if (userId) {
       dispatch(getBlockedUsers(userId));
     }
 
     fetchGifts();
-    setTimeout(() => {
+    const coinTimer = setTimeout(() => {
       fetchUserCoins();
     }, 1000);
-  }, [user?._id, storedUserId, dispatch]);
+
+    return () => clearTimeout(coinTimer);
+  }, [userId, isConnected, dispatch, fetchGifts, fetchUserCoins]);
 
   useEffect(() => {
     if (selectedUser?._id) {
@@ -952,7 +1163,7 @@ export default function App() {
         fetchUserCoins();
       }, 500);
     }
-  }, [user?._id, storedUserId]);
+  }, [user?._id, storedUserId, fetchUserCoins]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -989,17 +1200,7 @@ export default function App() {
 
 
 
-  useEffect(() => {
-    const userId = user?._id || storedUserId;
-    if (!userId) return;
-  
-    checkForIncomingCalls(); 
-    const pollForCalls = setInterval(() => {
-      checkForIncomingCalls();
-    }, 9000); 
-  
-    return () => clearInterval(pollForCalls);
-  }, []);
+  // Real-time call and chat handling happens inside useSocket callbacks
 
   const renderChatUsersList = () => {
     return (
@@ -1044,7 +1245,7 @@ export default function App() {
                   className="d-flex justify-content-between"
                 >
                   <div className="d-flex flex-row" style={{ gap: '15px' }}>
-                    <div style={{ width: '60px', height: '60px' }}>
+                    <div style={{ width: '60px', height: '60px', position: 'relative' }}>
                       <img
                         src={`${BASE_URL}/assets/images/${room.otherUser?.mainAvatar}`}
                         alt="avatar"
@@ -1059,21 +1260,68 @@ export default function App() {
                           e.target.src = dummyUserPic;
                         }}
                       />
+                      {unreadCounts[room.roomId] > 0 && (
+                        <span 
+                          className="badge bg-danger rounded-pill"
+                          style={{ 
+                            position: 'absolute',
+                            top: '-5px',
+                            right: '-5px',
+                            fontSize: '10px',
+                            minWidth: '18px',
+                            height: '18px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: '0 5px',
+                            border: '2px solid white',
+                            zIndex: 1
+                          }}
+                        >
+                          {unreadCounts[room.roomId] > 99 ? '99+' : unreadCounts[room.roomId]}
+                        </span>
+                      )}
                       <span className="badge bg-success badge-dot"></span>
                     </div>
 
-                    <div className="pt-1">
-                      <p className="fw-bold mb-0">
-                        {room.otherUser?.name}
-                      </p>
-                      <p className="small text-muted">
-                        @{room.otherUser?.userName}
+                    <div className="pt-1" style={{ flex: 1, minWidth: 0 }}>
+                      <div className="d-flex justify-content-between align-items-start mb-1">
+                        <p className="fw-bold mb-0" style={{ 
+                          flex: 1, 
+                          overflow: 'hidden', 
+                          textOverflow: 'ellipsis', 
+                          whiteSpace: 'nowrap',
+                          fontSize: '15px'
+                        }}>
+                          {room.otherUser?.name}
+                        </p>
+                      </div>
+                      <p className="small mb-0" style={{ 
+                        color: unreadCounts[room.roomId] > 0 ? '#000' : '#6c757d',
+                        fontWeight: unreadCounts[room.roomId] > 0 ? '500' : '400',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        fontSize: '13px'
+                      }}>
+                        {unreadCounts[room.roomId] > 0 ? (
+                          <span style={{ color: '#25D366', fontWeight: '600' }}>New message</span>
+                        ) : lastMessages[room.roomId] ? (
+                          lastMessages[room.roomId].message.length > 30 
+                            ? lastMessages[room.roomId].message.substring(0, 30) + '...'
+                            : lastMessages[room.roomId].message
+                        ) : (
+                          'No messages yet'
+                        )}
                       </p>
                     </div>
                   </div>
-                  <div className="pt-1">
-                    <p className="small text-muted mb-1">
-                      {new Date(room.updatedAt).toLocaleDateString()}
+                  <div className="pt-1 text-end" style={{ minWidth: '60px' }}>
+                    <p className="small text-muted mb-0" style={{ fontSize: '12px' }}>
+                      {lastMessages[room.roomId]?.timestamp 
+                        ? new Date(lastMessages[room.roomId].timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                        : new Date(room.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                      }
                     </p>
                   </div>
                 </a>
@@ -2239,53 +2487,174 @@ export default function App() {
           selectedUser={selectedUser}
         />
 
+        {/* Persistent Call Notification Bar (like WhatsApp) */}
+        {incomingCall && !showIncomingCallModal && !showVideoCallModal && incomingCall.status === 'ringing' && !callConnected && (
+          <div 
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              zIndex: 10000,
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              padding: '12px 20px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+              cursor: 'pointer',
+              animation: 'slideDown 0.3s ease-out'
+            }}
+            onClick={() => {
+              if (incomingCall.callType === 'video') {
+                setShowVideoCallModal(true);
+              } else {
+                setShowIncomingCallModal(true);
+              }
+              setIsCallModalManuallyClosed(false);
+            }}
+          >
+            <style>{`
+              @keyframes slideDown {
+                from {
+                  transform: translateY(-100%);
+                  opacity: 0;
+                }
+                to {
+                  transform: translateY(0);
+                  opacity: 1;
+                }
+              }
+              @keyframes pulse {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.6; }
+              }
+            `}</style>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
+              <div style={{ 
+                width: '40px', 
+                height: '40px', 
+                borderRadius: '50%', 
+                overflow: 'hidden',
+                background: 'rgba(255,255,255,0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                animation: 'pulse 2s infinite'
+              }}>
+                {incomingCall.callerId.mainAvatar ? (
+                  <img 
+                    src={`${BASE_URL}/assets/images/${incomingCall.callerId.mainAvatar}`}
+                    alt={incomingCall.callerId.name}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                ) : (
+                  <i className="fa fa-user" style={{ fontSize: '20px' }}></i>
+                )}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 'bold', fontSize: '16px' }}>
+                  {incomingCall.callerId.name}
+                </div>
+                <div style={{ fontSize: '12px', opacity: 0.9, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ animation: 'pulse 1.5s infinite' }}>📞</span>
+                  Incoming {incomingCall.callType === 'video' ? 'Video' : 'Voice'} Call
+                </div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (incomingCall.callType === 'video') {
+                    setShowVideoCallModal(true);
+                  } else {
+                    setShowIncomingCallModal(true);
+                  }
+                  setIsCallModalManuallyClosed(false);
+                }}
+                style={{
+                  background: 'rgba(255,255,255,0.3)',
+                  border: 'none',
+                  color: 'white',
+                  padding: '8px 16px',
+                  borderRadius: '20px',
+                  cursor: 'pointer',
+                  fontWeight: '500',
+                  fontSize: '14px',
+                  transition: 'background 0.2s'
+                }}
+                onMouseEnter={(e) => e.target.style.background = 'rgba(255,255,255,0.4)'}
+                onMouseLeave={(e) => e.target.style.background = 'rgba(255,255,255,0.3)'}
+              >
+                Open
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Incoming Call Modal (voice/video) */}
-        {incomingCall && (
-          incomingCall.callType === 'video' ? (
-            <VideoCallModal 
-              show={showIncomingCallModal} 
-              onHide={() => {
+        {incomingCall && incomingCall.callType === 'video' ? (
+          <VideoCallModal 
+            show={showVideoCallModal} 
+            onHide={() => {
+              if (incomingCall && incomingCall.status === 'ringing' && !callConnected) {
+                setShowVideoCallModal(false);
+                setIsCallModalManuallyClosed(true);
+              } else {
+                if (incomingCall) {
+                  const notificationKey = `call_notification_${incomingCall._id}`;
+                  sessionStorage.removeItem(notificationKey);
+                }
+                setShowVideoCallModal(false);
+                setIncomingCall(null);
+                setIsCallModalManuallyClosed(false);
+              }
+            }}
+            selectedUser={{
+              _id: incomingCall.callerId._id,
+              name: incomingCall.callerId.name,
+              avatar: `${BASE_URL}/assets/images/${incomingCall.callerId.mainAvatar}`
+            }}
+            currentUserId={user?._id || storedUserId}
+            selectedRoomId={incomingCall.roomId}
+            callId={incomingCall._id}
+            isIncomingCall={incomingCall.status === 'ringing'}
+            callerName={incomingCall.callerId.name}
+            initialCallConnected={callConnected || incomingCall.status === 'connected'}
+            initialCallStartTime={callStartTime || incomingCall.startTime}
+          />
+        ) : incomingCall && (
+          <IncomingCallModal 
+            show={showIncomingCallModal} 
+            onHide={() => {
+              if (incomingCall && incomingCall.status === 'ringing' && !callConnected) {
+                setShowIncomingCallModal(false);
+                setIsCallModalManuallyClosed(true);
+              } else {
                 if (incomingCall) {
                   const notificationKey = `call_notification_${incomingCall._id}`;
                   sessionStorage.removeItem(notificationKey);
                 }
                 setShowIncomingCallModal(false);
                 setIncomingCall(null);
-              }}
-              selectedUser={{
-                _id: incomingCall.callerId._id,
-                name: incomingCall.callerId.name,
-                avatar: `${BASE_URL}/assets/images/${incomingCall.callerId.mainAvatar}`
-              }}
-              currentUserId={user?._id || storedUserId}
-              selectedRoomId={incomingCall.roomId}
-              callId={incomingCall._id}
-              isIncomingCall={true}
-              callerName={incomingCall.callerId.name}
-            />
-          ) : (
-            <IncomingCallModal 
-              show={showIncomingCallModal} 
-              onHide={() => {
-                if (incomingCall) {
-                  const notificationKey = `call_notification_${incomingCall._id}`;
-                  sessionStorage.removeItem(notificationKey);
-                }
-                setShowIncomingCallModal(false);
-                setIncomingCall(null);
-              }}
-              selectedUser={{
-                _id: incomingCall.callerId._id,
-                name: incomingCall.callerId.name,
-                avatar: `${BASE_URL}/assets/images/${incomingCall.callerId.mainAvatar}`
-              }}
-              currentUserId={user?._id || storedUserId}
-              selectedRoomId={incomingCall.roomId}
-              callId={incomingCall._id}
-              isIncomingCall={true}
-              callerName={incomingCall.callerId.name}
-            />
-          )
+                setIsCallModalManuallyClosed(false);
+              }
+            }}
+            selectedUser={{
+              _id: incomingCall.callerId._id,
+              name: incomingCall.callerId.name,
+              avatar: `${BASE_URL}/assets/images/${incomingCall.callerId.mainAvatar}`
+            }}
+            currentUserId={user?._id || storedUserId}
+            selectedRoomId={incomingCall.roomId}
+            callId={incomingCall._id}
+            isIncomingCall={incomingCall.status === 'ringing'}
+            callerName={incomingCall.callerId.name}
+            initialCallConnected={callConnected || incomingCall.status === 'connected'}
+            initialCallStartTime={callStartTime || incomingCall.startTime}
+          />
         )}
 
         {/* Call History Modal */}
@@ -2308,9 +2677,64 @@ export default function App() {
                     'declined': '#dc3545',
                     'ringing': '#ffc107'
                   };
+                  const isActiveCall = call.status === 'connected';
 
                   return (
-                    <div key={call._id} className="d-flex align-items-center p-3 border-bottom">
+                    <div 
+                      key={call._id} 
+                      className={`d-flex align-items-center p-3 border-bottom ${isActiveCall ? 'cursor-pointer' : ''}`}
+                      style={{
+                        cursor: isActiveCall ? 'pointer' : 'default',
+                        backgroundColor: isActiveCall ? '#f8f9fa' : 'transparent',
+                        transition: 'background-color 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (isActiveCall) {
+                          e.currentTarget.style.backgroundColor = '#e9ecef';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (isActiveCall) {
+                          e.currentTarget.style.backgroundColor = '#f8f9fa';
+                        }
+                      }}
+                      onClick={() => {
+                        if (isActiveCall) {
+                          // Open call modal for active call
+                          setIncomingCall({
+                            _id: call._id,
+                            callerId: {
+                              _id: otherUser._id,
+                              name: otherUser.name,
+                              mainAvatar: otherUser.mainAvatar || null
+                            },
+                            calleeId: {
+                              _id: user?._id || storedUserId
+                            },
+                            status: 'connected',
+                            roomId: call.roomId,
+                            callType: call.callType,
+                            startTime: call.startTime
+                          });
+                          setCurrentCallId(call._id);
+                          setCallConnected(true);
+                          setCallInitiated(false);
+                          // Set call start time if available
+                          if (call.startTime) {
+                            setCallStartTime(new Date(call.startTime));
+                          }
+                          // Show appropriate modal based on call type
+                          if (call.callType === 'video') {
+                            setShowVideoCallModal(true);
+                            setShowIncomingCallModal(false);
+                          } else {
+                            setShowIncomingCallModal(true);
+                            setShowVideoCallModal(false);
+                          }
+                          setShowCallHistory(false); // Close call history modal
+                        }
+                      }}
+                    >
                       <img
                         src={`${BASE_URL}/assets/images/${otherUser.mainAvatar}`}
                         alt={otherUser.name}
@@ -2328,9 +2752,21 @@ export default function App() {
                       <div className="flex-grow-1">
                         <div className="d-flex justify-content-between align-items-center">
                           <div>
-                            <h6 className="mb-1">{otherUser.name}</h6>
+                            <h6 className="mb-1">
+                              {otherUser.name}
+                              {isActiveCall && (
+                                <span className="ms-2" style={{ fontSize: '12px', color: '#28a745' }}>
+                                  <i className="fa fa-circle" style={{ fontSize: '8px' }}></i> Active
+                                </span>
+                              )}
+                            </h6>
                             <small className="text-muted">
                               {isIncoming ? 'Incoming' : 'Outgoing'} • {call.callType} call
+                              {isActiveCall && (
+                                <span className="ms-2" style={{ color: '#28a745', fontWeight: '500' }}>
+                                  Tap to view call
+                                </span>
+                              )}
                             </small>
                           </div>
                           <div className="text-end">

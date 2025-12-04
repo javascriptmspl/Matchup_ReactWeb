@@ -3,6 +3,7 @@ import { Modal, Button } from 'react-bootstrap';
 import axios from 'axios';
 import { BASE_URL } from '../../../../base';
 import toast from 'react-hot-toast';
+import socketService from '../../../../services/SocketService';
 
 const IncomingCallModal = ({ 
     show, 
@@ -12,12 +13,14 @@ const IncomingCallModal = ({
     selectedRoomId, 
     callId, 
     isIncomingCall = false,
-    callerName = null 
+    callerName = null,
+    initialCallConnected = false,
+    initialCallStartTime = null
 }) => {
     const [isCalling, setIsCalling] = useState(false);
     const [callInitiated, setCallInitiated] = useState(false);
-    const [callConnected, setCallConnected] = useState(false);
-    const [callStartTime, setCallStartTime] = useState(null);
+    const [callConnected, setCallConnected] = useState(initialCallConnected);
+    const [callStartTime, setCallStartTime] = useState(initialCallStartTime ? new Date(initialCallStartTime) : null);
     const [callDuration, setCallDuration] = useState(0);
   
     const calleer=callId
@@ -26,6 +29,19 @@ const IncomingCallModal = ({
     const [localStream, setLocalStream] = useState(null);
     const [isMuted, setIsMuted] = useState(false);
     const [micPermission, setMicPermission] = useState('prompt');
+    
+    // Sync props with state when modal opens
+    useEffect(() => {
+        if (show) {
+            if (initialCallConnected) {
+                setCallConnected(true);
+            }
+            if (initialCallStartTime) {
+                setCallStartTime(new Date(initialCallStartTime));
+            }
+        }
+    }, [show, initialCallConnected, initialCallStartTime]);
+    
     useEffect(() => {
         let interval;
         if (callConnected && callStartTime) {
@@ -93,157 +109,180 @@ const IncomingCallModal = ({
         toast(next ? 'Muted' : 'Unmuted', { duration: 1200, position: 'top-center' });
     };
 
-    const handleAnswerCall = async () => {
-        if (!callId || !currentUserId) {
-            toast.error('Missing call information. Please try again.', {
-                duration: 3000,
-                position: 'top-center',
-                style: {
-                    background: '#dc3545',
-                    color: '#fff',
-                    fontWeight: '500',
-                },
-                icon: '❌',
-            });
-            return;
-        }
+const handleAnswerCall = () => {
+  if (!callId || !currentUserId) {
+      toast.error('Missing call information');
+      return;
+  }
+
+  setIsCalling(true);
+  socketService.answerCall(callId);  // socket emit call answer event
+  // Don't set callConnected here - wait for call_started event from server
+  // The call_started event handler will set callConnected and start the mic
+  toast.success("Answering call...", {
+    duration: 2000,
+    position: 'top-center'
+  });
+};
+
+    // const handleAnswerCall = async () => {
+    //     if (!callId || !currentUserId) {
+    //         toast.error('Missing call information. Please try again.', {
+    //             duration: 3000,
+    //             position: 'top-center',
+    //             style: {
+    //                 background: '#dc3545',
+    //                 color: '#fff',
+    //                 fontWeight: '500',
+    //             },
+    //             icon: '❌',
+    //         });
+    //         return;
+    //     }
     
-        setIsCalling(true);
+    //     setIsCalling(true);
     
-        try {
+    //     try {
    
-            const response = await axios.post(`${BASE_URL}/chat/calls/${callId}/answer`, {
-                userId: currentUserId
-            });
+    //         const response = await axios.post(`${BASE_URL}/chat/calls/${callId}/answer`, {
+    //             userId: currentUserId
+    //         });
 
-            const data = response.data;
+    //         const data = response.data;
 
-            if (data.isSuccess) {
-                // Notify backend of active call for caller so caller UI can switch to connected
-                try {
-                    const callerId = selectedUser?._id; // caller on incoming call modal
-                    if (callerId) {
-                        await axios.get(`${BASE_URL}/chat/calls/active?userId=${callerId}`);
-                    }
-                } catch (activeErr) {
-                    console.warn('Active calls fetch failed (non-blocking):', activeErr?.response?.data || activeErr.message);
-                }
-                // Show call accepted status
-                toast.success('Call Accepted! Voice call is now active.', {
-                    duration: 3000,
-                    position: 'top-center',
-                    style: {
-                        background: '#28a745',
-                        color: '#fff',
-                        fontWeight: '500',
-                    },
-                    icon: '✅',
-                });
+    //         if (data.isSuccess) {
+    //             // Notify backend of active call for caller so caller UI can switch to connected
+    //             try {
+    //                 const callerId = selectedUser?._id; // caller on incoming call modal
+    //                 if (callerId) {
+    //                     await axios.get(`${BASE_URL}/chat/calls/active?userId=${callerId}`);
+    //                 }
+    //             } catch (activeErr) {
+    //                 console.warn('Active calls fetch failed (non-blocking):', activeErr?.response?.data || activeErr.message);
+    //             }
+    //             // Show call accepted status
+    //             toast.success('Call Accepted! Voice call is now active.', {
+    //                 duration: 3000,
+    //                 position: 'top-center',
+    //                 style: {
+    //                     background: '#28a745',
+    //                     color: '#fff',
+    //                     fontWeight: '500',
+    //                 },
+    //                 icon: '✅',
+    //             });
     
-                // Update the call status for both caller and receiver
-                setCallConnected(true);
-                setCallStartTime(new Date());
-                setCallDuration(0);
-                // Start microphone capture on connect
-                startMic();
+    //             // Update the call status for both caller and receiver
+    //             setCallConnected(true);
+    //             setCallStartTime(new Date());
+    //             setCallDuration(0);
+    //             // Start microphone capture on connect
+    //             startMic();
     
-                // Show call continuation message
-                setTimeout(() => {
-                    toast('Call connected! Timer started.', {
-                        duration: 2000,
-                        position: 'top-center',
-                        style: {
-                            background: '#28a745',
-                            color: '#fff',
-                            fontWeight: '500',
-                        },
-                        icon: '✅',
-                    });
-                }, 1000);
+    //             // Show call continuation message
+    //             setTimeout(() => {
+    //                 toast('Call connected! Timer started.', {
+    //                     duration: 2000,
+    //                     position: 'top-center',
+    //                     style: {
+    //                         background: '#28a745',
+    //                         color: '#fff',
+    //                         fontWeight: '500',
+    //                     },
+    //                     icon: '✅',
+    //                 });
+    //             }, 1000);
     
-                // Keep modal open - don't close it automatically
-            } else {
-                throw new Error(data.message || 'Failed to answer call');
-            }
-        } catch (error) {
-            console.error('Error answering call:', error);
-            toast.error('Failed to answer call. Please try again.', {
-                duration: 3000,
-                position: 'top-center',
-                style: {
-                    background: '#dc3545',
-                    color: '#fff',
-                    fontWeight: '500',
-                },
-                icon: '❌',
-            });
-        } finally {
-            setIsCalling(false);
-        }
-    };
-    const handleDeclineCall = async () => {
+    //             // Keep modal open - don't close it automatically
+    //         } else {
+    //             throw new Error(data.message || 'Failed to answer call');
+    //         }
+    //     } catch (error) {
+    //         console.error('Error answering call:', error);
+    //         toast.error('Failed to answer call. Please try again.', {
+    //             duration: 3000,
+    //             position: 'top-center',
+    //             style: {
+    //                 background: '#dc3545',
+    //                 color: '#fff',
+    //                 fontWeight: '500',
+    //             },
+    //             icon: '❌',
+    //         });
+    //     } finally {
+    //         setIsCalling(false);
+    //     }
+    // };
+    // const handleDeclineCall = async () => {
         
-        if (!callId || !currentUserId) {
-            toast.error('Missing call information. Please try again.', {
-                duration: 3000,
-                position: 'top-center',
-                style: {
-                    background: '#dc3545',
-                    color: '#fff',
-                    fontWeight: '500',
-                },
-                icon: '❌',
-            });
-            return;
-        }
+    //     if (!callId || !currentUserId) {
+    //         toast.error('Missing call information. Please try again.', {
+    //             duration: 3000,
+    //             position: 'top-center',
+    //             style: {
+    //                 background: '#dc3545',
+    //                 color: '#fff',
+    //                 fontWeight: '500',
+    //             },
+    //             icon: '❌',
+    //         });
+    //         return;
+    //     }
 
-        setIsCalling(true);
+    //     setIsCalling(true);
 
-        try {
-            // API call according to Swagger: POST /chat/calls/{callId}/decline
-            const response = await axios.post(`${BASE_URL}/chat/calls/${callId}/decline`, {
-                userId: currentUserId
-            });
+    //     try {
+    //         // API call according to Swagger: POST /chat/calls/{callId}/decline
+    //         const response = await axios.post(`${BASE_URL}/chat/calls/${callId}/decline`, {
+    //             userId: currentUserId
+    //         });
 
-            const data = response.data;
+    //         const data = response.data;
 
-            if (data.isSuccess) {
-                // Show declined message
-                toast('Call declined successfully', {
-                    duration: 2000,
-                    position: 'top-center',
-                    style: {
-                        background: '#ffc107',
-                        color: '#000',
-                        fontWeight: '500',
-                    },
-                    icon: '📵',
-                });
+    //         if (data.isSuccess) {
+    //             // Show declined message
+    //             toast('Call declined successfully', {
+    //                 duration: 2000,
+    //                 position: 'top-center',
+    //                 style: {
+    //                     background: '#ffc107',
+    //                     color: '#000',
+    //                     fontWeight: '500',
+    //                 },
+    //                 icon: '📵',
+    //             });
                 
-                setCallConnected(false);
-                setCallInitiated(false);
-                setIsCalling(false);
-                onHide();
-            } else {
-                console.error('Decline API failed:', data.message);
-                throw new Error(data.message || 'Failed to decline call');
-            }
-        } catch (error) {
-            console.error('Error declining call:', error);
-            toast.error('Failed to decline call. Please try again.', {
-                duration: 3000,
-                position: 'top-center',
-                style: {
-                    background: '#dc3545',
-                    color: '#fff',
-                    fontWeight: '500',
-                },
-                icon: '❌',
-            });
-        } finally {
-            setIsCalling(false);
-        }
-    };
+    //             setCallConnected(false);
+    //             setCallInitiated(false);
+    //             setIsCalling(false);
+    //             onHide();
+    //         } else {
+    //             console.error('Decline API failed:', data.message);
+    //             throw new Error(data.message || 'Failed to decline call');
+    //         }
+    //     } catch (error) {
+    //         console.error('Error declining call:', error);
+    //         toast.error('Failed to decline call. Please try again.', {
+    //             duration: 3000,
+    //             position: 'top-center',
+    //             style: {
+    //                 background: '#dc3545',
+    //                 color: '#fff',
+    //                 fontWeight: '500',
+    //             },
+    //             icon: '❌',
+    //         });
+    //     } finally {
+    //         setIsCalling(false);
+    //     }
+    // };
+
+
+    const handleDeclineCall = () => {
+  socketService.declineCall(callId);
+  toast("Call Declined");
+  onHide();
+};
 
     const handleCancelCall = () => {
         setCallInitiated(false);
@@ -252,36 +291,45 @@ const IncomingCallModal = ({
         onHide();
     };
 
-    const handleEndCall = async () => {
-        try {
-            if (!callId) {
-                toast.error('Missing call id. Cannot end call.', { duration: 2000, position: 'top-center' });
-            } else {
-                const payload = {
-                    userId: currentUserId,
-                    reason: 'user-ended'
-                };
-                const idToEnd = currentCallId || callId;
-                const res = await axios.post(`${BASE_URL}/chat/calls/${idToEnd}/end`, payload);
-                if (res?.data?.isSuccess) {
-                    toast.success(res?.data?.message || 'Call ended successfully', { duration: 2000, position: 'top-center' });
-                } else {
-                    toast.error(res?.data?.message || 'Failed to end call', { duration: 2000, position: 'top-center' });
-                }
-            }
-        } catch (err) {
-            console.error('Error ending call:', err);
-            toast.error('End call failed. Please try again.', { duration: 2000, position: 'top-center' });
-        } finally {
-            setCallConnected(false);
-            setCallInitiated(false);
-            setIsCalling(false);
-            setCallStartTime(null);
-            setCallDuration(0);
-            stopMic();
-            onHide();
-        }
-    };
+
+    const handleEndCall = () => {
+  socketService.endCall(callId, "user-ended");
+  setCallConnected(false);
+  setCallInitiated(false);
+  stopMic();
+  onHide();
+};
+
+    // const handleEndCall = async () => {
+    //     try {
+    //         if (!callId) {
+    //             toast.error('Missing call id. Cannot end call.', { duration: 2000, position: 'top-center' });
+    //         } else {
+    //             const payload = {
+    //                 userId: currentUserId,
+    //                 reason: 'user-ended'
+    //             };
+    //             const idToEnd = currentCallId || callId;
+    //             const res = await axios.post(`${BASE_URL}/chat/calls/${idToEnd}/end`, payload);
+    //             if (res?.data?.isSuccess) {
+    //                 toast.success(res?.data?.message || 'Call ended successfully', { duration: 2000, position: 'top-center' });
+    //             } else {
+    //                 toast.error(res?.data?.message || 'Failed to end call', { duration: 2000, position: 'top-center' });
+    //             }
+    //         }
+    //     } catch (err) {
+    //         console.error('Error ending call:', err);
+    //         toast.error('End call failed. Please try again.', { duration: 2000, position: 'top-center' });
+    //     } finally {
+    //         setCallConnected(false);
+    //         setCallInitiated(false);
+    //         setIsCalling(false);
+    //         setCallStartTime(null);
+    //         setCallDuration(0);
+    //         stopMic();
+    //         onHide();
+    //     }
+    // };
 
     const handleStartVoiceCall = async () => {
         if (!selectedUser || !currentUserId || !selectedRoomId) {
@@ -300,56 +348,185 @@ const IncomingCallModal = ({
 
         setIsCalling(true);
 
-        try {
-            // API call according to Swagger: POST /chat/calls/initiate
-            const response = await axios.post(`${BASE_URL}/chat/calls/initiate`, {
-                userId: currentUserId,
-                calleeId: selectedUser._id,
-                roomId: selectedRoomId,
-                callType: 'audio'
-            });
+        
+    try {
+        // SOCKET EMIT CALL
+        socketService.initiateCall(selectedUser._id, selectedRoomId, 'audio');
 
-            const data = response.data;
+        setCallInitiated(true);
+        toast.success('Calling...', {
+            duration: 2000,
+            position: 'top-center'
+        });
 
-            if (data.isSuccess) {
-                toast.success('Voice call initiated successfully!', {
-                    duration: 2000,
-                    position: 'top-center',
-                    style: {
-                        background: '#28a745',
-                        color: '#fff',
-                        fontWeight: '500',
-                    },
-                    icon: '📞',
-                });
+        startMic(); // mic start
+    } catch (error) {
+        console.error('Error starting voice call:', error);
+        toast.error('Call failed. Please try again.');
+    } finally {
+        setIsCalling(false);
+    }
 
-                // Set call as initiated to show "Calling..." state
-                setCallInitiated(true);
-                const newCallId = response?.data?.data?.call?._id || response?.data?.data?._id || response?.data?.data?.id;
-                if (newCallId) { setCurrentCallId(newCallId); }
-                setIsCalling(false);
-                // Optionally start mic immediately on outgoing call
-                startMic();
-            } else {
-                throw new Error(data.message || 'Failed to initiate call');
-            }
-        } catch (error) {
-            console.error('Error initiating call:', error);
-            toast.error('Failed to start voice call. Please try again.', {
-                duration: 3000,
-                position: 'top-center',
-                style: {
-                    background: '#dc3545',
-                    color: '#fff',
-                    fontWeight: '500',
-                },
-                icon: '❌',
-            });
-        } finally {
-            setIsCalling(false);
-        }
+        // try {
+        //     // API call according to Swagger: POST /chat/calls/initiate
+        //     const response = await axios.post(`${BASE_URL}/chat/calls/initiate`, {
+        //         userId: currentUserId,
+        //         calleeId: selectedUser._id,
+        //         roomId: selectedRoomId,
+        //         callType: 'audio'
+        //     });
+
+        //     const data = response.data;
+
+        //     if (data.isSuccess) {
+        //         toast.success('Voice call initiated successfully!', {
+        //             duration: 2000,
+        //             position: 'top-center',
+        //             style: {
+        //                 background: '#28a745',
+        //                 color: '#fff',
+        //                 fontWeight: '500',
+        //             },
+        //             icon: '📞',
+        //         });
+
+        //         // Set call as initiated to show "Calling..." state
+        //         setCallInitiated(true);
+        //         const newCallId = response?.data?.data?.call?._id || response?.data?.data?._id || response?.data?.data?.id;
+        //         if (newCallId) { setCurrentCallId(newCallId); }
+        //         setIsCalling(false);
+        //         // Optionally start mic immediately on outgoing call
+        //         startMic();
+        //     } else {
+        //         throw new Error(data.message || 'Failed to initiate call');
+        //     }
+        // } catch (error) {
+        //     console.error('Error initiating call:', error);
+        //     toast.error('Failed to start voice call. Please try again.', {
+        //         duration: 3000,
+        //         position: 'top-center',
+        //         style: {
+        //             background: '#dc3545',
+        //             color: '#fff',
+        //             fontWeight: '500',
+        //         },
+        //         icon: '❌',
+        //     });
+        // } finally {
+        //     setIsCalling(false);
+        // }
     };
+useEffect(() => {
+  const handleCallStarted = (data) => {
+    console.log("📞 CALL_STARTED event: ", data);
 
+    // Update call state for both caller and callee
+    setCallConnected(true);
+    setCallInitiated(false);
+    setIsCalling(false);
+    
+    // Only update call start time if not already set
+    setCallStartTime(prevTime => prevTime || new Date());
+    
+    // Start microphone if not already started
+    if (!localStream) {
+      startMic();
+    }
+    
+    toast.success("Call connected!", {
+      duration: 2000,
+      position: 'top-center'
+    });
+    
+    console.log("Call connected - UI should update with call controls");
+  };
+
+  const handleCallError = (data) => {
+    console.error("📞 CALL_ERROR event: ", data);
+    const errorMessage = data?.message || 'Call error occurred';
+    
+    // If error is "Call already in progress", clear the call state
+    if (errorMessage.includes('already in progress') || errorMessage.includes('Call already in progress')) {
+      toast.error('Another call is already in progress. Please end the current call first.', {
+        duration: 4000,
+        position: 'top-center',
+        style: {
+          background: '#dc3545',
+          color: '#fff',
+          fontWeight: '500',
+        },
+        icon: '⚠️',
+      });
+      // Clear call state
+      setCallConnected(false);
+      setCallInitiated(false);
+      setIsCalling(false);
+      stopMic();
+      onHide();
+    } else {
+      toast.error(errorMessage, {
+        duration: 3000,
+        position: 'top-center',
+        style: {
+          background: '#dc3545',
+          color: '#fff',
+          fontWeight: '500',
+        },
+        icon: '❌',
+      });
+      setCallInitiated(false);
+      setIsCalling(false);
+    }
+  };
+
+  const handleCallEnded = (data) => {
+    console.log("📞 CALL_ENDED event: ", data);
+    setCallConnected(false);
+    setCallInitiated(false);
+    setIsCalling(false);
+    stopMic();
+    onHide();
+  };
+
+  const handleCallDeclined = (data) => {
+    console.log("📞 CALL_DECLINED event: ", data);
+    setCallInitiated(false);
+    setIsCalling(false);
+    stopMic();
+    onHide();
+  };
+
+  // Listen for call events
+  socketService.on("call_started", handleCallStarted);
+  socketService.on("call_error", handleCallError);
+  socketService.on("call_ended", handleCallEnded);
+  socketService.on("call_declined", handleCallDeclined);
+  
+  // Also check if we already have an active call when component mounts
+  const checkActiveCall = async () => {
+    try {
+      const response = await axios.get(`${BASE_URL}/chat/calls/active?userId=${currentUserId}`);
+      const activeCall = response.data;
+      if (activeCall && activeCall.status === 'connected') {
+        handleCallStarted({
+          callSessionId: activeCall.callSessionId,
+          ...activeCall
+        });
+      }
+    } catch (error) {
+      console.error('Error checking active call:', error);
+    }
+  };
+  
+  checkActiveCall();
+
+  return () => {
+    socketService.off("call_started", handleCallStarted);
+    socketService.off("call_error", handleCallError);
+    socketService.off("call_ended", handleCallEnded);
+    socketService.off("call_declined", handleCallDeclined);
+  };
+}, [callId, currentUserId]);
     const handleClose = () => {
         stopMic();
         onHide();
@@ -408,7 +585,8 @@ const IncomingCallModal = ({
            
 
 <Modal.Footer className="justify-content-center">
-    {isIncomingCall && callConnected ? (
+    {callConnected ? (
+        // Show call controls when call is connected (for both caller and callee)
         <>
             <Button 
                 variant="danger" 
@@ -419,7 +597,7 @@ const IncomingCallModal = ({
                     fontWeight: '500'
                 }}
             >
-                 End Call
+                End Call
             </Button>
             <Button 
                 variant="outline-secondary"
@@ -435,6 +613,7 @@ const IncomingCallModal = ({
             </Button>
         </>
     ) : isIncomingCall ? (
+        // Show answer/decline buttons for incoming call
         <>
             <Button 
                 variant="success" 
@@ -451,58 +630,20 @@ const IncomingCallModal = ({
                         <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                         Answering...
                     </>
-                ) : (
-                    <>
-                         Answer Call
-                    </>
-                )}
+                ) : 'Answer Call'}
             </Button>
             <Button 
                 variant="danger" 
                 onClick={handleDeclineCall}
                 disabled={isCalling}
-                style={{
-                    padding: '10px 30px',
-                    borderRadius: '25px',
-                    fontWeight: '500'
-                }}
-            >
-                {isCalling ? (
-                    <>
-                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                        Declining...
-                    </>
-                ) : (
-                    <>
-                         Decline
-                    </>
-                )}
-            </Button>
-        </>
-    ) : (callConnected || (callInitiated && callConnected)) ? (
-        <>
-            <Button 
-                variant="danger" 
-                onClick={handleEndCall}
-                style={{
-                    padding: '10px 30px',
-                    borderRadius: '25px',
-                    fontWeight: '500'
-                }}
-            >
-                 End Call
-            </Button>
-            <Button 
-                variant="outline-secondary"
-                onClick={toggleMute}
-                style={{
-                    padding: '10px 30px',
-                    borderRadius: '25px',
-                    fontWeight: '500'
-                }}
                 className="ms-2"
+                style={{
+                    padding: '10px 30px',
+                    borderRadius: '25px',
+                    fontWeight: '500'
+                }}
             >
-                {isMuted ? 'Unmute' : 'Mute'}
+                {isCalling ? 'Declining...' : 'Decline'}
             </Button>
         </>
     ) : callInitiated ? (
