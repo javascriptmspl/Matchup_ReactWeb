@@ -51,7 +51,6 @@ const Aboutdetail = () => {
     setUserData(newUserData);
     setEditMode(false);
   };
-
   const handleActiveTab = (tab) => {
     setActiveTab(tab);
     setEditMode(true);

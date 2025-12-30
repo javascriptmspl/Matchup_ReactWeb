@@ -117,7 +117,6 @@ class SocketService {
     });
 
     this.socket.on('room_deleted', (data) => {
-      console.log('📩 room_deleted:', data);
       if (this.currentRoom === data.roomId) {
         this.currentRoom = null;
       }
@@ -128,35 +127,30 @@ class SocketService {
 
     // Message events
     this.socket.on('new_message', (data) => {
-      console.log('📩 new_message:', data);
       if (this.callbacks.onNewMessage) {
         this.callbacks.onNewMessage(data.message, data.roomId);
       }
     });
 
     this.socket.on('message_edited', (data) => {
-      console.log('📩 message_edited:', data);
       if (this.callbacks.onMessageEdited) {
         this.callbacks.onMessageEdited(data.message, data.roomId);
       }
     });
 
     this.socket.on('message_deleted', (data) => {
-      console.log('📩 message_deleted:', data);
       if (this.callbacks.onMessageDeleted) {
         this.callbacks.onMessageDeleted(data.messageId, data.roomId);
       }
     });
 
     this.socket.on('message_replied', (data) => {
-      console.log('📩 message_replied:', data);
       if (this.callbacks.onMessageReplied) {
         this.callbacks.onMessageReplied(data.message, data.roomId);
       }
     });
 
     this.socket.on('chat_history', (data) => {
-      console.log('📩 chat_history:', data);
       if (this.callbacks.onChatHistory) {
         this.callbacks.onChatHistory(data);
       }
@@ -164,14 +158,12 @@ class SocketService {
 
     // Typing events
     this.socket.on('user_typing', (data) => {
-      console.log('📩 user_typing:', data);
       if (this.callbacks.onUserTyping) {
         this.callbacks.onUserTyping(data);
       }
     });
 
     this.socket.on('user_stopped_typing', (data) => {
-      console.log('📩 user_stopped_typing:', data);
       if (this.callbacks.onUserStoppedTyping) {
         this.callbacks.onUserStoppedTyping(data);
       }
@@ -179,49 +171,42 @@ class SocketService {
 
     // Friend request events
     this.socket.on('friend_request_sent', (data) => {
-      console.log('📩 friend_request_sent:', data);
       if (this.callbacks.onFriendRequestSent) {
         this.callbacks.onFriendRequestSent(data);
       }
     });
 
     this.socket.on('friend_request_received', (data) => {
-      console.log('📩 friend_request_received:', data);
       if (this.callbacks.onFriendRequestReceived) {
         this.callbacks.onFriendRequestReceived(data);
       }
     });
 
     this.socket.on('friend_request_accepted', (data) => {
-      console.log('📩 friend_request_accepted:', data);
       if (this.callbacks.onFriendRequestAccepted) {
         this.callbacks.onFriendRequestAccepted(data);
       }
     });
 
     this.socket.on('friend_request_rejected', (data) => {
-      console.log('📩 friend_request_rejected:', data);
       if (this.callbacks.onFriendRequestRejected) {
         this.callbacks.onFriendRequestRejected(data);
       }
     });
 
     this.socket.on('friends_list', (data) => {
-      console.log('📩 friends_list:', data);
       if (this.callbacks.onFriendsList) {
         this.callbacks.onFriendsList(data);
       }
     });
 
     this.socket.on('pending_friend_requests', (data) => {
-      console.log('📩 pending_friend_requests:', data);
       if (this.callbacks.onPendingFriendRequests) {
         this.callbacks.onPendingFriendRequests(data);
       }
     });
 
     this.socket.on('friend_removed', (data) => {
-      console.log('📩 friend_removed:', data);
       if (this.callbacks.onFriendRemoved) {
         this.callbacks.onFriendRemoved(data);
       }
@@ -229,84 +214,72 @@ class SocketService {
 
     // Call events
     this.socket.on('call_initiated', (data) => {
-      console.log('📩 call_initiated:', data);
       if (this.callbacks.onCallInitiated) {
         this.callbacks.onCallInitiated(data);
       }
     });
 
     this.socket.on('incoming_call', (data) => {
-      console.log('📩 incoming_call:', data);
       if (this.callbacks.onIncomingCall) {
         this.callbacks.onIncomingCall(data);
       }
     });
 
     this.socket.on('call_answered', (data) => {
-      console.log('📩 call_answered:', data);
       if (this.callbacks.onCallAnswered) {
         this.callbacks.onCallAnswered(data);
       }
     });
 
     this.socket.on('call_started', (data) => {
-      console.log('📩 call_started:', data);
       if (this.callbacks.onCallStarted) {
         this.callbacks.onCallStarted(data);
       }
     });
 
     this.socket.on('call_declined', (data) => {
-      console.log('📩 call_declined:', data);
       if (this.callbacks.onCallDeclined) {
         this.callbacks.onCallDeclined(data);
       }
     });
 
     this.socket.on('call_ended', (data) => {
-      console.log('📩 call_ended:', data);
       if (this.callbacks.onCallEnded) {
         this.callbacks.onCallEnded(data);
       }
     });
 
     this.socket.on('webrtc_offer', (data) => {
-      console.log('📩 webrtc_offer:', data);
       if (this.callbacks.onWebRTCOffer) {
         this.callbacks.onWebRTCOffer(data);
       }
     });
 
     this.socket.on('webrtc_answer', (data) => {
-      console.log('📩 webrtc_answer:', data);
       if (this.callbacks.onWebRTCAnswer) {
         this.callbacks.onWebRTCAnswer(data);
       }
     });
 
     this.socket.on('webrtc_ice_candidate', (data) => {
-      console.log('📩 webrtc_ice_candidate:', data);
       if (this.callbacks.onWebRTCIceCandidate) {
         this.callbacks.onWebRTCIceCandidate(data);
       }
     });
 
     this.socket.on('active_calls', (data) => {
-      console.log('📩 active_calls:', data);
       if (this.callbacks.onActiveCalls) {
         this.callbacks.onActiveCalls(data);
       }
     });
 
     this.socket.on('call_statistics', (data) => {
-      console.log('📩 call_statistics:', data);
       if (this.callbacks.onCallStatistics) {
         this.callbacks.onCallStatistics(data);
       }
     });
 
     this.socket.on('call_history', (data) => {
-      console.log('📩 call_history:', data);
       if (this.callbacks.onCallHistory) {
         this.callbacks.onCallHistory(data);
       }
@@ -329,8 +302,7 @@ class SocketService {
 
     // Log all events for debugging
     this.socket.onAny((event, data) => {
-      console.log('📩 EVENT: ' + event);
-      console.log(JSON.stringify(data, null, 2));
+      
     });
   }
 
@@ -440,7 +412,6 @@ class SocketService {
       page,
       limit
     });
-    console.log("✅ Chat history fetched successfully");
   }
 
   // Typing methods

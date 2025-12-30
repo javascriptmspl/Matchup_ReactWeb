@@ -207,7 +207,7 @@ const SuperLikes = matchUserList
                           </div>
                           <div className="member__content">
                             <Link
-                              to={`/metrimonial/user-profile/${val?.receiverUserId?._id}`}
+                              to={`/dating/user-profile/${val?.receiverUserId?._id}`}
                             >
                               <h5>{val?.receiverUserId?.name}</h5>
                             </Link>
@@ -233,7 +233,7 @@ const SuperLikes = matchUserList
                             <div className="col ">
                               <Link
                                 className="fs-3 ms-4"
-                                to={`/metrimonial/user-profile/${val?.receiverUserId?._id}`}
+                                to={`/dating/user-profile/${val?.receiverUserId?._id}`}
                               >
                                 <i
                                   class="fa fa-user"
@@ -243,18 +243,7 @@ const SuperLikes = matchUserList
                               </Link>
                             </div>
  
-                            {/* <div className="col">
-                              <Link
-                                className="fs-3 ms-3"
-                                to="/dating/chat-page2"
-                              >
-                                <i
-                                  class="fa fa-comment"
-                                  aria-hidden="true"
-                                  title="Meassage"
-                                ></i>
-                              </Link>
-                            </div> */}
+                           
                             
                       <div className="col">
                         <button 
@@ -350,7 +339,7 @@ const SuperLikes = matchUserList
                       <div className="col ">
                         <Link
                           className="fs-3 ms-4"
-                          to={`/metrimonial/user-profile/${val?.receiverUserId?._id}`}
+                          to={`/dating/user-profile/${val?.receiverUserId?._id}`}
                         >
                           <i
                             class="fa fa-user"

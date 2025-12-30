@@ -40,7 +40,7 @@ import { ModalProvider } from "../component/popUps/ModalContext";
 import ContactDetail from "../pagesDating/ContactDetail";
 import Aboutdetail from "../pagesDating/Aboutdetails";
 import Safetysecurity from "../pagesDating/Safety-Security";
-import Quickstartguide from "../pagesDating/ Quick-Start-Guide";
+import Quickstartguide from "../pagesDating/Quick-Start-Guide";
 import Events from "../pagesDating/Events";
 import ProtectedRoutes from "./protectedRoutes";
 import HomePage from "../pagesDating/home";

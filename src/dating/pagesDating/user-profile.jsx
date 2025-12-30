@@ -914,27 +914,26 @@ const [mildStone, setMildStone] = useState(false);
 
                             <div className="">
                               <div className="">
-                                {USER_PROFILE?.interest[0] ? (
+                                {Array.isArray(USER_PROFILE?.interest) && USER_PROFILE.interest.length > 0 ? (
                                   <div className="">
                                     <div className="row">
-                                      {USER_PROFILE?.interest &&
-                                        USER_PROFILE?.interest.map(
-                                          (item, i) => (
-                                            <div
-                                              key={i}
-                                              style={{
-                                                margin: "10px auto",
-                                                background: "#f24570",
-                                                color: "#fff",
-                                                padding: "5px 12px",
-                                                borderRadius: "25px",
-                                              }}
-                                              className={`interest-item col-auto text-center  flex-nowrap `}
-                                            >
-                                              {item?.name}
-                                            </div>
-                                          )
-                                        )}
+                                      {USER_PROFILE.interest.map(
+                                        (item, i) => (
+                                          <div
+                                            key={i}
+                                            style={{
+                                              margin: "10px auto",
+                                              background: "#f24570",
+                                              color: "#fff",
+                                              padding: "5px 12px",
+                                              borderRadius: "25px",
+                                            }}
+                                            className={`interest-item col-auto text-center  flex-nowrap `}
+                                          >
+                                            {item?.name}
+                                          </div>
+                                        )
+                                      )}
                                     </div>
                                   </div>
                                 ) : (

@@ -64,7 +64,7 @@ export default function App() {
   const [showClock, setShowClock] = useState(false);
   const [Milestone, setMilestone] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null)
-  console.log("selectedjjjjjjjjjjj",selectedUser)
+  
   const [isMobileView, setIsMobileView] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredItems, setFilteredItems] = useState([]);
@@ -74,8 +74,7 @@ export default function App() {
   const [roomMessages, setRoomMessages] = useState([]);
   const [unreadCounts, setUnreadCounts] = useState({}); // { roomId: count }
   const [lastMessages, setLastMessages] = useState({}); // { roomId: { message, timestamp, isRead } }
-  console.log("lastMessages",lastMessages)
-  console.log("rooooooooooooommm",roomMessages)
+  
   // Store messages per room to persist them when switching
   const [messagesByRoom, setMessagesByRoom] = useState({});
   const [loadingMessages, setLoadingMessages] = useState(false);
@@ -168,7 +167,7 @@ export default function App() {
 
 
   const user = useSelector((state) => state.profile.userData)
-  console.log("uuuuuuuuuuuuuuuuuuuuu",user)
+ 
   const userPic = user?.avatars?.length - 1
   const blockedUsers = useSelector((state) => state.block.blockedUsers)
 
@@ -202,19 +201,19 @@ export default function App() {
     getCallHistory: socketGetCallHistory
   } = useSocket(userId, {
     onRoomsList: (rooms) => {
-      console.log('Received rooms list:', rooms);
+    
       setChatRooms(rooms || []);
     
     },
     onChatHistory: (data) => {
-      console.log('Received chat history:', data);
+      
       const currentSelectedRoomId = selectedRoomIdRef.current;
-      console.log("currectnt rroom select id ",currentSelectedRoomId)
+ 
       if (!currentSelectedRoomId) return;
       const messages = Array.isArray(data) ? data : (data?.messages || []);
 
       // const messages = Array.isArray(data) ? data : (data?.items || []);
-      console.log("messagessssssss1",messages)
+     
       if (messages?.length > 0) {
         const transformedMessages = messages.map((msg, index) => {
           const base = msg.content || msg.message || '';
@@ -263,7 +262,6 @@ export default function App() {
           }));
         }
         
-        console.table("tttrraaaa",transformedMessages)
         // Only update current room messages if this is the selected room
         if (currentSelectedRoomId === selectedRoomIdRef.current) {
           // Merge with existing messages to avoid losing newly sent messages
@@ -292,7 +290,7 @@ export default function App() {
       setLoadingMessages(false);
     },
     onNewMessage: (message, roomId) => {
-      console.log('New message received:', message, roomId, 'Current selectedRoomId:', selectedRoomIdRef.current);
+    
       // Use ref to get the latest selectedRoomId value
       const currentSelectedRoomId = selectedRoomIdRef.current;
       
@@ -309,7 +307,7 @@ export default function App() {
         fileUrl: message.fileUrl || message.file || (message.attachment ? `${BASE_URL}/${message.attachment}` : null),
         senderId: message.msgFrom || message.senderId,
       };
-      console.log('transformedMessage:', transformedMessage);
+    
       
       // Update last message for this room
       if (roomId) {
@@ -353,7 +351,7 @@ export default function App() {
       if (roomId && currentSelectedRoomId && roomId === currentSelectedRoomId) {
         setRoomMessages(prevMessages => {
           const messageExists = prevMessages.some(msg => (msg.id || msg._id) === (transformedMessage.id || transformedMessage._id));
-          console.log('Message exists:', messageExists);
+       
           if (messageExists) {
             return prevMessages;
           }
@@ -365,7 +363,7 @@ export default function App() {
       }
     },
     onMessageEdited: (message, roomId) => {
-      console.log('Message edited:', message, roomId);
+      
       const currentSelectedRoomId = selectedRoomIdRef.current;
       
       // Update in messagesByRoom cache
@@ -395,7 +393,7 @@ export default function App() {
       }
     },
     onMessageDeleted: (messageId, roomId) => {
-      console.log('Message deleted:', messageId, roomId);
+      
       const currentSelectedRoomId = selectedRoomIdRef.current;
       
       // Update in messagesByRoom cache
@@ -417,7 +415,7 @@ export default function App() {
       }
     },
     onRoomCreated: (data) => {
-      console.log('Room created:', data);
+    
       getMyRooms();
     },
     onUserTyping: (data) => {
@@ -456,7 +454,7 @@ export default function App() {
       }
     },
     onCallHistory: (data) => {
-      console.log('Received call history:', data);
+      
       // Handle different response formats
       const calls = Array.isArray(data) ? data : (data?.calls || data?.items || []);
       if (calls?.length > 0) {
@@ -466,7 +464,7 @@ export default function App() {
       }
     },
     onIncomingCall: (data) => {
-      console.log('Incoming call received via socket:', data);
+     
       // Handle real-time incoming call - ONLY show modal for actual incoming calls
       // Check if this is for the current user (calleeId can be string or object)
       const calleeId = typeof data.calleeId === 'object' ? data.calleeId._id : data.calleeId;
@@ -474,7 +472,6 @@ export default function App() {
       const calleeIdStr = String(calleeId);
       
       if (calleeId && calleeIdStr !== currentUserIdStr) {
-        console.log('Incoming call is not for current user, ignoring', { calleeId: calleeIdStr, userId: currentUserIdStr });
         return;
       }
 
@@ -533,7 +530,6 @@ export default function App() {
       setIsCallModalManuallyClosed(false); // Reset when new call comes
     },
      onCallStarted: (data) => {
-      console.log("📞 Call started event from server: ", data);
 
       // Update current call ID if not set
       if (!currentCallId && data.callSessionId) {
@@ -565,11 +561,9 @@ export default function App() {
         startMic();
       }
       
-      console.log("Call connected - UI should update with call controls");
     },
 
   onCallEnded: (data) => {
-    console.log("Call ended: ", data);
     // Clear all call-related state
     setCallConnected(false);
     setCallInitiated(false);
@@ -586,7 +580,6 @@ export default function App() {
     }
   },
   onCallDeclined: (data) => {
-    console.log("Call declined: ", data);
     // Clear call state when call is declined
     setCallConnected(false);
     setCallInitiated(false);
@@ -873,7 +866,6 @@ export default function App() {
     // Get chat history with pagination
     getChatHistory(roomId, page, limit);
     
-    console.log(`✅ Fetching page ${page} of messages for room ${roomId}`);
   } catch (error) {
     console.error("Error fetching room messages:", error);
     setLoadingMessages(false);
@@ -1244,7 +1236,6 @@ export default function App() {
 
       if (response?.isSuccess) {
         const newBalance = response.data.remainingCoins || (userCoins - giftItem.coinCost);
-        console.log(`Updating coin balance: ${userCoins} - ${giftItem.coinCost} = ${newBalance}`);
           setUpdatingCoins(true);
           setUserCoins(newBalance);
         
@@ -1257,7 +1248,6 @@ export default function App() {
             userData.coins = newBalance;
           }
           localStorage.setItem('userData', JSON.stringify(userData));
-          console.log('Updated localStorage with new coin balance:', newBalance);
         } catch (error) {
           console.error('Error updating localStorage:', error);
         }
@@ -1362,7 +1352,6 @@ export default function App() {
   // Refresh coins when user data changes
   useEffect(() => {
     if (user?._id || storedUserId) {
-      console.log("User data changed, refreshing coins");
       setTimeout(() => {
         fetchUserCoins();
       }, 500);
@@ -1786,7 +1775,7 @@ export default function App() {
                   ) : (
                     <>
                       {roomMessages.map((message) => {
-                        console.log("msgggggggg",message)
+                       
                         return (
                           <div
                             key={message.id}

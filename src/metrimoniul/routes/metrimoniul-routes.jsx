@@ -56,7 +56,7 @@ const Safetysecurity = lazy(() =>
   import("../pagesMetrimoniul/Safety-Security")
 );
 const Quickstartguide = lazy(() =>
-  import("../pagesMetrimoniul/ Quick-Start-Guide")
+  import("../pagesMetrimoniul/Quick-Start-Guide")
 );
 const Settings = lazy(() => import("../pagesMetrimoniul/setting-page"));
 const HelpAndSuport = lazy(() => import("../pagesMetrimoniul/help-support"));
